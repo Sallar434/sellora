@@ -1,0 +1,948 @@
+// Dev default: SQLite. `npm run db:pg` rewrites provider to postgresql for production.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  phone         String?
+  name          String?
+  passwordHash  String
+  type          String         @default("SELLER") // ADMIN | SELLER | BUYER
+  emailVerified Boolean        @default(false)
+  phoneVerified Boolean        @default(false)
+  totpSecret    String?
+  totpEnabled   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  target    String
+  purpose   String
+  codeHash  String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Store {
+  id             String       @id @default(cuid())
+  name           String
+  handle         String       @unique
+  ownerId        String
+  currency       String       @default("USD")
+  address        Json?
+  settings       Json? // general, policies, checkout, notifications
+  plan           String       @default("basic")
+  feeBps         Int          @default(250)
+  publishableKey String       @unique
+  secretKey      String       @unique
+  createdAt      DateTime     @default(now())
+  memberships    Membership[]
+  products       Product[]
+  orders         Order[]
+}
+
+model Membership {
+  id          String @id @default(cuid())
+  userId      String
+  storeId     String
+  role        String @default("owner")
+  permissions Json?
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store       Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storeId])
+}
+
+model Domain {
+  id       String  @id @default(cuid())
+  storeId  String
+  host     String  @unique
+  verified Boolean @default(false)
+  token    String
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  title       String
+  handle      String
+  description String    @default("")
+  status      String    @default("active")
+  vendor      String?
+  type        String?
+  tags        Json?
+  options     Json? // [{name, values[]}]
+  images      Json? // [url]
+  price       Int       @default(0) // minor units
+  compareAt   Int?
+  seoTitle    String?
+  seoDesc     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  variants    Variant[]
+
+  @@unique([storeId, handle])
+}
+
+model Variant {
+  id         String  @id @default(cuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title      String  @default("Default")
+  sku        String?
+  price      Int?
+  options    Json?
+  inventory  Int     @default(0)
+  imageIndex Int?
+}
+
+model Collection {
+  id          String  @id @default(cuid())
+  storeId     String
+  title       String
+  handle      String
+  type        String  @default("manual")
+  rules       Json?
+  disjunctive Boolean @default(false)
+  productIds  Json?
+  description String  @default("")
+  seoTitle    String?
+  seoDesc     String?
+
+  @@unique([storeId, handle])
+}
+
+model PurchaseOrder {
+  id        String   @id @default(cuid())
+  storeId   String
+  supplier  String
+  status    String   @default("draft")
+  lines     Json
+  createdAt DateTime @default(now())
+}
+
+model Theme {
+  id       String  @id @default(cuid())
+  storeId  String
+  name     String
+  live     Boolean @default(false)
+  palette  Json?
+  preset   String?
+  sections Json?
+  settings Json?
+}
+
+model Page {
+  id       String  @id @default(cuid())
+  storeId  String
+  title    String
+  handle   String
+  body     String  @default("")
+  visible  Boolean @default(true)
+  seoTitle String?
+  seoDesc  String?
+
+  @@unique([storeId, handle])
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  storeId   String
+  title     String
+  handle    String
+  body      String   @default("")
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Menu {
+  id      String @id @default(cuid())
+  storeId String
+  handle  String
+  title   String
+  items   Json
+
+  @@unique([storeId, handle])
+}
+
+model Customer {
+  id               String   @id @default(cuid())
+  storeId          String
+  userId           String?
+  email            String
+  name             String?
+  phone            String?
+  tags             Json?
+  addresses        Json?
+  acceptsMarketing Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@unique([storeId, email])
+}
+
+model Segment {
+  id      String @id @default(cuid())
+  storeId String
+  name    String
+  query   Json
+}
+
+model Discount {
+  id         String    @id @default(cuid())
+  storeId    String
+  code       String?
+  automatic  Boolean   @default(false)
+  kind       String
+  value      Int
+  minSpend   Int       @default(0)
+  usageLimit Int?
+  used       Int       @default(0)
+  startsAt   DateTime?
+  endsAt     DateTime?
+  buyQty     Int?
+  getQty     Int?
+  active     Boolean   @default(true)
+}
+
+model GiftCard {
+  id       String  @id @default(cuid())
+  storeId  String
+  code     String  @unique
+  balance  Int
+  currency String
+  active   Boolean @default(true)
+}
+
+model TaxRate {
+  id              String  @id @default(cuid())
+  storeId         String
+  country         String
+  region          String?
+  rateBps         Int
+  includeShipping Boolean @default(false)
+}
+
+model ShippingZone {
+  id        String @id @default(cuid())
+  storeId   String
+  name      String
+  countries Json
+  rates     Json
+}
+
+// rates [{name, price, freeOver?, days}]
+model Market {
+  id        String  @id @default(cuid())
+  storeId   String
+  name      String
+  currency  String
+  countries Json
+  primary   Boolean @default(false)
+  active    Boolean @default(true)
+}
+
+model Cart {
+  id           String   @id @default(cuid())
+  storeId      String
+  email        String?
+  lines        Json
+  currency     String
+  discountCode String?
+  giftCode     String?
+  shipTo       Json?
+  shippingRate String?
+  status       String   @default("open")
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  number       Int
+  storeId      String
+  store        Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  customerId   String?
+  email        String
+  status       String      @default("open") // open|cancelled|closed
+  financial    String      @default("pending") // pending|held|paid|partially_refunded|refunded
+  fulfillment  String      @default("unfulfilled")
+  currency     String
+  subtotal     Int
+  discount     Int         @default(0)
+  shipping     Int         @default(0)
+  tax          Int         @default(0)
+  giftCard     Int         @default(0)
+  total        Int
+  refunded     Int         @default(0)
+  shipTo       Json?
+  draft        Boolean     @default(false)
+  timeline     Json?
+  fulfillments Json?
+  createdAt    DateTime    @default(now())
+  lines        OrderLine[]
+}
+
+model OrderLine {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  variantId    String?
+  title        String
+  variantTitle String?
+  sku          String?
+  price        Int
+  qty          Int
+  refundedQty  Int     @default(0)
+}
+
+model Wallet {
+  id        String @id @default(cuid())
+  ownerType String
+  ownerId   String
+  currency  String
+  available Int    @default(0)
+  held      Int    @default(0)
+
+  @@unique([ownerType, ownerId, currency])
+}
+
+model LedgerEntry {
+  id        String   @id @default(cuid())
+  txId      String
+  walletId  String
+  bucket    String
+  amount    Int
+  currency  String
+  memo      String
+  createdAt DateTime @default(now())
+}
+
+// double-entry: entries per txId sum to 0
+model Escrow {
+  id             String   @id @default(cuid())
+  orderId        String   @unique
+  storeId        String
+  buyerWalletId  String
+  sellerWalletId String
+  amount         Int
+  fee            Int
+  currency       String
+  status         String   @default("held")
+  releaseAt      DateTime
+  createdAt      DateTime @default(now())
+}
+
+model Dispute {
+  id           String   @id @default(cuid())
+  escrowId     String
+  reason       String
+  status       String   @default("open")
+  resolution   String?
+  refundAmount Int?
+  createdAt    DateTime @default(now())
+}
+
+model Payout {
+  id          String   @id @default(cuid())
+  storeId     String
+  walletId    String
+  amount      Int
+  currency    String
+  destination Json
+  status      String   @default("pending")
+  providerRef String?
+  createdAt   DateTime @default(now())
+}
+
+model Kyc {
+  id            String   @id @default(cuid())
+  storeId       String   @unique
+  status        String   @default("draft")
+  business      Json?
+  taxId         String?
+  documents     Json?
+  liveness      String   @default("pending")
+  bank          Json?
+  bankVerified  Boolean  @default(false)
+  microDeposits Json?
+  notes         String?
+  updatedAt     DateTime @updatedAt
+}
+
+model PaymentLink {
+  id       String  @id @default(cuid())
+  storeId  String
+  title    String
+  amount   Int
+  currency String
+  active   Boolean @default(true)
+}
+
+model Idempotency {
+  key       String   @id
+  scope     String
+  response  Json
+  createdAt DateTime @default(now())
+}
+
+model WebhookEndpoint {
+  id      String @id @default(cuid())
+  storeId String
+  url     String
+  events  Json
+  secret  String
+}
+
+model AppInstall {
+  id             String   @id @default(cuid())
+  storeId        String
+  appId          String
+  config         Json?
+  credentialsEnc String?
+  installedAt    DateTime @default(now())
+
+  @@unique([storeId, appId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  storeId   String
+  productId String
+  rating    Int
+  author    String
+  body      String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Outbox {
+  id        String   @id @default(cuid())
+  channel   String
+  to        String
+  template  String
+  payload   Json
+  status    String   @default("queued")
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  storeId   String?
+  action    String
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model Upload {
+  id        String   @id @default(cuid())
+  storeId   String
+  key       String
+  url       String
+  mime      String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+// ---- Shopify parity additions
+model Location {
+  id             String   @id @default(cuid())
+  storeId        String
+  name           String
+  address        String   @default("")
+  fulfillsOnline Boolean  @default(true)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model Transfer {
+  id            String   @id @default(cuid())
+  storeId       String
+  originId      String
+  destinationId String
+  items         Json
+  tracking      String?
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+}
+
+model Metaobject {
+  id        String   @id @default(cuid())
+  storeId   String
+  type      String
+  handle    String
+  fields    Json
+  createdAt DateTime @default(now())
+}
+
+model Automation {
+  id        String   @id @default(cuid())
+  storeId   String
+  name      String
+  trigger   String
+  steps     Json
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Campaign {
+  id        String   @id @default(cuid())
+  storeId   String
+  name      String
+  channel   String
+  budget    Float    @default(0)
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  storeId   String
+  name      String
+  terms     String   @default("Due on receipt")
+  contacts  Json
+  createdAt DateTime @default(now())
+}
+
+model SavedView {
+  id        String   @id @default(cuid())
+  storeId   String
+  resource  String
+  name      String
+  query     Json
+  createdAt DateTime @default(now())
+}
+
+model StaffRole {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  permissions Json
+  createdAt   DateTime @default(now())
+}
+
+model Preference {
+  id      String @id @default(cuid())
+  storeId String @unique
+  data    Json
+}
+
+// ===== Sellora+ (beyond-Shopify) =====
+model WhatsappOrder {
+  id          String   @id @default(cuid())
+  storeId     String
+  phone       String
+  name        String?
+  text        String
+  lines       Json?
+  unmatched   Json?
+  status      String   @default("new") // new|converted|ignored
+  orderId     String?
+  waMessageId String?  @unique
+  createdAt   DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model CodCheck {
+  id        String   @id @default(cuid())
+  storeId   String
+  orderId   String
+  score     Int
+  level     String
+  reasons   Json?
+  status    String   @default("unverified") // unverified|otp_sent|verified|rejected
+  otpHash   String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, orderId])
+}
+
+model PriceTier {
+  id        String @id @default(cuid())
+  storeId   String
+  productId String
+  minQty    Int
+  price     Int // minor units
+
+  @@unique([storeId, productId, minQty])
+}
+
+model Rfq {
+  id        String   @id @default(cuid())
+  storeId   String
+  buyer     String
+  email     String
+  productId String
+  qty       Int
+  unitPrice Int
+  notes     String?
+  status    String   @default("requested") // requested|quoted|accepted|declined
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model CustomDesign {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  customer    String
+  spec        Json
+  qty         Int
+  unitPrice   Int
+  proofUrl    String?
+  proofStatus String   @default("awaiting_proof") // awaiting_proof|proof_sent|approved|changes_requested
+  createdAt   DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model Shipment {
+  id          String   @id @default(cuid())
+  storeId     String
+  orderId     String
+  courier     String
+  trackingNo  String   @unique
+  weightGrams Int
+  codAmount   Int      @default(0)
+  fee         Int      @default(0)
+  status      String   @default("booked") // booked|in_transit|delivered|returned|cod_reconciled
+  settled     Int?
+  labelUrl    String?
+  live        Boolean  @default(false)
+  raw         Json?
+  createdAt   DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model ExportDoc {
+  id        String   @id @default(cuid())
+  storeId   String
+  orderId   String
+  type      String // ci|pl
+  number    String
+  incoterm  String
+  html      String
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model CurrencyPrice {
+  id        String @id @default(cuid())
+  storeId   String
+  productId String
+  currency  String
+  price     Int
+
+  @@unique([storeId, productId, currency])
+}
+
+model LiveSession {
+  id         String   @id @default(cuid())
+  storeId    String
+  title      String
+  startsAt   DateTime
+  platform   String
+  videoUrl   String?
+  productIds Json?
+  status     String   @default("scheduled")
+  sales      Int      @default(0)
+
+  @@index([storeId])
+}
+
+model Supplier {
+  id      String  @id @default(cuid())
+  storeId String
+  name    String
+  city    String?
+  phone   String?
+
+  @@index([storeId])
+}
+
+model JobWork {
+  id          String   @id @default(cuid())
+  storeId     String
+  supplierId  String
+  productId   String
+  qty         Int
+  rate        Int
+  received    Int      @default(0)
+  rejected    Int      @default(0)
+  materialId  String?
+  materialQty Float    @default(0)
+  status      String   @default("in_progress")
+  createdAt   DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model RawMaterial {
+  id        String @id @default(cuid())
+  storeId   String
+  name      String
+  unit      String
+  stock     Float  @default(0)
+  wip       Float  @default(0)
+  reorderAt Float  @default(0)
+
+  @@index([storeId])
+}
+
+model ComplianceBadge {
+  id        String    @id @default(cuid())
+  storeId   String
+  name      String
+  certNo    String
+  expiresAt DateTime?
+
+  @@unique([storeId, name])
+}
+
+model SampleRequest {
+  id         String   @id @default(cuid())
+  storeId    String
+  buyer      String
+  email      String
+  country    String?
+  productIds Json
+  fee        Int      @default(0)
+  status     String   @default("requested")
+  createdAt  DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model Affiliate {
+  id      String @id @default(cuid())
+  storeId String
+  name    String
+  email   String
+  type    String @default("affiliate")
+  code    String
+  rateBps Int
+  paid    Int    @default(0)
+
+  @@unique([storeId, code])
+}
+
+model BankTransfer {
+  id        String   @id @default(cuid())
+  storeId   String
+  orderId   String
+  amount    Int
+  line      String
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model IntegrationLog {
+  id        String   @id @default(cuid())
+  storeId   String
+  appId     String
+  direction String // out|in
+  action    String
+  status    Int
+  live      Boolean
+  summary   String?
+  createdAt DateTime @default(now())
+
+  @@index([storeId, appId])
+}
+
+model OAuthState {
+  state     String   @id
+  storeId   String
+  appId     String
+  createdAt DateTime @default(now())
+}
+
+// ---------- Seller subscription plans, usage metering & overage billing
+model Plan {
+  id                String      @id @default(cuid())
+  code              String      @unique
+  name              String
+  tagline           String      @default("")
+  pricePkr          Int // monthly, minor units (paisa)
+  priceUsd          Int // monthly, cents
+  annualDiscountBps Int         @default(2000)
+  trialDays         Int         @default(0)
+  cardFeeBps        Int
+  cardFixedPkr      Int         @default(0)
+  cardFixedUsd      Int         @default(0)
+  walletFeeBps      Int
+  bankFeeBps        Int         @default(0)
+  overageAllowed    Boolean     @default(true)
+  custom            Boolean     @default(false)
+  active            Boolean     @default(true)
+  sort              Int         @default(0)
+  features          Json?
+  quotas            PlanQuota[]
+  updatedAt         DateTime    @updatedAt
+}
+
+model PlanQuota {
+  id         String  @id @default(cuid())
+  planId     String
+  metric     String // orders|products|staff|whatsapp|email|ai|storage_gb|stores|markets
+  included   Int // -1 = unlimited
+  unitSize   Int     @default(1) // overage sold per N units
+  overagePkr Int     @default(0) // per unitSize, paisa
+  overageUsd Int     @default(0) // per unitSize, cents
+  hard       Boolean @default(false) // true = never overage, upgrade required
+  plan       Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, metric])
+}
+
+model Subscription {
+  id              String    @id @default(cuid())
+  storeId         String    @unique
+  planCode        String
+  interval        String    @default("monthly") // monthly|annual
+  currency        String    @default("PKR") // PKR|USD
+  status          String    @default("trialing") // trialing|active|past_due|canceled
+  trialEndsAt     DateTime?
+  periodStart     DateTime  @default(now())
+  periodEnd       DateTime
+  overageMode     String    @default("stop") // auto|stop
+  spendCap        Int? // max overage per period, minor units (null = no cap)
+  payMethod       String    @default("wallet") // wallet|card
+  pendingPlanCode String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model UsageCounter {
+  id         String  @id @default(cuid())
+  storeId    String
+  period     String // YYYY-MM of billing period start
+  metric     String
+  used       Int     @default(0)
+  alerted80  Boolean @default(false)
+  alerted100 Boolean @default(false)
+
+  @@unique([storeId, period, metric])
+}
+
+model UsageRecord {
+  id        String   @id @default(cuid())
+  storeId   String
+  period    String
+  metric    String
+  qty       Int
+  ref       String?
+  overage   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([storeId, period])
+}
+
+model OverageCharge {
+  id        String   @id @default(cuid())
+  storeId   String
+  period    String
+  metric    String
+  units     Int
+  amount    Int
+  currency  String
+  invoiceId String?
+  createdAt DateTime @default(now())
+}
+
+model Invoice {
+  id        String        @id @default(cuid())
+  storeId   String
+  number    String        @unique
+  period    String
+  currency  String
+  subtotal  Int
+  total     Int
+  status    String        @default("open") // open|paid|past_due|void
+  method    String?
+  paidAt    DateTime?
+  dueAt     DateTime?
+  createdAt DateTime      @default(now())
+  lines     InvoiceLine[]
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  kind        String // plan|overage|proration|credit
+  description String
+  metric      String?
+  qty         Int     @default(1)
+  unitAmount  Int
+  amount      Int
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  storeId   String
+  from      String
+  to        String
+  code      Int      @default(301)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([storeId, from])
+}
+
+model SeoKeyword {
+  id         String   @id @default(cuid())
+  storeId    String
+  keyword    String
+  cluster    String   @default("general")
+  intent     String   @default("commercial")
+  volume     Int?
+  difficulty Int?
+  target     String?
+  ranks      Json? // [{date, position, engine, source}]
+  createdAt  DateTime @default(now())
+
+  @@unique([storeId, keyword])
+}
+
+model AiLog {
+  id           String   @id @default(cuid())
+  storeId      String
+  kind         String
+  provider     String
+  model        String
+  credits      Int      @default(0)
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  estUsd       Float    @default(0)
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,44 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
+import { config } from './lib/config';
+import { errorHandler } from './lib/http';
+import { auth } from './lib/auth';
+import { r as authR } from './routes/auth';
+import { r as storesR } from './routes/stores';
+import { r as ordersR } from './routes/orders';
+import { r as storefrontR } from './routes/storefront';
+import { seller as paySeller, buyer as payBuyer } from './routes/pay';
+import { r as adminR } from './routes/admin';
+import { r as aiR } from './routes/ai';
+import { r as growthR, pub as growthPub } from './routes/growth';
+import { r as publicR } from './routes/public';
+import { r as plusR } from './routes/plus';
+import { r as integR, hooks as integHooks, oauthPublic } from './routes/integrations';
+import { openapi, addPaths } from './openapi';
+import { r as billingR, pub as plansR, meter, meterNewStore } from './routes/billing';
+export function createApp() {
+  const app = express();
+  app.set('trust proxy', 1);
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  app.use(cors({ origin: config.corsOrigins.includes('*') ? true : config.corsOrigins, credentials: true }));
+  app.use(express.json({ limit: '5mb', verify: (req: any, _r, buf) => { req.rawBody = buf.toString('utf8'); } }));
+  app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '10mb' }));
+  const test = config.env === 'test';
+  app.use('/api/auth', rateLimit({ windowMs: 15 * 60e3, limit: test ? 10000 : +(process.env.RATE_LIMIT_AUTH || 50), standardHeaders: true, legacyHeaders: false }));
+  app.use('/api', rateLimit({ windowMs: 60e3, limit: test && !process.env.RATE_LIMIT_API ? 100000 : +(process.env.RATE_LIMIT_API || 600), standardHeaders: true, legacyHeaders: false }));
+  app.get('/health', (_q, s) => s.json({ ok: true }));
+  app.get('/openapi.json', (_q, s) => s.json(openapi));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
+  app.use('/uploads/private', (_q, s) => s.status(404).end());
+  app.use('/uploads', express.static(path.resolve(config.uploadDir), { fallthrough: false }));
+  const mounts: [string, any, boolean][] = [['/api/auth', authR, false], ['/api/storefront', storefrontR, false], ['/api/pay', payBuyer, false], ['/api/admin', adminR, true], ['/api/stores', storesR, true], ['/api/stores', ordersR, true], ['/api/stores', paySeller, true], ['/api/stores', aiR, true], ['/api/stores', growthR, true], ['/api/storefront', growthPub, false], ['/api/stores', plusR, true], ['/api/stores', integR, true], ['/api/stores', billingR, true], ['/api/plans', plansR, false], ['/api/hooks', integHooks, false], ['/api/integrations', oauthPublic, false], ['', publicR, false]];
+  app.use('/api/stores', auth, meterNewStore, meter);
+  for (const [p, r, a] of mounts) { if (p.startsWith('/api/stores')) app.use(p, auth, r); else app.use(p || '/', r); addPaths(p, r, a); }
+  app.use((_q, s) => s.status(404).json({ error: 'Not found' }));
+  app.use(errorHandler);
+  return app;
+}
