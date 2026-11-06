@@ -34,7 +34,7 @@ var rpT=null;function rpSoon(){clearTimeout(rpT);rpT=setTimeout(function(){try{r
 document.addEventListener('input',function(e){var t=e.target;if(!X.E||!E||!t.closest||!t.closest('#edl'))return;
  if(t.dataset.x7pal){pal(E.t)[t.dataset.x7pal]=t.value;E.t.preset='';syncHex(t);e.stopImmediatePropagation();rpSoon();return}
  if(t.dataset.tk&&['bg','tx','ac'].indexOf(t.dataset.tk)>-1){E.t[t.dataset.tk]=t.value;pal(E.t);E.t.preset='';syncHex(t);e.stopImmediatePropagation();rpSoon();return}
- if(t.dataset.sk!==undefined&&(t.tagName==='TEXTAREA'||t.type==='text'||t.type==='color'||t.type==='url')){var s=secOf(t.dataset.sid);if(!s)return;s.s[t.dataset.sk]=t.value;if(t.type==='color')syncHex(t);e.stopImmediatePropagation();rpSoon()}},true);
+ if(t.dataset.sk!==undefined&&(t.tagName==='TEXTAREA'||t.type==='text'||t.type==='color'||t.type==='url')){var s=secOf(t.dataset.sid);if(!s)return;s.s[t.dataset.sk]=t.value;if(t.type==='color')syncHex(t);if(t.type==='color'||t.dataset.sk==='bg'){try{save()}catch(err){}}e.stopImmediatePropagation();rpSoon()}},true);
 document.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.x7pre!==undefined&&X.E&&E){if(t.value){applyPre(E.t,t.value);lp();rpSoon()}e.stopImmediatePropagation()}},true);
 /* ---------- color swatches with hex input ---------- */
 function syncHex(c){var n=c.nextElementSibling;if(n&&n.classList.contains('x7hex')&&document.activeElement!==n)n.value=c.value.toUpperCase()}

@@ -46,7 +46,7 @@ d.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
  var a=t.closest('[data-m12a]');if(a){e.preventDefault();e.stopPropagation();var p=a.dataset.m12a.split(':');act(p[0],p.slice(1).join(':'));return}
  var mb=t.closest('[data-m12m]');if(mb){e.stopPropagation();var r=mb.getBoundingClientRect();openMenu(mb.dataset.m12m,r.left-150,r.bottom+4);return}
  var pl=t.closest('#m12plus');if(pl){e.stopPropagation();X.m12ins(pl.dataset.sid,pl.dataset.below==='1');return}
- if(ok()&&t.closest('#ep')){var s=t.closest('#ep [data-sid]');if(s&&loc(s.dataset.sid)){e.preventDefault();e.stopPropagation();E.open=s.dataset.sid;redraw();openMenu(s.dataset.sid,e.clientX+8,e.clientY+8);return}}
+ if(ok()&&t.closest('#ep')){if(t.closest('[data-slc]')){/* slideshow arrows and dots keep working */}else{var dest=t.closest('[data-pg],[data-pid],[data-edcol],[data-edpage],[data-edpg],.pc,.atc,a.sb');if(!dest){var s=t.closest('#ep [data-sid]');if(s&&loc(s.dataset.sid)){e.preventDefault();e.stopPropagation();E.open=s.dataset.sid;redraw();openMenu(s.dataset.sid,e.clientX+8,e.clientY+8);return}}}}
  if(!t.closest('#m12menu'))closeMenu()},true);
 /* hover + between sections in preview */
 d.addEventListener('mousemove',function(e){if(!ok()||drag)return;var ep=$q('#ep'),p=$q('#m12plus');if(!ep||!e.target.closest)return;if(e.target.closest('#m12plus'))return;var s=e.target.closest('#ep [data-sid]');
