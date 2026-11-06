@@ -36,9 +36,46 @@ export async function llmChat(system: string, user: string, opts: { json?: boole
 }
 /** Back-compat: plain text or null */
 export async function llm(system: string, user: string): Promise<string | null> { return (await llmChat(system, user))?.text ?? null; }
+/** Which store-builder models are configured. DeepSeek stays the default cheaper provider; Claude is optional. */
+export function llmAvailability() {
+  const info = llmInfo();
+  const claude = !!config.anthropicKey;
+  const deepseek = info.provider === 'deepseek' || !!config.deepseekKey;
+  const compatible = info.provider === 'openai-compatible';
+  const order = [claude ? 'claude' : '', deepseek ? 'deepseek' : compatible ? 'openai-compatible' : '', 'local'].filter(Boolean);
+  return { claude, deepseek, compatible, order, provider: info.provider, model: info.model };
+}
+async function claudeChat(system: string, user: string, opts: { maxTokens?: number } = {}): Promise<{ text: string; usage: LlmUsage } | null> {
+  if (!config.anthropicKey) return null;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': config.anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' }, body: JSON.stringify({ model: config.anthropicModel, max_tokens: opts.maxTokens ?? 4000, system, messages: [{ role: 'user', content: user }] }), signal: AbortSignal.timeout(60000) });
+    if (!r.ok) return null;
+    const j: any = await r.json(); const text = (j.content || []).map((c: any) => c.text || '').join(''); if (!text) return null;
+    const inT = j.usage?.input_tokens || 0, outT = j.usage?.output_tokens || 0;
+    return { text, usage: { provider: 'claude', model: config.anthropicModel, inputTokens: inT, cachedTokens: 0, outputTokens: outT, estUsd: 0 } };
+  } catch { return null; }
+}
+/**
+ * Store-building copy: try Claude when ANTHROPIC_API_KEY is set (stronger prose), then DeepSeek / the configured
+ * OpenAI-compatible model, then null so the caller uses its local template. Other AI routes keep DeepSeek via llmChat.
+ */
+export async function llmChatBest(system: string, user: string, opts: { json?: boolean; maxTokens?: number; temperature?: number } = {}): Promise<{ text: string; usage: LlmUsage } | null> {
+  if (config.anthropicKey) {
+    const sys = system + (opts.json ? ' Reply with a single valid JSON object only.' : '');
+    const c = await claudeChat(sys, user, opts);
+    if (c) return c;
+  }
+  return llmChat(system, user, opts);
+}
 /** JSON helper: returns parsed object, or the fallback (source:'template') */
 export async function llmJson<T>(system: string, user: string, fallback: () => T, maxTokens = 4000): Promise<{ source: 'llm' | 'template'; result: T; usage?: LlmUsage }> {
   const out = await llmChat(system + ' Reply with a single valid JSON object only.', user, { json: true, maxTokens });
+  if (!out) return { source: 'template', result: fallback() };
+  try { return { source: 'llm', result: JSON.parse(out.text.replace(/^\s*```(?:json)?|```\s*$/g, '')), usage: out.usage }; } catch { return { source: 'template', result: fallback(), usage: out.usage }; }
+}
+/** Same as llmJson, but prefers Claude for store-building copy when that key exists, then DeepSeek, then the template. */
+export async function llmJsonBest<T>(system: string, user: string, fallback: () => T, maxTokens = 4000): Promise<{ source: 'llm' | 'template'; result: T; usage?: LlmUsage }> {
+  const out = await llmChatBest(system + ' Reply with a single valid JSON object only.', user, { json: true, maxTokens });
   if (!out) return { source: 'template', result: fallback() };
   try { return { source: 'llm', result: JSON.parse(out.text.replace(/^\s*```(?:json)?|```\s*$/g, '')), usage: out.usage }; } catch { return { source: 'template', result: fallback(), usage: out.usage }; }
 }

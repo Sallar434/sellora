@@ -5,7 +5,7 @@ import { db } from '../lib/db';
 import { ah, parse, bad, nf } from '../lib/http';
 import { storeAccess } from '../lib/auth';
 import { config } from '../lib/config';
-import { llmJson, llmInfo, stt, LlmUsage } from '../providers/llm';
+import { llmJson, llmJsonBest, llmInfo, llmAvailability, stt, LlmUsage } from '../providers/llm';
 import { mockSite, parseEdit, applyOps, slugify, CITATIONS, faqList, detectNiche } from '../lib/sitegen';
 import { consume } from '../lib/billing';
 export const r = Router();
@@ -19,7 +19,7 @@ const all = async (storeId: string) => { const [s, ps, cs, pages, blog, reviews]
 
 r.get('/:storeId/ai/provider', storeAccess(), ah(async (req, res) => {
   const logs = await db.aiLog.findMany({ where: { storeId: req.store.id } });
-  res.json({ ...llmInfo(), stt: config.sttProvider, voiceOut: 'browser speechSynthesis', calls: logs.length, credits: logs.reduce((a, l) => a + l.credits, 0), tokens: logs.reduce((a, l) => a + l.inputTokens + l.outputTokens, 0), estUsd: +logs.reduce((a, l) => a + l.estUsd, 0).toFixed(4) });
+  res.json({ ...llmInfo(), availability: llmAvailability(), stt: config.sttProvider, voiceOut: 'browser speechSynthesis', calls: logs.length, credits: logs.reduce((a, l) => a + l.credits, 0), tokens: logs.reduce((a, l) => a + l.inputTokens + l.outputTokens, 0), estUsd: +logs.reduce((a, l) => a + l.estUsd, 0).toFixed(4) });
 }));
 
 /* ---------------- AI website builder ---------------- */
@@ -27,7 +27,7 @@ const SITE_SCHEMA = '{name,tagline,theme:{preset,palette:{bg,tx,ac,sec,header,fo
 r.post('/:storeId/ai/site/build', storeAccess('online_store'), ah(async (req, res) => {
   const b = parse(z.object({ prompt: z.string().min(3).max(4000), language: z.string().default('en'), apply: z.boolean().default(false), products: z.number().int().min(1).max(12).default(4), via: z.enum(['text', 'voice']).default('text') }), req.body);
   const store = req.store; const fb = () => mockSite(b.prompt, store.name, store.currency);
-  const out = await llmJson(`You are an expert ecommerce website builder for small sellers in Pakistan and worldwide. Build a complete, conversion-focused, SEO-ready store. Prices in ${store.currency} minor units. Write in language "${b.language}". Create exactly ${b.products} products with variants. Brand colours default to white background, black text, green #2E6B4F and gold #F2C14E unless the prompt asks otherwise. Use JSON with this shape: ${SITE_SCHEMA}`, `Store name: ${store.name}\nBrief: ${b.prompt}`, fb, 6000);
+  const out = await llmJsonBest(`You are an expert ecommerce website builder for small sellers in Pakistan and worldwide. Build a complete, conversion-focused, SEO-ready store. Prices in ${store.currency} minor units. Write in language "${b.language}". Create exactly ${b.products} products with variants. Brand colours default to white background, black text, green #2E6B4F and gold #F2C14E unless the prompt asks otherwise. Payments are Sellora Pay. Use JSON with this shape: ${SITE_SCHEMA}`, `Store name: ${store.name}\nBrief: ${b.prompt}`, fb, 6000);
   const site: any = { ...fb(), ...out.result }; const created: any = {};
   if (b.apply) {
     const th = await db.theme.create({ data: { storeId: store.id, name: `AI theme ${new Date().toISOString().slice(0, 10)}`, preset: site.theme?.preset, palette: site.theme?.palette, settings: site.theme?.settings, sections: site.sections } }); created.themeId = th.id;
