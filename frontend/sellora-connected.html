@@ -56,8 +56,19 @@ input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);b
 .empty{padding:28px;text-align:center;color:var(--mute)}
 @media (max-width:760px){body{flex-direction:column}aside{width:100%;height:auto;position:static;flex-direction:column}nav{flex-direction:row;overflow-x:auto}nav a{white-space:nowrap}.grp,.store{display:none}.two{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
-#auth{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
+#auth{position:fixed;inset:0;background:#fff;z-index:80;display:none;align-items:center;justify-content:center;padding:24px 16px;overflow:auto;color:#111}
+body.locked aside,body.locked main,body.locked #xviewas,body.locked #toast,body.locked #vmic{display:none!important}
+body.locked #auth{display:flex!important}
+html.has-session body.locked aside{display:flex!important}
+html.has-session body.locked main{display:block!important}
+html.has-session #auth{display:none!important}
 .acard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;width:min(400px,100%)}.acard h2{margin:6px 0 4px}
+.door-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+#auth .acard{color:#111;background:#fff;border:1px solid #ddd}
+#auth h2,#auth p,#auth label,#auth .brand{color:#111}
+#auth .door-note{color:#333;font-size:14px;margin:8px 0 0;font-weight:400}
+#auth .btn.blk{background:#111;color:#fff;border-color:#111;width:100%}
+#auth .btn.ghost{background:#fff;color:#111;border:1px solid #111;width:100%}
 .err{color:var(--bad);min-height:22px;margin:8px 0}.mu{color:var(--mute);margin:4px 0}
 .lnk{background:none;border:0;padding:0;font:inherit;text-decoration:underline;cursor:pointer;color:inherit}
 nav input{margin:6px 0;background:rgba(255,255,255,.1);border:0;color:#fff}nav input::placeholder{color:#9DBABF}
@@ -224,6 +235,11 @@ option{background:#fff;color:#111}
 main input[type=checkbox]:not(.tg):not(#xsf *),#ov input[type=checkbox]:not(.tg){appearance:auto!important;-webkit-appearance:checkbox!important;background:#fff!important}
 main .stb button,main .stb .btn{color:#fff!important;border-color:#555!important}
 
+/* public door */
+#auth{background:#fff!important;color:#111!important}
+#auth .btn.blk{background:#111!important;color:#fff!important;border-color:#111!important}
+#auth .btn.ghost{background:#fff!important;color:#111!important;border-color:#111!important}
+body.locked #xviewas,body.locked #vmic{display:none!important}
 /* v36 plan picker, trial, closed store, CSV */
 .m13pick{max-width:1040px!important;width:96%!important;background:#fff;color:#111}
 .m13pick h2{color:#111}.m13sub{color:#333;margin:6px 0}
@@ -250,15 +266,26 @@ body.m13dead aside nav,body.m13dead .side nav,body.m13dead nav.nav{pointer-event
 .m13pv{margin-top:10px;color:#111}.m13err{color:#b42318;font-weight:600}.m13errs{color:#b42318;font-size:13px;margin:4px 0 8px;padding-left:18px}
 </style>
 </head>
-<body>
+<body class="locked">
+<script>
+(function(){
+  try{
+    var db=JSON.parse(localStorage.getItem('sellora')||'null');
+    if(!db||db.out) return;
+    var email=db.session||(db.s&&db.a&&db.a[db.s]?db.s:'');
+    if(email&&db.a&&db.a[email]&&db.d&&db.d[email]) document.documentElement.classList.add('has-session');
+  }catch(e){}
+})();
+</script>
 <aside>
   <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="11" width="22" height="17" rx="5" fill="#F2A900"/><path d="M11 12V9.5a5 5 0 0 1 10 0V12" fill="none" stroke="#F2A900" stroke-width="2.4" stroke-linecap="round"/><path d="M20 17c-.8-1.2-2.4-1.7-4-1.7-2 0-3.4.9-3.4 2.3 0 3.3 7.6 1.4 7.6 5 0 1.5-1.6 2.5-3.8 2.5-1.7 0-3.2-.6-4.1-1.8" fill="none" stroke="#0F2F35" stroke-width="2" stroke-linecap="round"/></svg>Sellora</div>
   <nav id="nav"></nav>
-  <div class="store"><b id="sn"></b><span id="sd"></span></div><script>(function(){var n="Vellacorsa";try{var s=JSON.parse(localStorage.getItem("sellora")||"{}");if(s&&s.name)n=s.name}catch(e){}document.getElementById("sn").textContent=n;document.getElementById("sd").textContent=(n.toLowerCase().replace(/[^a-z0-9]+/g,"")||"mystore")+".sellora.app"})()</script>
+  <div class="store"><b id="sn"></b><span id="sd"></span></div><script>(function(){var n="",host="";try{var db=JSON.parse(localStorage.getItem("sellora")||"null");if(db&&!db.out){var email=db.session||(db.s&&db.a&&db.a[db.s]?db.s:"");var st=email&&db.d&&db.d[email];if(st&&st.name){n=st.name;host=(String(n).toLowerCase().replace(/[^a-z0-9]+/g,"")||"mystore")+".sellora.app"}}}catch(e){}var sn=document.getElementById("sn"),sd=document.getElementById("sd");if(sn)sn.textContent=n;if(sd)sd.textContent=host})()</script>
 </aside>
-<main id="main"><div style="padding:40px;color:#888;font:14px system-ui" aria-busy="true">Loading your store…</div></main>
+<main id="main"></main>
 <div id="modal"><div class="box" id="box"></div></div>
 <div id="toast"></div>
+<div id="auth"><div class="acard door"><div class="brand" style="color:#111">Sellora</div><h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div></div></div>
 <script>
 var S={name:'Vellacorsa',email:'owner@example.com',country:'Pakistan',cur:'USD',
 rates:{USD:1,PKR:280,EUR:.92,AED:3.67,GBP:.79},sym:{USD:'$',PKR:'Rs ',EUR:'€',AED:'AED ',GBP:'£'},
@@ -323,8 +350,9 @@ var d=$('#mdl');if(d)d.onclick=function(){S.products=S.products.filter(function(
 /* ---- v2: accounts, settings, themes ---- */
 var TPL=JSON.stringify(S),DB={a:{},s:null,d:{}},U=null;
 try{DB=JSON.parse(localStorage.getItem('sellora'))||DB}catch(e){}
-if(DB.s&&DB.d[DB.s]){U=DB.s;S=DB.d[U]}
-document.body.insertAdjacentHTML('beforeend','<div id="auth"></div><div id="ov"></div>');
+DB.a=DB.a||{};DB.d=DB.d||{};
+if(!document.getElementById('auth'))document.body.insertAdjacentHTML('beforeend','<div id="auth"></div>');
+if(!document.getElementById('ov'))document.body.insertAdjacentHTML('beforeend','<div id="ov"></div>');
 /* merged: persist superseded by later definition */
 function save(){if(U){DB.d[U]=S;persist()}}
 function hx(t){if(!window.crypto||!crypto.subtle)return Promise.resolve(btoa(t));return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
@@ -377,7 +405,7 @@ document.querySelectorAll('#main [data-k]').forEach(function(e){e.onchange=funct
 document.querySelectorAll('[data-add]').forEach(function(b){b.onclick=function(){var key=b.dataset.add,r={};document.querySelectorAll('[data-la="'+key+'"] input').forEach(function(i){r[i.dataset.s]=i.type==='number'?+i.value:i.value.trim()});if(!Object.values(r)[0]){toast('Fill in the first field');return}(o[key]=o[key]||[]).push(r);route();toast('Added')}});
 document.querySelectorAll('[data-del]').forEach(function(b){b.onclick=function(){var p=b.dataset.del.split(':');o[p[0]].splice(+p[1],1);route()}});
 document.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){S.plan=b.dataset.pl;route();toast('Plan changed to '+S.plan)}})}
-function chrome(){$('.store').innerHTML='<b>'+esc(S.name)+'</b><span>'+slug()+'.sellora.app</span><br><button class="lnk" id="so">Sign out</button>';$('#so').onclick=function(){U=null;DB.s=null;persist();location.hash='home';route()}}
+function chrome(){$('.store').innerHTML='<b>'+esc(S.name)+'</b><span>'+slug()+'.sellora.app</span><br><button class="lnk" id="so">Sign out</button>';$('#so').onclick=function(){endSession()}}
 function nav(cur){$('#nav').innerHTML=[['home','Home'],['orders','Orders'],['products','Products'],['customers','Customers'],['themes','Online Store'],['s-general','Settings']].map(function(n){return '<a tabindex="0" data-r="'+n[0]+'" class="'+(n[0]===cur?'on':'')+'">'+n[1]+'</a>'}).join('');chrome()}
 function nav2(cur){var n=$('#nav');n.innerHTML='<a tabindex="0" data-r="home">‹ Settings</a><input id="ss" placeholder="Search settings" aria-label="Search settings">'+SO.map(function(k){return '<a tabindex="0" data-r="s-'+k+'" class="'+(k===cur?'on':'')+'">'+SEC[k][0]+'</a>'}).join('');chrome();
 $('#ss').oninput=function(){var q=this.value.toLowerCase();n.querySelectorAll('[data-r^="s-"]').forEach(function(a){a.style.display=a.textContent.toLowerCase().indexOf(q)<0?'none':''})}}
@@ -406,18 +434,48 @@ function addTheme(){openM('<h2>Add theme</h2><label for="n1">Theme name</label><
 $('#nc').onclick=closeM;
 $('#nk').onclick=function(){var n=$('#n1').value.trim();if(!n){toast('Name your theme');return}var t={id:'c'+Date.now(),name:n,ac:$('#n2').value,bg:$('#n3').value,tx:$('#n4').value,font:$('#n5').value,lay:'c',rad:10,free:0,c:{}};S.themes.push(t);closeM();edit(t.id)};
 $('#nu').onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result),rx=/^#[0-9a-f]{6}$/i;if(!j.name||!rx.test(j.bg)||!rx.test(j.tx)||!rx.test(j.ac))throw 0;S.themes.push({id:'c'+Date.now(),name:String(j.name).slice(0,30),bg:j.bg,tx:j.tx,ac:j.ac,font:FN[j.font]?j.font:'s',lay:j.lay&&'csb'.indexOf(j.lay)>-1?j.lay:'c',rad:Math.min(24,+j.rad||10),free:0,c:{}});closeM();route();toast('Theme added')}catch(e){toast('Theme file needs name, bg, tx and ac colors like #FFFFFF')}};r.readAsText(f)}}
-/* sign up and log in */
-function authView(m){var up=m!=='in',a=$('#auth');a.style.display='flex';a.innerHTML='<div class="acard"><div class="brand" style="color:var(--ink)">'+$('.brand').innerHTML+'</div><h2>'+(up?'Create your store':'Log in')+'</h2>'+(up?'<label for="a1">Store name</label><input id="a1" maxlength="40" autocomplete="organization">':'')+'<label for="a2">Email</label><input id="a2" type="email" autocomplete="email"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button class="btn pri" id="ab" style="width:100%">'+(up?'Create store':'Log in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have a store? ':'New here? ')+'<button class="lnk" id="asw">'+(up?'Log in':'Create a store')+'</button></p></div>';
+/* public door: sign in / create account. A saved store is not a session. */
+function unownedKey(){DB.d=DB.d||{};DB.a=DB.a||{};var prefer=DB.unownedKey,keys=Object.keys(DB.d),i,k;function ok(k){return !!(DB.d[k]&&DB.d[k].name&&!DB.a[k])}if(prefer&&ok(prefer))return prefer;for(i=0;i<keys.length;i++){k=keys[i];if(ok(k))return k}return ''}
+function claimStore(k,email){var store=DB.d[k];if(!store)return false;S=store;S.email=email;try{var staff=S.set&&S.set.users&&S.set.users.staff;if(staff&&staff.forEach)staff.forEach(function(st){if(st&&st.role==='Owner')st.email=email})}catch(err){}if(k!==email){DB.d[email]=S;delete DB.d[k]}DB.unownedKey=null;return true}
+function startSession(email){delete DB.out;delete DB.pending;U=email;DB.session=email;DB.s=email;save();persist();document.body.classList.remove('locked');document.documentElement.classList.add('has-session');if($('#auth'))$('#auth').style.display='none';document.title='Sellora admin';if(location.hash!=='#home')location.hash='home';route()}
+function authShell(inner){var a=$('#auth');if(!a)return null;a.style.display='flex';a.innerHTML='<div class="acard door"><div class="brand" style="color:#111">'+($('.brand')?$('.brand').innerHTML:'Sellora')+'</div>'+inner+'</div>';return a}
+function door(){authShell('<h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div>');
+$('#door-in').onclick=function(){authView('in')};$('#door-up').onclick=function(){authView('up')};document.title='Sellora'}
+function accountForm(up){authShell('<h2>'+(up?'Create account':'Sign in')+'</h2><p class="door-note">'+(up?'Use your email and a password. Next you choose a plan and start a 4-day free trial for your own store.':'Use the email and password for your Sellora account.')+'</p><label for="a2">Email</label><input id="a2" type="email" autocomplete="username"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">'+(up?'Create account':'Sign in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have an account? ':'New to Sellora? ')+'<button type="button" class="lnk" id="asw">'+(up?'Sign in':'Create account')+'</button></p>');
 $('#asw').onclick=function(){authView(up?'in':'up')};
-var go=function(){var n=up?$('#a1').value.trim():'',e=$('#a2').value.trim().toLowerCase(),p=$('#a3').value,er=function(t){$('#ae').textContent=t};
-if(up&&!n)return er('Enter a name for your store.');if(!/^\S+@\S+\.\S+$/.test(e))return er('Enter a valid email.');if(p.length<8)return er('Password must be at least 8 characters.');
-hx(p).then(function(h){if(up){if(DB.a[e])return er('That email already has a store. Log in instead.');DB.a[e]=h;fresh(n,e)}else{if(DB.a[e]!==h)return er('Email or password is incorrect.');S=DB.d[e]}
-U=e;DB.s=e;save();persist();location.hash='home';route()})};
-$('#ab').onclick=go;$('#a3').onkeydown=function(ev){if(ev.key==='Enter')go()}}
+var busy=false,go=function(){if(busy)return;var e=$('#a2').value.trim().toLowerCase(),p=$('#a3').value,er=function(t){$('#ae').textContent=t};
+if(!/^\S+@\S+\.\S+$/.test(e))return er('Enter a valid email.');if(p.length<8)return er('Password must be at least 8 characters.');
+busy=true;$('#ab').disabled=true;
+hx(p).then(function(hash){busy=false;$('#ab').disabled=false;DB.a=DB.a||{};DB.d=DB.d||{};
+if(up){if(DB.a[e])return er('That email already has an account. Sign in instead.');
+var first=!Object.keys(DB.a).length,orphan=first?unownedKey():'';DB.a[e]=hash;
+if(orphan&&claimStore(orphan,e)){startSession(e);return}
+DB.pending=e;DB.session=null;DB.s=null;U=null;delete DB.out;persist();window._obPlan=null;authView('plan');return}
+if(!DB.a[e]||DB.a[e]!==hash)return er('Email or password is incorrect.');
+delete DB.out;if(DB.d[e]){S=DB.d[e];startSession(e);return}
+DB.pending=e;DB.session=null;DB.s=null;U=null;persist();window._obPlan=null;authView('plan')})};
+$('#ab').onclick=go;$('#auth').onkeydown=function(ev){if(ev.key==='Enter')go()};setTimeout(function(){var f=$('#a2');if(f)f.focus()},0)}
+function storeForm(){var ob=window._obPlan||{plan:'grow',iv:'monthly'},names={basic:'Basic',grow:'Grow',advanced:'Advanced',enterprise:'Enterprise'},nm=names[ob.plan]||'Grow',iv=ob.iv==='annual'?'annual':'monthly';
+authShell('<h2>Create your store</h2><p class="door-note" id="m13chosen">Plan: <b>'+nm+'</b> ('+iv+') · 4-day free trial · <a href="#" id="m13chg">change</a></p><label for="a1">Store name</label><input id="a1" maxlength="40" autocomplete="organization"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">Start 4-day free trial</button>');
+$('#m13chg').onclick=function(ev){ev.preventDefault();window._obPlan=null;authView('plan')};
+var go=function(){var n=$('#a1').value.trim(),er=function(t){$('#ae').textContent=t};if(!n)return er('Enter a name for your store.');var e=DB.pending;if(!e||!DB.a[e])return er('Create an account first.');fresh(n,e);startSession(e)};
+$('#ab').onclick=go;$('#auth').onkeydown=function(ev){if(ev.key==='Enter')go()};setTimeout(function(){var f=$('#a1');if(f)f.focus()},0)}
+function authView(m){if(m==='up')return accountForm(true);if(m==='in')return accountForm(false);if(m==='store')return storeForm();door()}
+window.authView=authView;window.afterPlanPick=function(){authView('store')};
 function _old_route352(){save();if(!U){authView();return}$('#auth').style.display='none';var r=location.hash.slice(1);if(/^(payments|domains|general)$/.test(r))r='s-'+r;
 if(r.slice(0,2)==='s-'){var k=r.slice(2);if(!SEC[k])k='general';nav2(k);$('#main').innerHTML=sec(k);bind(r);bind2(k)}else{if(!V[r])r='home';nav(r);$('#main').innerHTML=V[r]();bind(r);bind3()}fit()}
 /* ---- v3: product photos and section blocks ---- */
 function persist(){try{localStorage.setItem('sellora',JSON.stringify(DB))}catch(e){toast('Browser storage is full. Remove some photos.')}}
+function bootSession(){DB.a=DB.a||{};DB.d=DB.d||{};var changed=false;
+if(DB.s&&!DB.a[DB.s]){if(DB.d[DB.s]&&DB.d[DB.s].name&&!DB.unownedKey)DB.unownedKey=DB.s;DB.s=null;if(!DB.a[DB.session])DB.session=null;changed=true}
+if(DB.out){U=null;if(DB.session){DB.session=null;changed=true}if(DB.s){DB.s=null;changed=true}}
+else{var email='';if(DB.session&&DB.a[DB.session]&&DB.d[DB.session])email=DB.session;else if(DB.s&&DB.a[DB.s]&&DB.d[DB.s])email=DB.s;
+if(email){U=email;if(DB.session!==email){DB.session=email;changed=true}DB.s=email;S=DB.d[email];document.body.classList.remove('locked');document.documentElement.classList.add('has-session')}
+else{U=null;if(DB.session){DB.session=null;changed=true}}}
+if(changed){try{persist()}catch(e){}}}
+function authGate(){U=null;document.body.classList.add('locked');document.body.classList.remove('st','m13dead');document.documentElement.classList.remove('has-session');var pill=document.getElementById('xviewas');if(pill)pill.style.display='none';if($('#sn'))$('#sn').textContent='';if($('#sd'))$('#sd').textContent='';if($('#main'))$('#main').innerHTML='';var mode='gate';if(DB.pending&&DB.a&&DB.a[DB.pending]&&!(DB.d&&DB.d[DB.pending]))mode='plan';if(typeof authView==='function')authView(mode);document.title='Sellora'}
+function endSession(){try{if(U)save()}catch(e){}U=null;DB.s=null;DB.session=null;DB.out=1;try{persist()}catch(e){}var ov=$('#ov');if(ov){ov.style.display='none';ov.innerHTML=''}if(location.hash)location.hash='';authGate()}
+bootSession();
 /* merged: rz superseded by later definition */
 V.products=function(){var rows=S.products.map(function(p){return '<tr class="row" data-p="'+p.id+'"><td>'+(p.imgs&&p.imgs[0]?'<img class="tn" alt="" src="'+p.imgs[0]+'">':'<span class="tn" style="display:inline-block"></span>')+esc(p.name)+'</td><td>'+tag(p.status)+'</td><td>'+p.stock+'</td><td>'+money(p.price)+'</td></tr>'}).join('');
 return head('Products','<button class="btn pri" id="addp">Add product</button>')+'<div class="panel wrap">'+(rows?'<table><tr><th>Product</th><th>Status</th><th>Inventory</th><th>Price</th></tr>'+rows+'</table>':'<div class="empty">No products yet. Add your first one.</div>')+'</div>'};
@@ -474,9 +532,9 @@ return '<div class="stb"><div class="brand" style="padding:0">'+$('.brand').inne
 +'<div style="border-top:1px solid var(--line);margin-top:8px;padding:10px 8px;display:flex;gap:10px;align-items:center"><span class="av" style="background:#12B886">MA</span><div style="min-width:0"><b style="font-size:13px">Store admin</b><div class="mu" style="font-size:12px;margin:0;overflow:hidden;text-overflow:ellipsis">'+esc(S.email)+'</div><button class="lnk" id="so2">Sign out</button></div></div></div>'
 +'<div class="stc">'+(k==='general'?secG():sec(k))+'</div></div>'}
 function bind4(){var s=$('#ss');if(s)s.oninput=function(){var q=this.value.toLowerCase();document.querySelectorAll('.stn a[data-r^="s-"]').forEach(function(a){a.style.display=a.textContent.toLowerCase().indexOf(q)<0?'none':''})};
-var o=$('#so2');if(o)o.onclick=function(){U=null;DB.s=null;persist();location.hash='home';route()};
+var o=$('#so2');if(o)o.onclick=function(){endSession()};
 var t=$('#tr');if(t)t.onclick=function(){toast('Store transfer needs organization accounts, which come later')}}
-function route(){save();var y=scrollY;if(!U){document.body.classList.remove('st');authView();return}$('#auth').style.display='none';var r=location.hash.slice(1);if(/^(payments|domains|general)$/.test(r))r='s-'+r;
+function route(){if(!U){authGate();return}document.body.classList.remove('locked');save();var y=scrollY;$('#auth').style.display='none';var r=location.hash.slice(1);if(/^(payments|domains|general)$/.test(r))r='s-'+r;
 if(r.slice(0,2)==='s-'){var k=r.slice(2);if(!SEC[k])k='general';document.body.classList.add('st');$('#main').innerHTML=stShell(k);bind(r);bind2(k);bind4();scrollTo(0,y)}
 else{document.body.classList.remove('st');if(!V[r])r='home';nav(r);$('#main').innerHTML=V[r]();bind(r);bind3()}fit()}
 /* ---- v5: plan details and change plan ---- */
@@ -1738,17 +1796,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
   }
   initV21Data();
 
-  // Auto-login default store so dashboard renders immediately
-  if ((!U || typeof U !== 'string') && !DB.out) {
-    U = (S && S.email) || 'owner@example.com';
-    DB.s = U;
-    DB.d = DB.d || {};
-    DB.d[U] = S;
-  }
-  if (DB && U) {
-    DB.d = DB.d || {};
-    if (!DB.d[U]) DB.d[U] = S;
-  }
+  // A stored store is not a session. Admin renders only after bootSession set U.
 
   // 3. Navigation Configuration
   var NAV_ICONS = {
@@ -6425,14 +6473,13 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
   var origRoute = route;
   route = function() {
     try {
-      initV21Data();
-      if ((!U || typeof U !== 'string') && !DB.out) {
-        U = (S && S.email) || 'owner@example.com';
-        DB.s = U;
-        DB.d = DB.d || {};
-        DB.d[U] = S;
+      if (!U || typeof U !== 'string') {
+        if (typeof authGate === 'function') authGate();
+        return;
       }
-      if (!U) { if ($('#ov')) $('#ov').style.display = 'none'; authView('in'); return; }
+      document.body.classList.remove('locked');
+      initV21Data();
+      if (window.m14mig) { try { window.m14mig(); } catch (e) { console.error(e); } }
       save();
       var y = scrollY;
       if ($('#auth')) $('#auth').style.display = 'none';
@@ -6474,11 +6521,9 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     }
   };
 
-  // Re-run routing immediately to render updated sidebar and view
-  route();
 })();
 
-window.addEventListener('hashchange',function(){route()});route();
+window.addEventListener('hashchange',function(){route()});
 </script>
 <script>
 /* Sellora v30 modules */
@@ -6635,7 +6680,7 @@ function staffList(){var u=so('users');return (u.staff||[]).map(function(s){retu
 function can(r){var who=S.viewAs;if(!who)return true;var p=S.staffPerm[who];if(!p)return areaOf(r)==='home';return areaOf(r)==='home'||p.indexOf(areaOf(r))>-1}X.can=can;X.AREAS=AREAS;X.staffList=staffList;
 var PAGE={};X.PAGE=PAGE;/* dynamic routes: name -> fn(arg) */
 var R0=route;
-X.route=route=function(){try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
+X.route=route=function(){if(typeof U==='undefined'||!U){if(typeof authGate==='function')authGate();return}try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
  var raw=location.hash.slice(1),r=X._normRoute?X._normRoute(raw):raw,m;
  if(!can(r)){nav('home');document.body.classList.remove('st');q('#main').innerHTML='<div class="xw">'+head('No access')+'<div class="xc">You are viewing as <b>'+h(S.viewAs)+'</b>. This staff member does not have permission for <b>'+h(AREAS[areaOf(r)]||r)+'</b>.<br><br><button class="btn pri" data-x="viewas:">Switch back to owner</button></div></div>';sidebarPerm();return}
  if(r.slice(0,2)==='s-'&&SXS[r.slice(2)]){R0();var stc=q('.stc');if(stc){stc.innerHTML=SXS[r.slice(2)]();qa('.stn a').forEach(function(a){a.classList.toggle('on',a.dataset.r===r)})}post(r);return}
@@ -6647,7 +6692,7 @@ function nf(){return '<div class="xw" style="text-align:center;padding-top:60px"
 var POST=[];X.onRoute=function(f){POST.push(f)};
 function post(r){sidebarPerm();topbar();POST.forEach(function(f){try{f(r)}catch(e){console.error(e)}})}
 function sidebarPerm(){if(!S.viewAs)return;qa('#nav [data-r]').forEach(function(a){if(!can(X._normRoute?X._normRoute(a.dataset.r):a.dataset.r)){var w=a.closest('.nav-item-wrap');(a.classList.contains('nav-link')&&w?w:a).style.display='none'}})}
-function topbar(){var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
+function topbar(){if(typeof U==='undefined'||!U||document.body.classList.contains('locked')){var old=q('#xviewas');if(old)old.remove();return}var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
 A.viewas2=function(a,t){S.viewAs=t.value||null;save();route()};A.viewas=function(){S.viewAs=null;save();route()};
 A.go=function(a){location.hash=a};
 /* ---------- DEAD BUTTON FIXES (capture) ---------- */
@@ -7307,26 +7352,15 @@ function enhPF(){var m=q('#main');if(!m||!X.P||location.hash.indexOf('productfor
  var imgs=(P.imgs||[]);qa('#main [data-vr$=":price"]').forEach(function(inp){var tr=inp.closest('tr');if(!tr||q('[data-x7vimg]',tr))return;var i=+inp.dataset.vr.split(':')[0],vv=P.vars[i];if(!vv)return;var td=document.createElement('td');td.innerHTML=imgs.length?'<select data-x7vimg="'+i+'" aria-label="Variant image" style="max-width:110px"><option value="">No image</option>'+imgs.map(function(u,j){return '<option value="'+j+'"'+(String(vv.img)===String(j)?' selected':'')+'>Image '+(j+1)+'</option>'}).join('')+'</select>':'<span class="xk">Add images</span>';tr.appendChild(td)})}
 document.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.x7vimg!==undefined&&X.P&&P.vars){var vv=P.vars[+t.dataset.x7vimg];if(vv){vv.img=t.value===''?'':+t.value;P._d=true}}});
 var pq=0;new MutationObserver(function(){if(pq)return;pq=1;requestAnimationFrame(function(){pq=0;try{enhPF()}catch(e){}})}).observe(document.documentElement,{childList:true,subtree:true});
-/* ---------- AUTH: sign out + multi-store login / create ---------- */
-X.authView=authView=function(m){var up=m==='up',a=document.getElementById('auth');if(!a)return;a.style.display='flex';var stores=Object.keys(DB.d||{}).filter(function(k){return DB.d[k]&&DB.d[k].name});
- a.innerHTML='<div class="acard" style="max-width:420px"><div class="brand" style="color:var(--ink)">'+((q('.brand')||{}).innerHTML||'Sellora')+'</div><h2>'+(up?'Create a new store':'Log in')+'</h2>'
- +(!up&&stores.length?'<div class="xk" style="margin:0 0 6px">Your stores on this device</div>'+stores.map(function(k){return '<button type="button" class="btn" data-x7st="'+h(k)+'" style="width:100%;text-align:left;margin:0 0 6px;display:block"><b>'+h(DB.d[k].name)+'</b><br><span class="mu" style="font-size:12px">'+h(k)+'</span></button>'}).join(''):'')
- +(up?'<label for="a1">Store name</label><input id="a1" maxlength="40" autocomplete="organization">':'')+'<label for="a2">Email</label><input id="a2" type="email" autocomplete="email"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button class="btn pri" id="ab" style="width:100%">'+(up?'Create store':'Log in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have a store? ':'Want another store? ')+'<button class="lnk" id="asw">'+(up?'Log in':'Create a new store')+'</button></p></div>';
- qa('[data-x7st]').forEach(function(b){b.onclick=function(){q('#a2').value=b.dataset.x7st;q('#a3').focus()}});
- q('#asw').onclick=function(){authView(up?'in':'up')};
- var go=function(){var n=up?q('#a1').value.trim():'',e=q('#a2').value.trim().toLowerCase(),p=q('#a3').value,er=function(t){q('#ae').textContent=t};
-  if(up&&!n)return er('Enter a name for your store.');if(!/^\S+@\S+\.\S+$/.test(e))return er('Enter a valid email.');if(p.length<8)return er('Password must be at least 8 characters.');
-  hx(p).then(function(hh){DB.a=DB.a||{};if(up){if(DB.a[e]||DB.d[e])return er('That email already has a store. Log in instead.');DB.a[e]=hh;fresh(n,e)}else{if(!DB.d[e])return er('No store found for that email.');if(DB.a[e]&&DB.a[e]!==hh)return er('Email or password is incorrect.');if(!DB.a[e])DB.a[e]=hh;S=DB.d[e]}
-   delete DB.out;U=e;DB.s=e;save();persist();a.style.display='none';try{var sn=q('#sn');if(sn)sn.textContent=S.name}catch(x){}location.hash='home';route()})};
- q('#ab').onclick=go;a.onkeydown=function(e){if(e.key==='Enter')go()};setTimeout(function(){var f=up?q('#a1'):q('#a2');if(f)f.focus()},0)};
-function signOut(e){if(e){e.preventDefault();e.stopImmediatePropagation()}try{save()}catch(x){}U=null;DB.s=null;DB.out=1;persist();try{ovClose()}catch(x){}location.hash='';authView('in')}
+/* ---------- AUTH: sign out returns to the public door (login UI lives in base) ---------- */
+function signOut(e){if(e){e.preventDefault();e.stopImmediatePropagation()}if(typeof endSession==='function'){endSession();return}try{save()}catch(x){}U=null;DB.s=null;DB.session=null;DB.out=1;try{persist()}catch(x){}try{if(typeof authGate==='function')authGate()}catch(x){}}
 X.x7signOut=signOut;
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#so,#so2'))signOut(e)},true);
 /* ---------- route hook ---------- */
 X.onRoute(function(r){try{X.x7mig();palApply()}catch(e){}});
 var css=document.createElement('style');css.textContent='input[type=color]{-webkit-appearance:none;appearance:none;width:40px!important;min-width:40px;height:32px!important;padding:2px!important;border:1px solid #c9c9c9!important;border-radius:6px!important;background:#fff!important;cursor:pointer;vertical-align:middle;display:inline-block!important}input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:0;border-radius:4px}input[type=color]::-moz-color-swatch{border:0;border-radius:4px}.x7hex{width:86px!important;display:inline-block!important;margin-left:6px!important;padding:6px 8px!important;font:12px ui-monospace,monospace!important;text-transform:uppercase;border:1px solid #c9c9c9;border-radius:6px;vertical-align:middle}label.x7sw{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap}label.x7sw>span:first-child{flex:1}#xviewas.x7hide{display:none!important}';document.head.appendChild(css);
 /* hide the view-as pill while full-screen overlays (editor/storefront) are open */
-setInterval(function(){var o=document.getElementById('ov'),p=document.getElementById('xviewas');if(p)p.classList.toggle('x7hide',!!(o&&o.style.display!=='none'&&o.innerHTML))},400);
+setInterval(function(){var o=document.getElementById('ov'),p=document.getElementById('xviewas');if(p)p.classList.toggle('x7hide',(typeof U==='undefined'||!U)||document.body.classList.contains('locked')||!!(o&&o.style.display!=='none'&&o.innerHTML))},400);
 try{X.x7mig()}catch(e){}
 })();
 
@@ -8191,16 +8225,16 @@ function picker(){return '<div class="acard m13pick"><div class="brand" style="c
  +'<p class="m13sub">Every plan starts with a <b>4-day free trial</b>. Build your whole store for free — buy the plan when you are ready to publish.</p>'
  +'<div class="m13row"><span class="m13cur">Currency: <b>Pakistani Rupee (PKR)</b></span><div class="seg m13iv" role="group" aria-label="Billing period"><button type="button" class="'+(IV==='monthly'?'on':'')+'" data-iv="monthly">Monthly</button><button type="button" class="'+(IV==='annual'?'on':'')+'" data-iv="annual">Annual · save 20%</button></div></div>'
  +'<div class="m13cards">'+PL.map(function(p){return '<div class="m13card'+(p.pop?' pop':'')+'">'+(p.pop?'<span class="m13badge">Most popular</span>':'')+'<h3>'+p.n+'</h3><div class="m13t">'+h(p.t)+'</div><div class="m13pr">'+(p.custom?'from ':'')+rs(pr(p,p.custom?'monthly':IV))+'<small>/'+(IV==='annual'&&!p.custom?'year':'month')+'</small></div>'+(IV==='annual'&&!p.custom?'<div class="m13t">'+rs(p.pkr*0.8)+' a month, billed yearly</div>':'<div class="m13t">&nbsp;</div>')+'<ul>'+p.f.map(function(f){return '<li>'+h(f)+'</li>'}).join('')+'</ul>'+(p.custom?'<a class="btn" href="mailto:sales@sellora.app">Contact sales</a>':'<button type="button" class="btn pri" data-m13p="'+p.c+'">Start 4-day free trial</button>')+'</div>'}).join('')+'</div>'
- +'<p class="m13sub" style="margin-top:14px">No payment needed for the trial. Already have a store? <a href="#" id="m13in">Log in</a></p></div>'}
-if(X.authView){var AV=X.authView;X.authView=authView=function(m){if(m==='in'||X._obPlan)return AV.apply(this,arguments);var a=q('#auth');if(!a)return;a.style.display='flex';a.innerHTML=picker();
- qa('[data-iv]').forEach(function(b){b.onclick=function(){IV=b.dataset.iv;X.authView('up')}});
- qa('[data-m13p]').forEach(function(b){b.onclick=function(){X._obPlan={plan:b.dataset.m13p,iv:IV};AV('up');var hd=q('#auth h2');if(hd){var n=document.createElement('p');n.className='m13sub';n.id='m13chosen';var p=PL.filter(function(x){return x.c===X._obPlan.plan})[0];n.innerHTML='Plan: <b>'+p.n+'</b> ('+(IV==='annual'?'annual':'monthly')+') · 4-day free trial · <a href="#" id="m13chg">change</a>';hd.parentNode.insertBefore(n,hd.nextSibling);q('#m13chg').onclick=function(e){e.preventDefault();X._obPlan=null;X.authView('up')}}}});
- var li=q('#m13in');if(li)li.onclick=function(e){e.preventDefault();AV('in')}}}
+ +'<p class="m13sub" style="margin-top:14px">No payment needed for the trial. Already have an account? <a href="#" id="m13in">Sign in</a></p></div>'}
+if(X.authView){var AV=X.authView;X.authView=authView=function(m){if(m==='in'||m==='gate'||m==='up'||m==='store')return AV.apply(this,arguments);var a=q('#auth');if(!a)return;a.style.display='flex';a.innerHTML=picker();
+ qa('[data-iv]').forEach(function(b){b.onclick=function(){IV=b.dataset.iv;X.authView('plan')}});
+ qa('[data-m13p]').forEach(function(b){b.onclick=function(){X._obPlan={plan:b.dataset.m13p,iv:IV};if(X.afterPlanPick){X.afterPlanPick();return}AV('up')}});
+ var li=q('#m13in');if(li)li.onclick=function(e){e.preventDefault();X.authView('in')}}}
 if(typeof fresh==='function'){var FR=fresh;fresh=function(n,e){FR.apply(this,arguments);var ob=X._obPlan||{plan:'grow',iv:'monthly'},t=Date.now();S.sub9={plan:ob.plan,status:'trialing',trialEnds:t+TRIAL*DAY,interval:ob.iv,cur:'PKR',mode:'stop',cap:'',pay:'wallet',pending:null,start:t,end:t+TRIAL*DAY};S.use9={};S.inv9=[];S.online={password:true,live:false};var P=PL.filter(function(x){return x.c===ob.plan})[0];if(P)S.plan=P.n;X._obPlan=null;setTimeout(function(){api('POST','/billing/trial',{plan:ob.plan,interval:ob.iv})},400)}}
 /* ---- closed store: only the plan page ---- */
 var OK_DEAD=/^(s-plan|finance-billing)$/;
 if(typeof route==='function'){var R0=route;route=function(){if(typeof U!=='undefined'&&U&&S&&dead()){var r=location.hash.slice(1);if(!OK_DEAD.test(r)){history.replaceState(null,'','#s-plan')}}document.body.classList.toggle('m13dead',!!(typeof U!=='undefined'&&U&&S&&dead()));return R0.apply(this,arguments)}}
-function signout(){try{save()}catch(e){}U=null;try{DB.s=null;DB.out=1;persist()}catch(e){}location.hash='';document.body.classList.remove('m13dead');X.authView('in')}
+function signout(){document.body.classList.remove('m13dead');if(typeof endSession==='function'){endSession();return}try{save()}catch(e){}U=null;try{DB.s=null;DB.session=null;DB.out=1;persist()}catch(e){}location.hash='';if(X.authView)X.authView('gate')}
 A.m13out=signout;
 /* storefront offline when closed */
 if(typeof sf==='function'){var SF0=sf;sf=function(){if(dead())return '<div class="sf m13off"><div><h1>Store unavailable</h1><p>This store is currently closed. Please check back later.</p></div></div>';return SF0.apply(this,arguments)}}
@@ -8208,7 +8242,7 @@ if(typeof sf==='function'){var SF0=sf;sf=function(){if(dead())return '<div class
 X.onRoute&&X.onRoute(function(r){var m=q('#main');if(!m||!S||!S.sub9)return;var o=q('#m13ban');if(o)o.remove();var s=sub(),d=document.createElement('div');d.id='m13ban';
  var nm=(PL.filter(function(x){return x.c===s.plan})[0]||{n:'Grow'}).n;
  if(s.status==='trialing'){var n=left();d.className='m13ban';d.innerHTML='<span><b>Free trial · '+n+' day'+(n===1?'':'s')+' left</b> on '+h(nm)+'. Build everything you like — buy a plan to publish your store.</span><button class="btn pri" data-x="m13buy">Buy plan</button>'}
- else if(s.status==='expired'){d.className='m13ban m13ded';d.innerHTML='<span><b>Your 4-day trial has ended and your store is closed.</b> The storefront shows “Store unavailable” and the admin is locked. Buy any plan below to reopen it — all your products, orders and settings are kept.</span><button class="btn" data-x="m13out">Log out</button>'}
+ else if(s.status==='expired'){d.className='m13ban m13ded';d.innerHTML='<span><b>Your 4-day trial has ended and your store is closed.</b> The storefront shows “Store unavailable” and the admin is locked. Buy any plan below to reopen it — all your products, orders and settings are kept.</span><button class="btn" data-x="m13out">Sign out</button>'}
  if(d.className)m.insertBefore(d,m.firstChild);
  if(r==='themes'&&!q('#m13live')){var c=document.createElement('div');c.className='xc m13live';c.id='m13live';var live=S.online&&S.online.live;c.innerHTML='<h3>Online store status</h3><p>'+(live?'<span class="pill ok">Live</span> Your store is published and open to everyone.':'<span class="pill" style="background:#F2C14E;color:#111">Password page on</span> Visitors see a password page until you go live.')+'</p>'+(live?'':'<button class="btn pri" data-x="m13golive">Remove password &amp; go live</button>');var at=m.querySelector('h1,h2');(at&&at.parentNode===m?m:at?at.parentNode:m).insertBefore(c,at?at.nextSibling:null)}});
 /* ---- publish gating ---- */

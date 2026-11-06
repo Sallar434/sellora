@@ -39,6 +39,11 @@ option{background:#fff;color:#111}
 main input[type=checkbox]:not(.tg):not(#xsf *),#ov input[type=checkbox]:not(.tg){appearance:auto!important;-webkit-appearance:checkbox!important;background:#fff!important}
 main .stb button,main .stb .btn{color:#fff!important;border-color:#555!important}
 
+/* public door */
+#auth{background:#fff!important;color:#111!important}
+#auth .btn.blk{background:#111!important;color:#fff!important;border-color:#111!important}
+#auth .btn.ghost{background:#fff!important;color:#111!important;border-color:#111!important}
+body.locked #xviewas,body.locked #vmic{display:none!important}
 /* v36 plan picker, trial, closed store, CSV */
 .m13pick{max-width:1040px!important;width:96%!important;background:#fff;color:#111}
 .m13pick h2{color:#111}.m13sub{color:#333;margin:6px 0}
