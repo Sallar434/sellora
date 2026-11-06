@@ -24,7 +24,7 @@ function staffList(){var u=so('users');return (u.staff||[]).map(function(s){retu
 function can(r){var who=S.viewAs;if(!who)return true;var p=S.staffPerm[who];if(!p)return areaOf(r)==='home';return areaOf(r)==='home'||p.indexOf(areaOf(r))>-1}X.can=can;X.AREAS=AREAS;X.staffList=staffList;
 var PAGE={};X.PAGE=PAGE;/* dynamic routes: name -> fn(arg) */
 var R0=route;
-X.route=route=function(){try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
+X.route=route=function(){if(typeof U==='undefined'||!U){if(typeof authGate==='function')authGate();return}try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
  var raw=location.hash.slice(1),r=X._normRoute?X._normRoute(raw):raw,m;
  if(!can(r)){nav('home');document.body.classList.remove('st');q('#main').innerHTML='<div class="xw">'+head('No access')+'<div class="xc">You are viewing as <b>'+h(S.viewAs)+'</b>. This staff member does not have permission for <b>'+h(AREAS[areaOf(r)]||r)+'</b>.<br><br><button class="btn pri" data-x="viewas:">Switch back to owner</button></div></div>';sidebarPerm();return}
  if(r.slice(0,2)==='s-'&&SXS[r.slice(2)]){R0();var stc=q('.stc');if(stc){stc.innerHTML=SXS[r.slice(2)]();qa('.stn a').forEach(function(a){a.classList.toggle('on',a.dataset.r===r)})}post(r);return}
@@ -36,7 +36,7 @@ function nf(){return '<div class="xw" style="text-align:center;padding-top:60px"
 var POST=[];X.onRoute=function(f){POST.push(f)};
 function post(r){sidebarPerm();topbar();POST.forEach(function(f){try{f(r)}catch(e){console.error(e)}})}
 function sidebarPerm(){if(!S.viewAs)return;qa('#nav [data-r]').forEach(function(a){if(!can(X._normRoute?X._normRoute(a.dataset.r):a.dataset.r)){var w=a.closest('.nav-item-wrap');(a.classList.contains('nav-link')&&w?w:a).style.display='none'}})}
-function topbar(){var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
+function topbar(){if(typeof U==='undefined'||!U||document.body.classList.contains('locked')){var old=q('#xviewas');if(old)old.remove();return}var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
 A.viewas2=function(a,t){S.viewAs=t.value||null;save();route()};A.viewas=function(){S.viewAs=null;save();route()};
 A.go=function(a){location.hash=a};
 /* ---------- DEAD BUTTON FIXES (capture) ---------- */

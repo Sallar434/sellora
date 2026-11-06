@@ -6,7 +6,8 @@ BAD='Handle,Title,Variant Price,Variant Inventory Qty,Status,Option1 Name,Option
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':900},color_scheme='dark',accept_downloads=True);errs=[];pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
     pg.goto('file://'+os.path.abspath(F));pg.wait_for_timeout(900);E=pg.evaluate
-    E("ACT.m13out()");pg.wait_for_timeout(300);pg.click('#asw');pg.wait_for_timeout(300)
+    pg.click('#door-up');pg.wait_for_timeout(200)
+    pg.fill('#a2','trial@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(400)
     ok('plan picker shown to new user',pg.locator('.m13pick').count()==1)
     t=pg.inner_text('.m13pick')
     ok('picker lists 4 plans + PKR',all(x in t for x in ['Basic','Grow','Advanced','Enterprise','Pakistani Rupee (PKR)','Rs 300','Rs 600','Rs 1,000','Contact sales']),t[:200])
@@ -14,8 +15,8 @@ with sync_playwright() as p:
     pg.click('[data-iv=annual]');pg.wait_for_timeout(200);ok('annual toggle 20% off',"Rs 2,880" in pg.inner_text('.m13pick'))
     if SH:pg.screenshot(path=SH+'/1-plan-picker.png',full_page=True)
     pg.click('[data-m13p=advanced]');pg.wait_for_timeout(300)
-    ok('signup form after pick',pg.locator('#a1').count()==1 and 'Advanced' in pg.inner_text('#m13chosen'))
-    pg.fill('#a1','Trial Shop');pg.fill('#a2','trial@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(900)
+    ok('store name after plan',pg.locator('#a1').count()==1 and 'Advanced' in pg.inner_text('#m13chosen'))
+    pg.fill('#a1','Trial Shop');pg.click('#ab');pg.wait_for_timeout(900)
     s=E("S.sub9");ok('trial started on chosen plan',s and s['plan']=='advanced' and s['status']=='trialing' and s['interval']=='annual',s)
     ok('trial is 4 days',abs((s['trialEnds']-s['start'])/864e5-4)<0.01)
     E("location.hash='home'");pg.wait_for_timeout(400)
