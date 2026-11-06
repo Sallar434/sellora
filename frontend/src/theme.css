@@ -1,0 +1,65 @@
+/* v31 UI: black sidebar / white main / black text */
+:root{--bg:#fff!important;--panel:#fff!important;--ink:#111!important;--mute:#111!important;--line:#cfcfcf!important;--side:#000!important;--sideink:#fff!important}
+body{background:#fff;color:#111}
+aside,aside *{color:#fff}aside{background:#000!important;border-right:1px solid #222}
+nav a{color:#fff!important;opacity:1}nav a:hover{background:#1a1a1a!important}
+nav a.on{background:#111!important;color:#fff!important;box-shadow:inset 3px 0 0 #F2C14E;font-weight:700}
+aside select,aside input{background:#111!important;color:#fff!important;border-color:#444!important}
+main,main :is(.xc,.card,.panel,table,.xt,td,th):not(#xsf *),#mdl,.modal,#ov>div,.mdl{background-color:#fff;color:#111}
+main :is(.mu,.xk,small,.hlp,label,th,td,p):not(#xsf *),.mu:not(#xsf *),.xk:not(#xsf *),.hlp{color:#111!important;opacity:1!important}
+main :is(input:not([type=radio]):not([type=checkbox]):not([type=color]):not([type=range]),select,textarea):not(#xsf *),#ov input,#ov select,#ov textarea{background:#fff!important;color:#000!important;border:1px solid #bbb!important}
+input::placeholder,textarea::placeholder{color:#555!important;opacity:1}
+input[type=radio],input[type=checkbox]{width:16px!important;height:16px!important;min-width:16px;padding:0!important;margin:0;flex:none;accent-color:#2E6B4F;box-shadow:none!important}
+/* checkout */
+#xsfck{background:#fff;padding:18px;border-radius:12px;border:1px solid #e3e3e3}#xsfck,#xsfck h2,#xsfck label,#xsfck small{color:#111}
+#xsfck .sfi,#xsfck select,#xsfck textarea,#xk_note{background:#fff!important;color:#000!important;border:1px solid #c8c8c8!important;border-radius:8px}
+.xkl{border:1px solid #d4d4d4;border-radius:10px;overflow:hidden;background:#fff}
+.xkr{display:flex!important;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #e3e3e3;cursor:pointer;background:#fff;color:#111;margin:0}
+.xkl>.xkr:last-child,.xkl>.xkf:last-child{border-bottom:0}
+.xkr.on{background:#EEF6F1;box-shadow:inset 0 0 0 1.5px #2E6B4F;position:relative}
+.xkm{flex:1;display:flex;flex-direction:column;line-height:1.3;min-width:0}.xkm b{font-weight:600;font-size:14px}.xkm small{font-weight:400;font-size:12.5px;color:#333!important}
+.xkp{font-weight:600;white-space:nowrap}.xkb{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.xbg{font:700 10px/1 system-ui;font-style:normal;padding:4px 6px;border-radius:4px;letter-spacing:.3px;white-space:nowrap}
+.xkf{display:grid;gap:8px;padding:12px 14px;background:#F7FAF8;border-bottom:1px solid #e3e3e3;color:#111}
+.xkbank{background:#fff;border:1px dashed #9aa;border-radius:8px;padding:10px;font-size:13px}
+.xknote{font-size:13px;margin:0;background:#EEF6F1;border:1px solid #cfe3d7;border-radius:8px;padding:8px 10px;color:#123!important}
+.m10bar{height:8px;background:#eee;border-radius:6px;overflow:hidden;margin:6px 0 4px}.m10bar span{display:block;height:100%;border-radius:6px}
+.m10g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px 22px}.m10mh{display:flex;justify-content:space-between;gap:8px;font-size:13px}.m10ms{font-size:11px}
+.m10hero{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-left:4px solid #2E6B4F}
+.m10t th,.m10t td{text-align:left;vertical-align:top;padding:8px;font-size:13px;min-width:120px}.m10t th.m10cur{background:#EAF3EE;border-top:3px solid #2E6B4F}.m10pr{font-size:20px;font-weight:700;margin-top:6px}.m10pr small{font-size:12px;font-weight:400;color:#666}
+.m10tg{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.m10 .xchk{display:block;margin:6px 0}
+.m10pr{white-space:nowrap}
+/* v35 pill/tab fix: force light scheme so OS dark mode never makes button text white */
+:root,html,body,main,#ov,#mdl{color-scheme:light!important}
+main button:not(#xsf *),#ov button,#mdl button{color:#111}
+main :is(.xtabs,.tabs,.seg,.pills,.m10tg) :is(button,a,span[data-t]):not(.on):not(.active):not([aria-selected=true]):not(#xsf *){background:#fff!important;color:#111!important;border:1px solid #ccc!important}
+main :is(.xtabs,.tabs,.seg,.pills,.m10tg) :is(button,a,span[data-t]):not(.on):not(.active):not([aria-selected=true]):not(#xsf *):hover{background:#f1f1f1!important;border-color:#888!important}
+main :is(.xtabs,.tabs,.seg,.pills,.m10tg) :is(button,a,span[data-t]):is(.on,.active,[aria-selected=true]):not(#xsf *){background:#111!important;color:#fff!important;border:1px solid #111!important}
+option{background:#fff;color:#111}
+main input[type=checkbox]:not(.tg):not(#xsf *),#ov input[type=checkbox]:not(.tg){appearance:auto!important;-webkit-appearance:checkbox!important;background:#fff!important}
+main .stb button,main .stb .btn{color:#fff!important;border-color:#555!important}
+
+/* v36 plan picker, trial, closed store, CSV */
+.m13pick{max-width:1040px!important;width:96%!important;background:#fff;color:#111}
+.m13pick h2{color:#111}.m13sub{color:#333;margin:6px 0}
+.m13row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.m13cur{color:#111;font-size:14px}
+.m13iv button{background:#fff;color:#111;border:1px solid #ccc;padding:7px 14px;cursor:pointer;font:inherit}
+.m13iv button.on{background:#111;color:#fff;border-color:#111}
+.m13cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.m13card{position:relative;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;color:#111;display:flex;flex-direction:column;gap:6px}
+.m13card.pop{border:2px solid #2E6B4F}
+.m13card h3{margin:0;color:#111}.m13t{font-size:12px;color:#555}
+.m13pr{font-size:24px;font-weight:700;color:#111}.m13pr small{font-size:13px;font-weight:400;color:#555}
+.m13card ul{margin:6px 0 10px;padding-left:18px;font-size:13px;color:#222;flex:1}
+.m13badge{position:absolute;top:-10px;right:12px;background:#F2C14E;color:#111;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.m13ban{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#FFF6DA;border:1px solid #F2C14E;color:#111;border-radius:10px;padding:10px 14px;margin:0 0 14px}
+.m13ban.m13ded{background:#fde2e1;border-color:#b42318}
+body.m13dead aside nav,body.m13dead .side nav,body.m13dead nav.nav{pointer-events:none;opacity:.35}
+.m13off{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;background:#fff;color:#111}
+.m13fs{border:1px solid #ddd;border-radius:8px;padding:8px 12px;margin:0 0 10px;color:#111}.m13fs legend{font-weight:600;color:#111}
+.m13fs label,.m13chk{display:flex!important;gap:8px;align-items:center;margin:6px 0;color:#111;font-weight:400}
+.m13drop{border:2px dashed #2E6B4F;border-radius:10px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center;color:#111;background:#fff}
+.m13drop.on{background:#eef6f1}
+.m13hid{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.m13pv{margin-top:10px;color:#111}.m13err{color:#b42318;font-weight:600}.m13errs{color:#b42318;font-size:13px;margin:4px 0 8px;padding-left:18px}
