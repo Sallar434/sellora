@@ -102,11 +102,13 @@ function applySeo(pg,arg){
   return seo;
 }
 function voiceListen(done){
+  var speech=(X.SelloraPlatform&&X.SelloraPlatform.speechFor)?X.SelloraPlatform.speechFor((typeof S!=='undefined'&&S&&S.locale)||'en'):{supported:true,lang:'en-US'};
+  if(speech&&speech.supported===false)return done({state:'unsupported',message:speech.message||'Voice input is not available in this browser. Type your request instead.',lang:null});
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR)return done({state:'unsupported',message:'Voice input is not available in this browser. Type your request instead.'});
   var finished=false;
   function once(r){if(finished)return;finished=true;done(r)}
-  try{var rec=new SR();rec.lang='en-US';rec.interimResults=false;
+  try{var rec=new SR();rec.lang=(speech&&speech.lang)||'en-US';rec.interimResults=false;
     var timer=setTimeout(function(){try{rec.abort()}catch(e){}once({state:'error',message:'The microphone did not respond. Type your request instead.'})},1200);
     rec.onresult=function(e){clearTimeout(timer);once({state:'heard',text:e.results[0][0].transcript})};
     rec.onerror=function(e){clearTimeout(timer);var code=e&&e.error;var state=code==='not-allowed'||code==='service-not-allowed'?'denied':'error';var msg=state==='denied'?'Microphone permission was denied. Type your request instead.':'The microphone could not be used ('+(code||'error')+'). Type your request instead.';once({state:state,message:msg})};

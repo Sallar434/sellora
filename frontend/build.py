@@ -11,7 +11,7 @@ if k in b: b=b.replace(k,'window.NAV_CONFIG=NAV_CONFIG;window._normRoute=functio
 
 b=b.replace("var SECTIONS_CATALOG = [","var SECTIONS_CATALOG = window.SECTIONS_CATALOG = [",1)
 b=b.replace('\u00f0\u0178\u201c\x81','\U0001F4C1').replace('\u00f0\u0178\u0152\x8d','\U0001F30D')
-js='\n'.join(open('src/'+f,encoding='utf-8').read() for f in ['m1.js','m2.js','m3.js','m4.js','m5.js','m6a.js','m6b.js','m7.js','m8.js','m9.js','m10.js','m11.js','m12.js','m13.js','m14.js','m15.js','m16.js'])
+js='\n'.join(open('src/'+f,encoding='utf-8').read() for f in ['m1.js','m2.js','m3.js','m4.js','m5.js','m6a.js','m6b.js','m7.js','m8.js','m9.js','m10.js','m11.js','m12.js','m13.js','m14.js','m15.js','m16.js','platform.js','m17.js'])
 js+="\n;try{route()}catch(e){console.error(e)}\n"
 i=b.rfind('</body>');open('sellora.html','w',encoding='utf-8').write(b[:i]+'<script>\n/* Sellora v30 modules */\n'+js+'\n</script>\n'+b[i:])
 print('built',len(b)+len(js))

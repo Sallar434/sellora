@@ -39,5 +39,23 @@ export function planCommand(command: string): ActionPlan {
   if (/\b(undo|optimize|announcement|menu|featured|banner)\b/i.test(text)) {
     return { supported: true, kind: 'edit', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'Edit command understood.' };
   }
+  if (/\b(translate|translation)\b/i.test(text)) {
+    return { supported: true, kind: 'translate', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'A translation is saved only when a configured provider returns text, or when you type it yourself. A missing key is not a translation.' };
+  }
+  if (/\b(health check|broken links|missing images)\b/i.test(text)) {
+    return { supported: true, kind: 'health', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'The check uses stored products, pages, and menus. External sites are not fetched.' };
+  }
+  if (/\bbulk\b/i.test(text)) {
+    return { supported: true, kind: 'bulk', summary: text, destructive: false, needsConfirm: true, wantsCopy: false, message: 'Preview the bulk change and approve it before it is saved. Prices and SKUs stay put unless you include them on purpose.' };
+  }
+  if (/\b(import csv|import products|spreadsheet)\b/i.test(text)) {
+    return { supported: true, kind: 'import', summary: text, destructive: false, needsConfirm: true, wantsCopy: false, message: 'The file is checked first. Existing products change only if you approve the overwrite. Nothing is deleted.' };
+  }
+  if (/\b(sales insight|how are sales|sales report)\b/i.test(text)) {
+    return { supported: true, kind: 'insights', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'Sales figures use stored orders only. Currencies are not added together.' };
+  }
+  if (/\b(set language|switch language|change language)\b/i.test(text)) {
+    return { supported: true, kind: 'locale', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'The language preference is saved for this store. Untranslated phrases stay in English and are labeled as such.' };
+  }
   return { supported: false, kind: 'unknown', summary: text, destructive: false, needsConfirm: false, wantsCopy: false, message: 'That command is not supported. Nothing was changed.' };
 }

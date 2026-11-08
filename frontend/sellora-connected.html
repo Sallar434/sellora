@@ -6568,14 +6568,14 @@ X.API={PROV:PROV,live:live,cfg:ic,
  fxRates:function(){return S.rates},
  fx:function(amt,from,to){var R=S.rates;if(!R[from]||!R[to])return amt;return r2(amt/R[from]*R[to])},
  refreshFx:function(){if(!live('fx')){logApi('fx','refresh',1,'using stored demo rates');toast('FX rates refreshed');return Promise.resolve(S.rates)}return fetch(ic().fx.endpoint+'?app_id='+ic().fx.key).then(function(r){return r.json()}).then(function(j){if(j.rates)Object.keys(S.rates).forEach(function(k){if(j.rates[k])S.rates[k]=j.rates[k]});save();return S.rates})},
- charge:function(o){/* o:{amount,cur,card:{num,exp,cvc,name},method} */logApi('payments','charge',1,o.amount+' '+o.cur);if(live('payments'))return post('payments','/charges',{amount:Math.round(o.amount*100),currency:o.cur,source:o.token||'tok_visa'});return new Promise(function(res){setTimeout(function(){var n=(o.card&&o.card.num||'').replace(/\D/g,'');res(n==='4000000000000002'?{ok:false,error:'Card declined'}:{ok:true,id:'ch_'+id(),brand:o.card?brand(n):o.method,last4:n.slice(-4)})},300)})},
- refund:function(chargeId,amt){logApi('payments','refund',1,chargeId+' '+amt);return live('payments')?post('payments','/refunds',{charge:chargeId,amount:Math.round(amt*100)}):Promise.resolve({ok:true,id:'re_'+id()})},
- payout:function(p){logApi('payouts','payout',1,p.amount+' '+p.cur+' via '+p.method);return live('payouts')?post('payouts','/transfers',p):Promise.resolve({ok:true,id:'tr_'+id(),eta:'1-3 business days'})},
+ charge:function(o){logApi('payments','charge',0,o.amount+' '+o.cur);return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No card processor is connected. Nothing was charged.'})},
+ refund:function(){return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No card processor is connected. Nothing was refunded.'})},
+ payout:function(){return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No payout provider is connected. Nothing was sent.'})},
  microDeposits:function(acct){var a=[0.11+((acct.length*7)%40)/100,0.09+((acct.length*13)%50)/100].map(r2);logApi('payouts','micro-deposits',1,a.join(','));return a},
- kycCheck:function(k){logApi('kyc','verify',1,k.biz&&k.biz.name);return live('kyc')?post('kyc','/checks',k):Promise.resolve({ok:true,score:k.docs&&k.docs.id&&k.docs.addr&&k.docs.selfie?92:40,flags:[]})},
+ kycCheck:function(){return Promise.resolve({ok:false,live:false,error:'No identity provider is configured. Nothing was verified.'})},
  track:function(carrier,num){var u={DHL:'https://www.dhl.com/track?id=',FedEx:'https://www.fedex.com/fedextrack/?trknbr=',UPS:'https://www.ups.com/track?tracknum=',USPS:'https://tools.usps.com/go/TrackConfirmAction?tLabels=',TCS:'https://www.tcsexpress.com/track/',Leopards:'https://www.leopardscourier.com/tracking/'}[carrier];return u?u+encodeURIComponent(num):''},
  llm:function(prompt,sys){if(!live('llm'))return Promise.resolve(null);logApi('llm','complete',1,prompt.slice(0,40));var c=ic().llm;return fetch(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify({model:c.model||'gpt-4o-mini',messages:[{role:'system',content:sys||'You are an ecommerce copywriter.'},{role:'user',content:prompt}]})}).then(function(r){return r.json()}).then(function(j){return j.choices&&j.choices[0].message.content||null}).catch(function(){return null})},
- app:function(appId,act,data){logApi('app:'+appId,act,1,data||'');var c=ic()['app_'+appId];if(c&&c.key&&c.endpoint)return post('app_'+appId,'/'+act,{data:data}).catch(function(){return{ok:false}});return Promise.resolve({ok:true,simulated:true})}
+ app:function(appId,act){logApi('app:'+appId,act,0,'');return Promise.resolve({ok:false,live:false,simulated:true,error:'This app is not connected. Nothing was sent.'})}
 };
 /* clipboard fallback */
 X.copyText=function(t){function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}try{if(navigator.clipboard)navigator.clipboard.writeText(t).catch(fb);else fb()}catch(e){fb()}toast('Copied')};
@@ -8296,7 +8296,7 @@ function apply(res,over){var add=0,up=0,skip=0,bad=0;res.items.forEach(function(
  if(p){Object.keys(d).forEach(function(k){if(d[k]!==undefined)p[k]=d[k]});up++}else{d.id=S.nid++;d.cols=[];S.products.push(d);add++}});sv();return{added:add,updated:up,skipped:skip,bad:bad}}
 X.m13apply=apply;
 A.pimport=function(){var cur=null;
- X.xmodal('Import products by CSV','<div class="m13drop" id="m13drop" tabindex="0"><b>Drag and drop a CSV file here</b><span>or</span><label class="btn" for="m13file">Choose file</label><input type="file" id="m13file" accept=".csv,text/csv" class="m13hid"></div><p class="mu"><a href="#" id="m13tpl">Download a sample CSV template</a> to see the columns (Shopify format works too).</p><label class="m13chk"><input type="checkbox" id="m13over" checked> Overwrite products with the same handle (existing values are replaced)</label><div id="m13prev"></div>','Import products',function(){if(!cur){tst('Choose a CSV file first');return false}var r=apply(cur,q('#m13over')?q('#m13over').checked:true);X._m13res=r;
+ X.xmodal('Import products by CSV','<div class="m13drop" id="m13drop" tabindex="0"><b>Drag and drop a CSV file here</b><span>or</span><label class="btn" for="m13file">Choose file</label><input type="file" id="m13file" accept=".csv,text/csv" class="m13hid"></div><p class="mu"><a href="#" id="m13tpl">Download a sample CSV template</a> to see the columns (Shopify format works too).</p><label class="m13chk"><input type="checkbox" id="m13over"> Update products that already use the same handle. Leave this off to keep them. Nothing is deleted.</label><div id="m13prev"></div>','Import products',function(){if(!cur){tst('Choose a CSV file first');return false}var r=apply(cur,q('#m13over')?q('#m13over').checked:true);X._m13res=r;
   var k=BK();if(k&&X._m13text)api('POST','/products/import?overwrite='+(X._m13over!==false),X._m13text);
   tst('Imported '+r.added+' new, updated '+r.updated+(r.skipped?', skipped '+r.skipped:'')+(r.bad?', '+r.bad+' bad row'+(r.bad>1?'s':'')+' left out':''));route()});
  var go=q('#mdl .pri, #ov .pri');function prev(text){cur=X.m13read(text);X._m13text=text;var e=cur.errors,ok=cur.items.filter(function(i){return !i._bad});
@@ -9120,11 +9120,13 @@ function applySeo(pg,arg){
   return seo;
 }
 function voiceListen(done){
+  var speech=(X.SelloraPlatform&&X.SelloraPlatform.speechFor)?X.SelloraPlatform.speechFor((typeof S!=='undefined'&&S&&S.locale)||'en'):{supported:true,lang:'en-US'};
+  if(speech&&speech.supported===false)return done({state:'unsupported',message:speech.message||'Voice input is not available in this browser. Type your request instead.',lang:null});
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR)return done({state:'unsupported',message:'Voice input is not available in this browser. Type your request instead.'});
   var finished=false;
   function once(r){if(finished)return;finished=true;done(r)}
-  try{var rec=new SR();rec.lang='en-US';rec.interimResults=false;
+  try{var rec=new SR();rec.lang=(speech&&speech.lang)||'en-US';rec.interimResults=false;
     var timer=setTimeout(function(){try{rec.abort()}catch(e){}once({state:'error',message:'The microphone did not respond. Type your request instead.'})},1200);
     rec.onresult=function(e){clearTimeout(timer);once({state:'heard',text:e.results[0][0].transcript})};
     rec.onerror=function(e){clearTimeout(timer);var code=e&&e.error;var state=code==='not-allowed'||code==='service-not-allowed'?'denied':'error';var msg=state==='denied'?'Microphone permission was denied. Type your request instead.':'The microphone could not be used ('+(code||'error')+'). Type your request instead.';once({state:state,message:msg})};
@@ -9217,6 +9219,239 @@ if(X.onRoute)X.onRoute(function(r){
 if(typeof sf==='function'&&!sf._m16){var sf0=sf;var sf1=function(t,pg,pid){if(t&&pg&&t.pg&&t.pg[pg]&&/^(cart|blog|search|page|lookbook)$/.test(pg)){ensurePages(t);var ctx={pg:pg,pid:pid},rd=function(a){return (a||[]).filter(function(s){return !s.hide}).map(function(s){var f=RN[s.type];return f?f(t,s,ctx):''}).join('')};return '<div class="sf" style="--b:'+t.bg+';--t:'+t.tx+';--a:'+t.ac+';--r:'+(t.rad||0)+'px">'+rd(t.hdr)+rd(t.pg[pg])+rd(t.ftr)+'</div>'}return sf0.apply(this,arguments)};sf1._m16=1;sf=sf1}
 installSections();
 var css=document.createElement('style');css.textContent='.m16extra{display:block;margin:0 0 8px}.m16extra select{width:100%}#ep[data-preview="mobile"]{box-shadow:0 0 0 8px #111;border-radius:16px}#m16orders,#m16int{margin:0 0 12px}';document.head.appendChild(css);
+})();
+
+/* Browser copy of the setup rules. No provider key is read or stored here. */
+(function(){
+var RTL={ar:1,ur:1,fa:1,he:1,ps:1,sd:1,yi:1,dv:1};
+var LOCALES=[
+  {id:'en',language:'en',name:'English',native:'English',dir:'ltr',coverage:'verified',speech:'en-US'},
+  {id:'ur',language:'ur',name:'Urdu',native:'اردو',dir:'rtl',coverage:'verified',speech:'ur-PK'},
+  {id:'ar',language:'ar',name:'Arabic',native:'العربية',dir:'rtl',coverage:'verified',speech:'ar'},
+  {id:'fr',language:'fr',name:'French',native:'Français',dir:'ltr',coverage:'verified',speech:'fr-FR'},
+  {id:'es',language:'es',name:'Spanish',native:'Español',dir:'ltr',coverage:'verified',speech:'es-ES'},
+  {id:'de',language:'de',name:'German',native:'Deutsch',dir:'ltr',coverage:'verified',speech:'de-DE'},
+  {id:'hi',language:'hi',name:'Hindi',native:'हिन्दी',dir:'ltr',coverage:'framework',speech:null},
+  {id:'pt',language:'pt',name:'Portuguese',native:'Português',dir:'ltr',coverage:'framework',speech:null},
+  {id:'zh',language:'zh',name:'Chinese',native:'中文',dir:'ltr',coverage:'framework',speech:null},
+  {id:'ja',language:'ja',name:'Japanese',native:'日本語',dir:'ltr',coverage:'framework',speech:null},
+  {id:'tr',language:'tr',name:'Turkish',native:'Türkçe',dir:'ltr',coverage:'framework',speech:null},
+  {id:'fa',language:'fa',name:'Persian',native:'فارسی',dir:'rtl',coverage:'framework',speech:null},
+  {id:'he',language:'he',name:'Hebrew',native:'עברית',dir:'rtl',coverage:'framework',speech:null}
+];
+var EN={
+  'next.addProduct':'Add your first product. You can type it in or import a spreadsheet.',
+  'next.addProductBtn':'Add a product',
+  'next.finishListing':'Finish listings that are missing a price, description, or image.',
+  'next.finishBtn':'Review listings',
+  'next.launch':'Publishing is blocked until a paid plan is active. Your products stay saved.',
+  'next.launchBtn':'See what is blocked',
+  'next.payment':'Card checkout is not connected to a processor. Nothing can be charged yet.',
+  'next.paymentBtn':'See payment setup',
+  'next.ready':'The saved setup steps are filled in. Publishing and live payments stay separate checks.',
+  'voice.unsupported':'Voice input is not available for this language in this browser. Type your request instead.',
+  'voice.denied':'Microphone permission was denied. Type your request instead.',
+  'publish.blocked':'Buy a plan to publish. The trial does not make the store public.',
+  'import.approve':'Existing products are updated only after you approve. Nothing is deleted.',
+  'health.title':'Store check',
+  'insights.none':'No stored orders in this range. There is no trend to report.',
+  'insights.few':'Fewer than 5 stored orders. A trend is not reported.',
+  'bulk.preview':'Preview the changes, then approve them. Prices and SKUs stay as they are.',
+  'locale.fallback':'This language is supported by the locale list. The words below are still English.'
+};
+var COPY={
+  en:EN,
+  ur:{
+    'next.addProduct':'پہلے ایک پروڈکٹ شامل کریں۔ آپ خود لکھ سکتے ہیں یا اسپریڈشیٹ درآمد کر سکتے ہیں۔',
+    'next.addProductBtn':'پروڈکٹ شامل کریں','next.finishListing':'جن فہرستوں میں قیمت، تفصیل یا تصویر نہیں، انہیں مکمل کریں۔','next.finishBtn':'فہرستیں دیکھیں',
+    'next.launch':'ادائیگی والا پلان فعال ہونے تک اشاعت بند ہے۔ آپ کی پروڈکٹس محفوظ رہتی ہیں۔','next.launchBtn':'دیکھیں کیا بند ہے',
+    'next.payment':'کارڈ چیک آؤٹ کسی پروسیسر سے جڑا نہیں۔ ابھی کوئی رقم نہیں کٹی۔','next.paymentBtn':'ادائیگی کی ترتیب دیکھیں',
+    'next.ready':'محفوظ ترتیب کے مراحل بھر چکے ہیں۔ اشاعت اور براہ راست ادائیگی الگ جانچ ہیں۔',
+    'voice.unsupported':'اس زبان کے لیے آواز اس براؤزر میں دستیاب نہیں۔ درخواست ٹائپ کریں۔','voice.denied':'مائیکروفون کی اجازت نہیں ملی۔ درخواست ٹائپ کریں۔',
+    'publish.blocked':'اشاعت کے لیے پلان خریدیں۔ آزمائش اسٹور کو عوامی نہیں کرتی۔','import.approve':'موجودہ پروڈکٹس تب ہی بدلیں گی جب آپ منظور کریں۔ کچھ حذف نہیں ہوتا۔',
+    'health.title':'اسٹور کی جانچ','insights.none':'اس مدت میں کوئی محفوظ آرڈر نہیں۔ رجحان نہیں بتایا جا سکتا۔','insights.few':'5 سے کم محفوظ آرڈر ہیں۔ رجحان نہیں بتایا جاتا۔',
+    'bulk.preview':'تبدیلیاں پہلے دیکھیں، پھر منظور کریں۔ قیمت اور SKU وہی رہتے ہیں۔','locale.fallback':'یہ زبان فہرست میں ہے۔ نیچے کے الفاظ اب بھی انگریزی ہیں۔'
+  },
+  ar:{
+    'next.addProduct':'أضف منتجك الأول. يمكنك كتابته أو استيراد جدول.','next.addProductBtn':'أضف منتجًا',
+    'next.finishListing':'أكمل القوائم التي تنقصها سعر أو وصف أو صورة.','next.finishBtn':'راجع القوائم',
+    'next.launch':'النشر متوقف حتى تفعيل خطة مدفوعة. منتجاتك تبقى محفوظة.','next.launchBtn':'انظر ما المتوقف',
+    'next.payment':'الدفع بالبطاقة غير متصل بمعالج. لم يُخصم شيء.','next.paymentBtn':'انظر إعداد الدفع',
+    'next.ready':'خطوات الإعداد المحفوظة مكتملة. النشر والدفع المباشر فحصان منفصلان.',
+    'voice.unsupported':'الإدخال الصوتي غير متاح لهذه اللغة في هذا المتصفح. اكتب طلبك.','voice.denied':'تم رفض إذن الميكروفون. اكتب طلبك.',
+    'publish.blocked':'اشتر خطة للنشر. الفترة التجريبية لا تجعل المتجر عامًا.','import.approve':'لا تُحدَّث المنتجات الحالية إلا بعد موافقتك. لا يُحذف شيء.',
+    'health.title':'فحص المتجر','insights.none':'لا طلبات محفوظة في هذه الفترة. لا يوجد اتجاه يُعرض.','insights.few':'أقل من 5 طلبات محفوظة. لا يُعرض اتجاه.',
+    'bulk.preview':'عاين التغييرات ثم وافق. السعر وSKU يبقيان كما هما.','locale.fallback':'هذه اللغة في القائمة. الكلمات أدناه ما زالت بالإنجليزية.'
+  },
+  fr:{'next.addProduct':'Ajoutez un premier produit. Vous pouvez le saisir ou importer un tableau.','next.addProductBtn':'Ajouter un produit','next.finishListing':'Complétez les fiches sans prix, description ou image.','next.finishBtn':'Voir les fiches','next.launch':'La publication est bloquée tant qu’un forfait payant n’est pas actif. Vos produits restent enregistrés.','next.launchBtn':'Voir ce qui est bloqué','next.payment':'Le paiement par carte n’est pas relié à un prestataire. Rien n’est débité.','next.paymentBtn':'Voir le paiement','next.ready':'Les étapes enregistrées sont remplies. Publication et paiement réel restent des contrôles séparés.','voice.unsupported':'La voix n’est pas disponible pour cette langue dans ce navigateur. Saisissez votre demande.','voice.denied':'Le micro a été refusé. Saisissez votre demande.','publish.blocked':'Achetez un forfait pour publier. L’essai ne rend pas la boutique publique.','import.approve':'Les produits existants ne changent qu’après votre accord. Rien n’est supprimé.','health.title':'Contrôle de la boutique','insights.none':'Aucune commande enregistrée sur cette période. Aucune tendance n’est affichée.','insights.few':'Moins de 5 commandes enregistrées. Aucune tendance n’est affichée.','bulk.preview':'Prévisualisez, puis approuvez. Les prix et SKU ne changent pas.','locale.fallback':'Cette langue est dans la liste. Le texte ci-dessous reste en anglais.'},
+  es:{'next.addProduct':'Añade tu primer producto. Puedes escribirlo o importar una hoja.','next.addProductBtn':'Añadir un producto','next.finishListing':'Completa las fichas a las que les falta precio, descripción o imagen.','next.finishBtn':'Revisar fichas','next.launch':'Publicar está bloqueado hasta que haya un plan de pago activo. Tus productos siguen guardados.','next.launchBtn':'Ver qué está bloqueado','next.payment':'El pago con tarjeta no está conectado a un procesador. No se cobra nada.','next.paymentBtn':'Ver el pago','next.ready':'Los pasos guardados están completos. Publicar y el cobro real siguen siendo comprobaciones aparte.','voice.unsupported':'La voz no está disponible para este idioma en este navegador. Escribe tu solicitud.','voice.denied':'Se denegó el micrófono. Escribe tu solicitud.','publish.blocked':'Compra un plan para publicar. La prueba no hace pública la tienda.','import.approve':'Los productos existentes solo cambian si lo apruebas. No se borra nada.','health.title':'Revisión de la tienda','insights.none':'No hay pedidos guardados en este periodo. No hay una tendencia que mostrar.','insights.few':'Hay menos de 5 pedidos guardados. No se muestra una tendencia.','bulk.preview':'Revisa los cambios y luego apruébalos. El precio y el SKU no cambian.','locale.fallback':'Este idioma está en la lista. El texto de abajo sigue en inglés.'},
+  de:{'next.addProduct':'Fügen Sie ein erstes Produkt hinzu. Sie können es eingeben oder eine Tabelle importieren.','next.addProductBtn':'Produkt hinzufügen','next.finishListing':'Vervollständigen Sie Einträge ohne Preis, Beschreibung oder Bild.','next.finishBtn':'Einträge prüfen','next.launch':'Veröffentlichen ist blockiert, bis ein bezahlter Plan aktiv ist. Ihre Produkte bleiben gespeichert.','next.launchBtn':'Sehen, was blockiert ist','next.payment':'Kartenzahlung ist mit keinem Anbieter verbunden. Es wird nichts abgebucht.','next.paymentBtn':'Zahlung ansehen','next.ready':'Die gespeicherten Schritte sind ausgefüllt. Veröffentlichen und echte Zahlung bleiben eigene Prüfungen.','voice.unsupported':'Spracheingabe ist für diese Sprache in diesem Browser nicht verfügbar. Tippen Sie Ihre Anfrage.','voice.denied':'Das Mikrofon wurde abgelehnt. Tippen Sie Ihre Anfrage.','publish.blocked':'Kaufen Sie einen Plan zum Veröffentlichen. Die Testphase macht den Shop nicht öffentlich.','import.approve':'Vorhandene Produkte ändern sich erst nach Ihrer Zustimmung. Nichts wird gelöscht.','health.title':'Shop-Prüfung','insights.none':'Keine gespeicherten Bestellungen in diesem Zeitraum. Es gibt keinen Trend.','insights.few':'Weniger als 5 gespeicherte Bestellungen. Ein Trend wird nicht angezeigt.','bulk.preview':'Änderungen zuerst ansehen, dann freigeben. Preis und SKU bleiben gleich.','locale.fallback':'Diese Sprache steht in der Liste. Der Text darunter bleibt Englisch.'}
+};
+var NAMES={USD:'US Dollar',PKR:'Pakistani Rupee',EUR:'Euro',GBP:'British Pound',AED:'UAE Dirham',SAR:'Saudi Riyal',INR:'Indian Rupee'};
+function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function parseLocale(input){var raw=String(input==null?'':input).trim().replace(/_/g,'-');if(!raw||raw.length>32||/all languages/i.test(raw))return {ok:false,error:'Enter a locale such as en, ur-PK, or zh-Hans.'};var parts=raw.split('-').filter(Boolean),language=parts[0].toLowerCase();if(!/^[a-z]{2,3}$/.test(language))return {ok:false,error:'The language code must be 2 or 3 letters.'};var i=1,script,region;if(parts[i]&&/^[A-Za-z]{4}$/.test(parts[i])){script=parts[i][0].toUpperCase()+parts[i].slice(1).toLowerCase();i++}if(parts[i]){region=/^\d{3}$/.test(parts[i])?parts[i]:parts[i].toUpperCase();if(!/^([A-Z]{2}|\d{3})$/.test(region))return {ok:false,error:'The region code is not valid.'};i++}if(parts[i])return {ok:false,error:'This locale has an extra segment that Sellora does not use.'};return {ok:true,canonical:[language,script,region].filter(Boolean).join('-'),language:language,region:region}}
+function localeInfo(language){return LOCALES.filter(function(l){return l.language===language||l.id===language})[0]||null}
+function directionFor(language){return RTL[language]?'rtl':'ltr'}
+function resolveText(locale,key){var parsed=parseLocale(locale),requested=parsed.ok?parsed.canonical:'en',language=parsed.ok?parsed.language:'en',info=localeInfo(language),chain=[language,'en'],i;for(i=0;i<chain.length;i++){var text=COPY[chain[i]]&&COPY[chain[i]][key];if(text){var status=chain[i]===language&&info&&info.coverage==='verified'?'translated':'fallback';return {text:text,status:chain[i]===language?status:'fallback',locale:chain[i],requested:requested,coverage:info?info.coverage:'unknown'}}}return {text:key,status:'missing',locale:'en',requested:requested,coverage:info?info.coverage:'unknown'}}
+function speechFor(locale){var parsed=parseLocale(locale),language=parsed.ok?parsed.language:'en',info=localeInfo(language);if(info&&info.coverage==='verified'&&info.speech)return {supported:true,lang:info.speech,message:''};return {supported:false,lang:null,message:resolveText('en','voice.unsupported').text}}
+function formatMoney(amount,currency,locale){var code=String(currency||'USD').toUpperCase(),name=NAMES[code]||code,parsed=parseLocale(locale||'en'),loc=parsed.ok?parsed.canonical:'en',num=Number(amount).toFixed(2);try{num=new Intl.NumberFormat(loc,{minimumFractionDigits:2,maximumFractionDigits:2}).format(amount)}catch(e){}return {text:num+' '+name+' ('+code+')',currency:code,name:name,converted:false}}
+function convertMoney(amount,from,to,rate){var src=String(from||'').toUpperCase(),dst=String(to||'').toUpperCase();if(src===dst)return {ok:true,amount:amount,converted:false,source:null,asOf:null};if(!rate||rate.source==null||!rate.asOf||String(rate.from).toUpperCase()!==src||String(rate.to).toUpperCase()!==dst||!(rate.value>0))return {ok:false,converted:false,error:'No sourced exchange rate is stored for this pair. The amount was not converted.'};return {ok:true,amount:Math.round(amount*rate.value*100)/100,converted:true,source:rate.source,asOf:rate.asOf}}
+function nextStep(store){var products=(store.products||[]).filter(function(p){return !p.demo});if(!products.length)return {id:'addProduct',blocked:[],ready:false};var incomplete=products.filter(function(p){return p.price==null||p.price===''||!String(p.desc||p.description||'').trim()||!((p.imgs||p.images||[]).length)});if(incomplete.length)return {id:'finishListing',blocked:[],ready:false,count:incomplete.length};if(!store.sub9||store.sub9.status!=='active')return {id:'launch',blocked:['publish'],ready:false};if(!store.paymentLive)return {id:'payment',blocked:['payment'],ready:false};return {id:'ready',blocked:[],ready:true}}
+var CLAIM=/#\s*1|number one|guaranteed ranking|best in the world|clinically proven|cure[sd]? /i;
+function bulkDryRun(products,ids,change,explicit){explicit=explicit||{};if(change.price!=null&&!explicit.price)return {ok:false,error:'Price stays unchanged unless the request explicitly includes price.'};if(change.sku!=null&&!explicit.sku)return {ok:false,error:'SKU stays unchanged unless the request explicitly includes SKU.'};var diffs=[],rejected=[];products.filter(function(p){return ids.map(String).indexOf(String(p.id))>=0}).forEach(function(p){var name=p.name||p.title||'';if(change.alt==='use-name')diffs.push({id:p.id,field:'alt',before:p.alt||'',after:name});if(change.description!=null){if(CLAIM.test(change.description)&&!CLAIM.test(p.desc||p.description||''))rejected.push({id:p.id,field:'description',reason:'The text adds a ranking or proof claim that was not in the original.'});else diffs.push({id:p.id,field:'description',before:p.desc||p.description||'',after:change.description})}if(explicit.price&&change.price!=null)diffs.push({id:p.id,field:'price',before:String(p.price==null?'':p.price),after:String(change.price)});if(explicit.sku&&change.sku!=null)diffs.push({id:p.id,field:'sku',before:p.sku||'',after:change.sku})});return {ok:true,diffs:diffs,rejected:rejected,applied:false}}
+function bulkApply(products,dry){if(!dry.ok)return {ok:false,error:dry.error};var undo=dry.diffs.map(function(d){return {id:d.id,field:d.field,before:d.before,after:d.after}});undo.forEach(function(d){var p=products.filter(function(x){return String(x.id)===String(d.id)})[0];if(!p)return;if(d.field==='alt')p.alt=d.after;if(d.field==='description'){p.desc=d.after;p.description=d.after}if(d.field==='price')p.price=Number(d.after);if(d.field==='sku')p.sku=d.after});return {ok:true,undo:undo,applied:dry.diffs.length}}
+function bulkUndo(products,undo){undo.forEach(function(d){var p=products.filter(function(x){return String(x.id)===String(d.id)})[0];if(!p)return;if(d.field==='alt')p.alt=d.before;if(d.field==='description'){p.desc=d.before;p.description=d.before}if(d.field==='price')p.price=d.before===''?null:Number(d.before);if(d.field==='sku')p.sku=d.before});return {ok:true,reverted:undo.length}}
+function neutralizeFormula(value){var s=String(value==null?'':value);if(/^[=+\-@\t\r]/.test(s))return {value:"'"+s,neutralized:true};return {value:s,neutralized:false}}
+function parseCsv(text){var src=String(text||'').replace(/^\uFEFF/,''),out=[],row=[],field='',quoted=false,i,c;for(i=0;i<src.length;i++){c=src[i];if(quoted){if(c==='"'&&src[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&src[i+1]==='\n')i++;row.push(field);out.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field);out.push(row)}return out.filter(function(r){return r.some(function(c){return String(c).trim()})})}
+function dryRunCsv(text,existing,opts){opts=opts||{};var rows=parseCsv(text);if(!rows.length)return {ok:false,error:'The file is empty.',rows:[],neutralized:0};var header=rows[0].map(function(h){return h.trim().toLowerCase()});function ix(){for(var i=0;i<arguments.length;i++){var k=header.indexOf(arguments[i]);if(k>=0)return k}return -1}if(ix('handle','title')<0)return {ok:false,error:'The file needs a Handle or Title column.',rows:[],neutralized:0};var have={},seen={},neutralized=0,planned=[];(existing||[]).forEach(function(h){have[String(h).toLowerCase()]=1});rows.slice(1).forEach(function(r,n){function cell(i){return i<0?'':(r[i]||'')}var titleCell=neutralizeFormula(cell(ix('title'))),bodyCell=neutralizeFormula(cell(ix('body (html)','body','description'))),skuCell=neutralizeFormula(cell(ix('variant sku','sku')));if(titleCell.neutralized||bodyCell.neutralized||skuCell.neutralized)neutralized++;var raw=(cell(ix('handle'))||'').trim();var handle=(raw||titleCell.value).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');var line=n+2;if(!handle){planned.push({line:line,action:'error',message:'Missing Handle and Title.'});return}if(!titleCell.value){if(seen[handle]){planned.push({line:line,action:'variant',handle:handle});return}planned.push({line:line,action:'error',handle:handle,message:'Missing Title.'});return}if(seen[handle]){planned.push({line:line,action:'error',handle:handle,message:'This handle already has a title row in the file.'});return}seen[handle]=1;var exists=!!have[handle];var action=!exists?'create':opts.approveOverwrite?'update':'skip';planned.push({line:line,action:action,handle:handle,title:titleCell.value,description:bodyCell.value,sku:skuCell.value,message:exists&&action==='skip'?'Already stored. Approve overwrite to update it. It was not changed.':''})});return {ok:true,neutralized:neutralized,rows:planned,deleted:0}}
+function classifyUrl(url){if(!url)return {class:'invalid',reason:'empty'};if(url.charAt(0)==='/'||url.charAt(0)==='#')return {class:'relative',reason:'internal'};var u;try{u=new URL(url)}catch(e){return {class:'invalid',reason:'unparseable'}}if(u.protocol!=='http:'&&u.protocol!=='https:')return {class:'blocked',reason:'protocol'};var host=u.hostname.replace(/^\[|\]$/g,'').toLowerCase();if(host==='localhost'||/\.localhost$/.test(host)||/\.local$/.test(host)||host==='0.0.0.0')return {class:'blocked',reason:'local'};var m=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);if(m){var p=[+m[1],+m[2],+m[3],+m[4]];if(p.some(function(n){return n>255}))return {class:'invalid',reason:'ip'};var a=p[0],b=p[1];if(a===10||a===127||a===0||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168))return {class:'blocked',reason:'private'}}if(host==='::1'||host.indexOf('fc')===0||host.indexOf('fd')===0||host.indexOf('fe80')===0)return {class:'blocked',reason:'private'};return {class:'external-unverified',reason:'not fetched'}}
+function healthCheck(store,browserMobile){var findings=[],products=(store.products||[]).filter(function(p){return !p.demo}),handles={},pages={};products.forEach(function(p){if(p.handle)handles[String(p.handle).toLowerCase()]=1});(store.pages||[]).forEach(function(p){pages[String(p.h||p.handle||'').toLowerCase()]=1});products.forEach(function(p){var name=p.name||p.title||'Untitled product';if(p.price==null||p.price==='')findings.push({code:'incomplete-price',severity:'attention',verified:'structural',detail:name+' has no price.'});if(!String(p.desc||p.description||'').trim())findings.push({code:'incomplete-description',severity:'attention',verified:'structural',detail:name+' has no description.'});if(!((p.imgs||p.images||[]).length))findings.push({code:'missing-image',severity:'attention',verified:'structural',detail:name+' has no image.'});(p.imgs||p.images||[]).forEach(function(src){var c=classifyUrl(String(src));if(c.class==='blocked')findings.push({code:'blocked-link',severity:'attention',verified:'structural',detail:name+' image was not requested ('+c.reason+').'});if(c.class==='external-unverified')findings.push({code:'external-link',severity:'info',verified:'structural',detail:name+' image is on another site and was not fetched.'})})});(store.menus||[]).forEach(function(m){(m.items||[]).forEach(function(item){var url=item.url||'',product=url.match(/^\/products\/([^/?#]+)/),page=url.match(/^\/pages\/([^/?#]+)/);if(product&&!handles[decodeURIComponent(product[1]).toLowerCase()])findings.push({code:'broken-link',severity:'attention',verified:'structural',detail:'Menu link '+url+' does not match a stored product.'});if(page&&!pages[decodeURIComponent(page[1]).toLowerCase()])findings.push({code:'broken-link',severity:'attention',verified:'structural',detail:'Menu link '+url+' does not match a stored page.'});var c=classifyUrl(url);if(c.class==='blocked')findings.push({code:'blocked-link',severity:'attention',verified:'structural',detail:'Menu link was not requested ('+c.reason+').'})})});if(browserMobile==null)findings.push({code:'mobile-unverified',severity:'info',verified:'possible',detail:'Mobile layout was not measured in a browser. This is not a confirmed mobile error.'});else if(browserMobile.overflow)findings.push({code:'mobile-overflow',severity:'attention',verified:'browser',detail:'A browser check found content wider than the screen.'});return {source:'stored-records',findings:findings}}
+function salesInsights(orders,opts){opts=opts||{};var rows=(orders||[]).filter(function(o){if(o.demo)return false;var raw=o.at!=null?o.at:(o.createdAt?new Date(o.createdAt).getTime():null);if(raw==null||!isFinite(+raw))return opts.from==null&&opts.to==null;var t=+raw;if(opts.from!=null&&t<opts.from)return false;if(opts.to!=null&&t>opts.to)return false;return true}),groups={};rows.forEach(function(o){var cur=String(o.cur||o.currency||'UNKNOWN').toUpperCase(),g=groups[cur]||(groups[cur]={count:0,total:0,unknownPayment:0,unpaid:0,fulfilled:0,unfulfilled:0,deliveryUnknown:0,delivered:0});g.count++;if(typeof o.total==='number'&&isFinite(o.total))g.total+=o.total;var fin=((o.financial||'')+' '+(o.st||'')+' '+(o.status||'')).toLowerCase(),ful=((o.fulfillment||'')+' '+(o.st||'')).toLowerCase();if(/unpaid|pending/.test(fin)&&!/paid/.test(fin))g.unpaid++;else if(!/paid|held|refund/.test(fin))g.unknownPayment++;if(/unfulfilled/.test(ful)||(/\bpaid\b/.test(fin)&&!/fulfilled|shipped/.test(ful)))g.unfulfilled++;if(/fulfilled|shipped/.test(ful))g.fulfilled++;if(o.delivered===true||/\bdelivered\b/.test(fin))g.delivered++;else g.deliveryUnknown++});var suggestions=[];if(!rows.length)suggestions.push({code:'no-orders',text:'No stored orders in this range. There is no trend to report.'});else if(rows.length<5)suggestions.push({code:'few',text:'Fewer than 5 stored orders. A trend is not reported.'});var unfulfilled=Object.keys(groups).reduce(function(a,k){return a+groups[k].unfulfilled},0);if(unfulfilled)suggestions.push({code:'unfulfilled',text:unfulfilled+' stored order'+(unfulfilled===1?' is':'s are')+' unfulfilled. Fulfilled does not mean delivered.'});if(rows.length&&Object.keys(groups).every(function(k){return groups[k].deliveryUnknown===groups[k].count}))suggestions.push({code:'delivery-unknown',text:'Delivery is unknown for every stored order in this range. That is not the same as undelivered.'});return {source:'stored-records',synchronizedWithServer:false,sourceNote:opts.sourceNote||'This browser store. It is not the server database.',timeZone:opts.timeZone||'UTC',from:opts.from==null?null:opts.from,to:opts.to==null?null:opts.to,count:rows.length,currencies:groups,suggestions:suggestions,summedAcrossCurrencies:false}}
+function readiness(){return [
+  {id:'sellora-pay',area:'payment',state:'not-connected',env:[],note:'Browser checkout does not call a processor. A local card result is not a live charge.'},
+  {id:'stripe',area:'payment',state:'missing-config',env:['PAYMENT_PROVIDER','STRIPE_SECRET_KEY'],note:'Not activated from this admin.'},
+  {id:'deepseek',area:'translation',state:'missing-config',env:['DEEPSEEK_API_KEY'],note:'Main translation provider. A missing key is not a completed translation.'},
+  {id:'claude',area:'translation',state:'missing-config',env:['ANTHROPIC_API_KEY'],optional:true,note:'Optional. Used on the server only when DeepSeek returns nothing.'},
+  {id:'tracking',area:'shipping',state:'missing-config',env:['TRACKING_API_URL','TRACKING_API_KEY'],note:'A shipping zone you type is not a live carrier account.'}
+]}
+function sizeChart(rows){return {converted:false,note:'These sizes are the labels you entered. Sellora does not guess a conversion.',rows:(rows||[]).map(function(r){return {label:r.label,region:r.region,value:r.value}})}}
+function draftTranslation(input){var parsed=parseLocale(input.locale);if(!parsed.ok)return {ok:false,translated:false,reason:parsed.error};if(input.provider!=='manual'){if(!input.providerText)return {ok:false,translated:false,blocked:'missing-provider'}}var joined=Object.keys(input.fields||{}).map(function(k){return input.fields[k]}).join('\n');var names=(input.brandNames||[]).filter(function(n){return n&&input.original.indexOf(n)>=0&&joined.indexOf(n)<0});if(names.length)return {ok:false,translated:false,reason:'A brand name was removed from the translation.',names:names};return {ok:true,record:{id:input.id,entity:input.entity,entityId:input.entityId,locale:parsed.canonical,fields:input.fields,status:'draft',provider:input.provider,brandKept:true}}}
+window.SelloraPlatform={LOCALES:LOCALES,escapeHtml:escapeHtml,parseLocale:parseLocale,directionFor:directionFor,resolveText:resolveText,speechFor:speechFor,formatMoney:formatMoney,convertMoney:convertMoney,nextStep:nextStep,bulkDryRun:bulkDryRun,bulkApply:bulkApply,bulkUndo:bulkUndo,neutralizeFormula:neutralizeFormula,dryRunCsv:dryRunCsv,classifyUrl:classifyUrl,healthCheck:healthCheck,salesInsights:salesInsights,readiness:readiness,sizeChart:sizeChart,draftTranslation:draftTranslation};
+})();
+
+/* Beginner setup, locale, import guard, health, and order insights. */
+(function(){
+var X=window,P=X.SelloraPlatform;
+if(!P)return;
+function esc(s){return P.escapeHtml(s)}
+function persist(){try{save()}catch(e){}}
+function locale(){return (S&&S.locale)||'en'}
+function t(key){return P.resolveText(locale(),key)}
+function applyLocale(){
+  var parsed=P.parseLocale(locale());
+  var lang=parsed.ok?parsed.language:'en';
+  document.documentElement.lang=parsed.ok?parsed.canonical:'en';
+  document.documentElement.dir=P.directionFor(lang);
+  if(S&&S.plus&&S.plus.cfg&&(lang==='en'||lang==='ur'||lang==='ar'))S.plus.cfg.lang=lang;
+}
+function stepButton(step){
+  if(step.id==='addProduct')return '<button class="btn pri" type="button" data-m17go="products">'+esc(t('next.addProductBtn').text)+'</button>';
+  if(step.id==='finishListing')return '<button class="btn pri" type="button" data-m17go="products">'+esc(t('next.finishBtn').text)+'</button>';
+  if(step.id==='launch')return '<button class="btn pri" type="button" data-m17go="setup">'+esc(t('next.launchBtn').text)+'</button>';
+  if(step.id==='payment')return '<button class="btn" type="button" data-m17go="setup">'+esc(t('next.paymentBtn').text)+'</button>';
+  return '';
+}
+function nextPanel(){
+  var step=P.nextStep(S||{});
+  var phrase=t('next.'+step.id);
+  var note=phrase.status==='fallback'?'<p class="mu">'+esc(t('locale.fallback').text)+'</p>':'';
+  return '<section id="m17next" class="panel" style="margin:0 0 16px"><h2 id="m17step" data-step="'+esc(step.id)+'" data-status="'+esc(phrase.status)+'" style="font-size:18px;margin:0 0 8px">'+esc(phrase.text)+'</h2>'+note+stepButton(step)+'</section>';
+}
+function honestHome(html){
+  var rep=P.salesInsights((S&&S.orders)||[],{timeZone:(S&&S.tz)||'UTC',sourceNote:'This browser store. It is not the server database.'});
+  var bits=Object.keys(rep.currencies).map(function(c){return c+': '+rep.currencies[c].count+' · '+P.formatMoney(rep.currencies[c].total,c,locale()).text}).join(' · ')||'No stored orders in this browser.';
+  var metrics='<div class="metrics" id="m17metrics"><div class="metric"><small>Stored orders</small><b>'+rep.count+'</b></div><div class="metric"><small>By currency</small><b style="font-size:14px;font-weight:600">'+esc(bits)+'</b></div></div><p class="mu" id="m17src">Orders saved in this browser. They are not the server database, and different currencies are not added together.</p>';
+  var i=html.indexOf('<div class="metrics">');
+  if(i>=0){var depth=0,j=i;for(;j<html.length;j++){if(html.slice(j,j+4)==='<div')depth++;else if(html.slice(j,j+6)==='</div>'){depth--;if(depth===0){j+=6;break}}}html=html.slice(0,i)+metrics+html.slice(j)}
+  else html=metrics+html;
+  html=html.replace('Connect local and international gateways and turn on Sellora Pay.','Card checkout is not connected. This page does not start a live charge.');
+  html=html.replace('Search a name, connect it and get free SSL.','You can look up a name. Buying a domain is not included.');
+  html=html.replace('Let AI write the description for you.','Add a name, price, and photo. A provider is not called from this page.');
+  return nextPanel()+html;
+}
+if(typeof V!=='undefined'&&V.home&&!V.home._m17){var h0=V.home;var h1=function(){return honestHome(h0())};h1._m17=1;V.home=h1}
+V.setup=function(){
+  var step=P.nextStep(S||{});
+  var langs=P.LOCALES.map(function(l){return '<option value="'+esc(l.id)+'"'+(l.id===locale()?' selected':'')+'>'+esc(l.native+' · '+l.name)+(l.coverage==='verified'?'':' · English words')+'</option>'}).join('');
+  var ready=P.readiness().map(function(r){return '<li><b>'+esc(r.id)+'</b> — '+esc(r.state)+'. '+esc(r.note)+(r.env.length?' Needs '+esc(r.env.join(', '))+'.':'')+'</li>'}).join('');
+  var sizes=(S.sizes||[]).map(function(r,i){return '<li>'+esc(r.region)+' '+esc(r.label)+': '+esc(r.value)+' <button type="button" class="btn" data-m17sz="'+i+'">Remove</button></li>'}).join('')||'<li>No size labels yet.</li>';
+  var health=(S._health17&&S._health17.findings||[]).map(function(f){return '<li data-kind="'+esc(f.verified)+'">'+esc(f.detail)+'</li>'}).join('')||'<li>Not checked yet.</li>';
+  var paid=S.sub9&&S.sub9.status==='active';
+  var cur=S.cur||'USD',pay=S.checkoutCur||cur;
+  var money=P.formatMoney(0,cur,locale()).text;
+  var conv=P.convertMoney(10,cur,pay,S.fxRate||null);
+  return '<div class="xw" id="m17setup"><h1>Setup</h1>'+nextPanel()
+    +'<div class="panel"><h2>Launch checks</h2><ul><li>'+(paid?'A paid plan is active. Use the Plans page to publish.':esc(t('publish.blocked').text))+'</li><li>'+esc(t('next.payment').text)+'</li></ul><p class="mu">Shown amount format: '+esc(money)+'. Checkout currency is '+esc(pay)+' and display currency is '+esc(cur)+'.</p><p class="mu">'+(conv.ok&&conv.converted?'Converted with '+esc(conv.source)+' as of '+esc(conv.asOf)+'.':esc(conv.error||'No conversion was applied.'))+'</p></div>'
+    +'<details class="panel"><summary>Language</summary><label for="m17lang">Language for this browser</label><select id="m17lang">'+langs+'</select><p class="mu">Verified languages have these setup phrases translated. The others stay in English and say so. This is not every language, and voice is only offered for the verified list.</p><button class="btn pri" type="button" id="m17save">Save language</button></details>'
+    +'<details class="panel"><summary id="m17healthsum">'+esc(t('health.title').text)+'</summary><button class="btn" type="button" id="m17health">Check this store</button><ul id="m17findings">'+health+'</ul><p class="mu">External sites are not opened. A phone layout is called a possible issue until a browser measures it.</p></details>'
+    +'<details class="panel"><summary>Regions, sizes, and providers</summary><p class="mu">'+esc(t('import.approve').text)+'</p><ul>'+ready+'</ul><h3>Size labels</h3><p class="mu">'+esc(P.sizeChart(S.sizes||[]).note)+'</p><form id="m17size"><label>Region <input id="m17sr" required></label> <label>Label <input id="m17sl" required></label> <label>Value <input id="m17sv" required></label> <button class="btn" type="submit">Add label</button></form><ul>'+sizes+'</ul></details></div>';
+};
+function saveLocale(id){
+  var parsed=P.parseLocale(id);
+  if(!parsed.ok){try{toast(parsed.error)}catch(e){}return}
+  S.locale=parsed.language;
+  S.tz=S.tz||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+  persist();applyLocale();
+  try{toast('Language saved')}catch(e){}
+  if(typeof route==='function')route();
+}
+document.addEventListener('click',function(e){
+  var tEl=e.target&&e.target.closest?e.target:null;if(!tEl)return;
+  var go=tEl.closest('[data-m17go]');
+  if(go){e.preventDefault();location.hash=go.getAttribute('data-m17go');return}
+  if(tEl.id==='m17save'){var sel=document.getElementById('m17lang');if(sel)saveLocale(sel.value);return}
+  if(tEl.id==='m17health'){S._health17=P.healthCheck(S,S._mobile17||null);persist();if(typeof route==='function')route();return}
+  var rm=tEl.closest('[data-m17sz]');
+  if(rm){S.sizes.splice(+rm.getAttribute('data-m17sz'),1);persist();if(typeof route==='function')route();return}
+  if(tEl.closest&&tEl.closest('#addo')){
+    e.preventDefault();e.stopImmediatePropagation();
+    var p=(S.products||[])[0];
+    if(!p){try{toast('Add a product before saving a sample order.')}catch(err){}return}
+    S.orders=S.orders||[];S.oid=S.oid||1000;
+    S.orders.push({id:S.oid++,who:'Sample',total:p.price,st:'Paid',pay:'Paid',ful:'Unfulfilled',gw:'Sample',demo:true,cur:S.cur||'USD',at:Date.now()});
+    persist();try{toast('Sample order saved. It is not counted as a sale.')}catch(err){}
+    if(typeof route==='function')route();
+  }
+  var gw=tEl.closest('[data-g]');
+  if(gw){e.preventDefault();e.stopImmediatePropagation();try{toast('This switch does not connect a processor. Nothing was charged.')}catch(err){}}
+},true);
+document.addEventListener('submit',function(e){
+  if(!e.target||e.target.id!=='m17size')return;
+  e.preventDefault();
+  S.sizes=S.sizes||[];
+  S.sizes.push({region:document.getElementById('m17sr').value,label:document.getElementById('m17sl').value,value:document.getElementById('m17sv').value});
+  persist();if(typeof route==='function')route();
+});
+if(window.NAV_CONFIG&&!NAV_CONFIG.some(function(n){return n.id==='setup'}))NAV_CONFIG.splice(1,0,{id:'setup',label:'Setup',icon:'store'});
+if(X.m13read&&!X.m13read._m17){var read0=X.m13read;var read1=function(text){var res=read0(text),n=0;(res.items||[]).forEach(function(it){['name','desc','sku','vendor'].forEach(function(k){var c=P.neutralizeFormula(it[k]||'');if(c.neutralized){it[k]=c.value;n++}})});res.neutralized=n;return res};read1._m17=1;X.m13read=read1}
+if(X.AIBuild&&X.AIBuild.handle&&!X.AIBuild.handle._m17){
+  var prev=X.AIBuild.handle;
+  var LOCAL=' Local commands only. No AI provider was called.';
+  X.AIBuild.handle=function(text,source){
+    var raw=String(text||'').trim();
+    if(/\b(set|switch|change) language\b/i.test(raw)){
+      var name=(raw.match(/\b(urdu|arabic|english|french|spanish|german|hindi)\b/i)||[])[1];
+      var map={urdu:'ur',arabic:'ar',english:'en',french:'fr',spanish:'es',german:'de',hindi:'hi'};
+      if(!name||!map[name.toLowerCase()])return {handled:true,applied:false,source:'local',provider:'local',reply:'Name a language such as Urdu, Arabic, French, or Hindi.'+LOCAL};
+      saveLocale(map[name.toLowerCase()]);
+      var info=P.LOCALES.filter(function(l){return l.id===map[name.toLowerCase()]})[0];
+      return {handled:true,applied:true,source:'local',provider:'local',reply:(info.coverage==='verified'?'Language saved.':'Language saved. The setup phrases for this language are still English.')+LOCAL};
+    }
+    if(/\b(health check|broken links|missing images)\b/i.test(raw)){
+      var report=P.healthCheck(S,null);
+      return {handled:true,applied:false,source:'local',provider:'local',reply:(report.findings.map(function(f){return f.detail}).join(' ')||'No stored problems found.')+LOCAL};
+    }
+    if(/\b(how are sales|sales insight|sales report)\b/i.test(raw)){
+      var sales=P.salesInsights(S.orders||[],{timeZone:(S&&S.tz)||'UTC',sourceNote:'browser'});
+      return {handled:true,applied:false,source:'local',provider:'local',reply:sales.suggestions.map(function(s){return s.text}).join(' ')+' Source: this browser, not the server database.'+LOCAL};
+    }
+    if(/\btranslate\b/i.test(raw))return {handled:true,applied:false,translated:false,blocked:'missing-provider',source:'local',provider:'local',reply:'Not translated. No provider key is configured on the server. You can type a translation and approve it yourself.'+LOCAL};
+    if(/\bbulk alt\b/i.test(raw)){
+      var ids=(S.products||[]).map(function(p){return p.id});
+      var dry=P.bulkDryRun(S.products||[],ids,{alt:'use-name'});
+      if(!/^confirm:/i.test(raw))return {handled:true,applied:false,needsConfirm:true,source:'local',provider:'local',reply:'Preview only: '+(dry.diffs||[]).length+' alt text change(s). Prices and SKUs stay the same. Say “confirm: bulk alt” to apply.'+LOCAL};
+      var applied=P.bulkApply(S.products,dry);S.bulkUndo=S.bulkUndo||[];if(applied.ok)S.bulkUndo.unshift(applied.undo);persist();
+      return {handled:true,applied:true,source:'local',provider:'local',reply:'Applied '+(applied.applied||0)+' alt text change(s). Say “undo bulk” to put the old text back.'+LOCAL};
+    }
+    if(/^undo bulk\b/i.test(raw)){var stack=S.bulkUndo||[],last=stack.shift();if(last)P.bulkUndo(S.products,last);persist();return {handled:true,applied:!!last,source:'local',provider:'local',reply:(last?'Bulk edit undone.':'Nothing to undo.')+LOCAL}}
+    return prev(raw,source);
+  };
+  X.AIBuild.handle._m17=1;
+}
+if(X.onRoute)X.onRoute(function(){try{applyLocale()}catch(e){}});
+var css=document.createElement('style');
+css.textContent='#m17setup details{margin:0 0 12px;padding:12px}#m17setup summary{cursor:pointer;font-weight:700}#m17setup input,#m17setup select{max-width:100%;font-size:16px}#m17next .btn{margin-top:8px}@media(max-width:760px){body{flex-direction:column!important}aside{width:100%!important;height:auto!important;position:relative!important}nav{flex-direction:row!important;overflow-x:auto}main{width:100%!important}#m17metrics{display:block}#m17setup form{display:grid;gap:8px}}';
+document.head.appendChild(css);
 })();
 
 ;try{route()}catch(e){console.error(e)}
