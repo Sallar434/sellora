@@ -291,7 +291,7 @@ var TH=[['dawn','Dawn','#FFFFFF','#1B1B1B','#2E6B4F','s','c',10],['ember','Ember
 function mk(){return TH.map(function(a){return{id:a[0],name:a[1],bg:a[2],tx:a[3],ac:a[4],font:a[5],lay:a[6],rad:a[7],free:1,c:{}}})}
 function th(id){return S.themes.filter(function(t){return t.id===id})[0]}
 function live(){return th(S.live)||S.themes[0]}
-function fresh(n,e){S=Object.assign(JSON.parse(TPL),{name:n,email:e,products:[{id:1,name:'Classic tee',price:25,stock:50,status:'Active',desc:'Soft cotton tee.'},{id:2,name:'Canvas tote',price:18,stock:40,status:'Active',desc:'Sturdy everyday tote.'},{id:3,name:'Ceramic mug',price:14,stock:60,status:'Active',desc:'Holds a generous pour.'}],orders:[],oid:1001,nid:4,themes:mk(),live:'dawn',plan:'Starter',set:{users:{staff:[{email:e,role:'Owner'}]}}})}
+function fresh(n,e){S=Object.assign(JSON.parse(TPL),{name:n,email:e,products:[{id:1,name:'Classic tee',price:25,stock:50,status:'Active',desc:'Soft cotton tee.'},{id:2,name:'Canvas tote',price:18,stock:40,status:'Active',desc:'Sturdy everyday tote.'},{id:3,name:'Ceramic mug',price:14,stock:60,status:'Active',desc:'Holds a generous pour.'}],orders:[],demoOrders:false,oid:1001,nid:4,themes:mk(),live:'dawn',plan:'Starter',set:{users:{staff:[{email:e,role:'Owner'}]}}})}
 function _old_sf272(t){var c=t.c,ps=S.products.filter(function(p){return p.status==='Active'}).slice(0,c.n||4);
 return '<div class="sf" style="--b:'+t.bg+';--t:'+t.tx+';--a:'+t.ac+';--r:'+t.rad+'px;font-family:'+FN[t.font]+'"><div class="sh"><b>'+esc(S.name)+'</b><span>Home</span><span>Catalog</span><span>Contact</span><span>Cart (0)</span></div><div class="hr '+t.lay+'"><div><h2>'+esc(c.h||'Welcome to '+S.name)+'</h2><p>'+esc(c.s||'Discover our latest products.')+'</p><span class="sb">'+esc(c.b||'Shop now')+'</span></div><div class="hi"></div></div><h3 class="sg">Featured products</h3><div class="pg">'+(ps.length?ps.map(function(p){return '<div class="pc"><div class="pi"></div><b>'+esc(p.name)+'</b><span>'+money(p.price)+'</span></div>'}).join(''):'<p>Add products to show them here.</p>')+'</div><div class="sfoot">© '+esc(S.name)+'</div></div>'}
 function fit(){document.querySelectorAll('.thumb').forEach(function(e){var c=e.firstChild;if(c)c.style.transform='scale('+e.clientWidth/1000+')'})}
@@ -1395,11 +1395,11 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       ];
     }
     if (!Array.isArray(S.orders)) S.orders = [];
-    if (S.orders.length === 0) {
+    if (S.orders.length === 0 && S.demoOrders !== false) {
       S.orders = [
-        { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe' },
-        { id: 1002, who: 'Daniel Ruiz', total: 41, st: 'Fulfilled', gw: 'PayPal' },
-        { id: 1003, who: 'Hassan Ali', total: 22, st: 'Paid', gw: 'JazzCash' }
+        { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe', demo: true },
+        { id: 1002, who: 'Daniel Ruiz', total: 41, st: 'Fulfilled', gw: 'PayPal', demo: true },
+        { id: 1003, who: 'Hassan Ali', total: 22, st: 'Paid', gw: 'JazzCash', demo: true }
       ];
     }
     if (!S.payout) S.payout = { m: 'Bank transfer', c: S.country || 'Pakistan', a: 'Meezan Bank' };

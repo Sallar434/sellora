@@ -22,22 +22,23 @@ describe('DeepSeek provider', () => {
     const body = JSON.parse(init.body); expect(body.model).toBe('deepseek-flash'); expect(body.response_format).toEqual({ type: 'json_object' }); expect(body.thinking).toEqual({ type: 'disabled' });
     expect(out!.usage.estUsd).toBeCloseTo(costUsd('deepseek-flash', 1000, 400, 2000)); expect(costUsd('deepseek-flash', 1e6, 0, 0)).toBeCloseTo(0.30); expect(costUsd('deepseek-v4-pro', 0, 0, 1e6)).toBeCloseTo(3.96);
   });
-  it('store copy tries Claude first when ANTHROPIC_API_KEY is set, then DeepSeek', async () => {
-    Object.assign(config, { llmProvider: 'deepseek', deepseekKey: 'sk-ds', anthropicKey: 'sk-ant', anthropicModel: 'claude-sonnet-4-5' });
+  it('store copy uses DeepSeek first and Claude only when DeepSeek returns nothing', async () => {
+    Object.assign(config, { llmProvider: 'deepseek', deepseekKey: 'sk-ds', anthropicKey: 'sk-ant', anthropicModel: 'claude-sonnet-5-5' });
     const f = vi.fn(async (url: string) => {
       if (String(url).includes('anthropic.com')) return new Response(JSON.stringify({ content: [{ type: 'text', text: '{"tagline":"From Claude"}' }], usage: { input_tokens: 10, output_tokens: 5 } }), { status: 200 });
       return new Response(JSON.stringify({ choices: [{ message: { content: '{"tagline":"From DeepSeek"}' } }], usage: { prompt_tokens: 8, completion_tokens: 4 } }), { status: 200 });
     });
     vi.stubGlobal('fetch', f);
     const best = await llmChatBest('sys', 'hi', { json: true });
-    expect(best!.text).toContain('From Claude'); expect(best!.usage.provider).toBe('claude');
-    expect(String(f.mock.calls[0][0])).toContain('anthropic.com');
+    expect(best!.text).toContain('From DeepSeek'); expect(best!.usage.provider).toBe('deepseek');
+    expect(String(f.mock.calls[0][0])).toContain('api.deepseek.com');
+    expect(f.mock.calls.some((c: any) => String(c[0]).includes('anthropic.com'))).toBe(false);
     f.mockImplementation(async (url: string) => {
-      if (String(url).includes('anthropic.com')) return new Response('no', { status: 500 });
-      return new Response(JSON.stringify({ choices: [{ message: { content: '{"tagline":"From DeepSeek"}' } }], usage: { prompt_tokens: 8, completion_tokens: 4 } }), { status: 200 });
+      if (String(url).includes('api.deepseek.com')) return new Response('no', { status: 500 });
+      return new Response(JSON.stringify({ content: [{ type: 'text', text: '{"tagline":"From Claude"}' }], usage: { input_tokens: 10, output_tokens: 5 } }), { status: 200 });
     });
     const fell = await llmChatBest('sys', 'hi', { json: true });
-    expect(fell!.text).toContain('From DeepSeek'); expect(fell!.usage.provider).toBe('deepseek');
+    expect(fell!.text).toContain('From Claude'); expect(fell!.usage.provider).toBe('claude');
   });
   it('falls back to templates on HTTP error / bad JSON', async () => {
     Object.assign(config, { llmProvider: 'deepseek', deepseekKey: 'sk-test' }); vi.stubGlobal('fetch', vi.fn(async () => new Response('err', { status: 500 })));

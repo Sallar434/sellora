@@ -21,7 +21,7 @@ export async function call(rq: Req): Promise<Res> {
   return { status: r.status, data, live: true, request: rq };
 }
 /** Mock result when the merchant has not added keys: returns the exact request that WOULD be sent. */
-export const mock = (rq: Req, data: any = { ok: true }): Res => ({ status: 200, data: { mock: true, ...data }, live: false, request: redact(rq) });
+export const mock = (rq: Req, data: any = {}): Res => ({ status: 200, data: { mock: true, ok: false, reason: 'missing credentials', ...data }, live: false, request: redact(rq) });
 const SECRET = /token|secret|key|password|authorization|signature/i;
 export function redact(rq: Req): Req {
   const h = Object.fromEntries(Object.entries(rq.headers || {}).map(([k, v]) => [k, SECRET.test(k) ? '***' : v]));

@@ -8,12 +8,12 @@ export interface PaymentProvider {
   payout(i: { amount: number; currency: string; destination: any }): Promise<{ id: string; status: 'paid' | 'pending' | 'failed' }>;
   microDeposits(i: { bank: any }): Promise<{ amounts: number[] }>;
 }
-/** Working mock: source "tok_fail" fails, everything else succeeds. */
+/** In-memory ledger only. status may be succeeded for tests; live is always false and no processor is called. */
 export const mockProvider: PaymentProvider = {
   name: 'mock',
-  async charge(i) { return i.source === 'tok_fail' ? { id: 'ch_' + rand(8), status: 'failed', error: 'card_declined' } : { id: 'ch_' + rand(8), status: 'succeeded' }; },
-  async refund() { return { id: 're_' + rand(8), status: 'succeeded' }; },
-  async payout() { return { id: 'po_' + rand(8), status: 'paid' }; },
+  async charge(i) { return i.source === 'tok_fail' ? { id: 'ch_' + rand(8), status: 'failed', error: 'card_declined', live: false, processor: 'mock' } as any : { id: 'ch_' + rand(8), status: 'succeeded', live: false, processor: 'mock' } as any; },
+  async refund() { return { id: 're_' + rand(8), status: 'succeeded', live: false, processor: 'mock' } as any; },
+  async payout() { return { id: 'po_' + rand(8), status: 'paid', live: false, processor: 'mock' } as any; },
   async microDeposits() { return { amounts: [1 + Math.floor(Math.random() * 98), 1 + Math.floor(Math.random() * 98)] }; },
 };
 /** Stripe Connect adapter skeleton (REST, no SDK). Set PAYMENT_PROVIDER=stripe + STRIPE_SECRET_KEY. */

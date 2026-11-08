@@ -5,8 +5,10 @@ import { db } from '../lib/db';
 import { ah, parse, bad, nf } from '../lib/http';
 import { storeAccess } from '../lib/auth';
 import { config } from '../lib/config';
-import { llmJson, llmJsonBest, llmInfo, llmAvailability, stt, LlmUsage } from '../providers/llm';
+import { llmJson, llmJsonBest, llmChatBest, llmInfo, llmAvailability, stt, LlmUsage } from '../providers/llm';
 import { mockSite, parseEdit, applyOps, slugify, CITATIONS, faqList, detectNiche } from '../lib/sitegen';
+import { planCommand } from '../lib/actions';
+import { summarizeOrders } from '../lib/ordersReport';
 import { consume } from '../lib/billing';
 export const r = Router();
 export const pub = Router();
@@ -20,6 +22,49 @@ const all = async (storeId: string) => { const [s, ps, cs, pages, blog, reviews]
 r.get('/:storeId/ai/provider', storeAccess(), ah(async (req, res) => {
   const logs = await db.aiLog.findMany({ where: { storeId: req.store.id } });
   res.json({ ...llmInfo(), availability: llmAvailability(), stt: config.sttProvider, voiceOut: 'browser speechSynthesis', calls: logs.length, credits: logs.reduce((a, l) => a + l.credits, 0), tokens: logs.reduce((a, l) => a + l.inputTokens + l.outputTokens, 0), estUsd: +logs.reduce((a, l) => a + l.estUsd, 0).toFixed(4) });
+}));
+
+/** Validated command. Provider copy is attached only when a call returns text. The browser applies the plan to its own store. */
+r.post('/:storeId/ai/act', storeAccess('online_store'), ah(async (req, res) => {
+  const b = parse(z.object({ command: z.string().min(1).max(500), confirm: z.boolean().optional() }), req.body);
+  const plan = planCommand(b.command);
+  const availability = llmAvailability();
+  if (!plan.supported) return res.json({ applied: false, source: 'rules', providerError: null, availability, plan });
+  if (plan.needsConfirm && !b.confirm) return res.json({ applied: false, needsConfirm: true, source: 'rules', providerError: null, availability, plan });
+  let source: 'rules' | 'deepseek' | 'claude' = 'rules';
+  let providerError: string | null = null;
+  let copy: string | null = null;
+  if (plan.wantsCopy) {
+    if (!availability.claude && !availability.deepseek && !availability.compatible) providerError = 'No AI provider key is configured on the server.';
+    else {
+      const out = await llmChatBest('You write store copy. Reply with plain text. Do not invent rankings, reviews, or delivery promises. Payments are Sellora Pay.', b.command, { maxTokens: 400 });
+      if (!out) providerError = 'The configured provider did not return text. The command was not labeled as AI-written.';
+      else { source = out.usage.provider === 'claude' ? 'claude' : out.usage.provider === 'deepseek' ? 'deepseek' : 'rules'; copy = out.text; if (source === 'rules') providerError = 'Provider response had no recognized provider name.'; }
+    }
+  }
+  res.json({ applied: false, source, providerError, copy, availability, plan, storeId: req.store.id });
+}));
+
+r.get('/:storeId/reports/orders', storeAccess('orders'), ah(async (req, res) => {
+  const rows = await db.order.findMany({ where: { storeId: req.store.id, draft: false } });
+  const summary = summarizeOrders(rows.map(o => {
+    const f = o.fulfillments as any;
+    const delivered = f && (f.delivered === true || f.status === 'delivered') ? true : f && (f.delivered === false || f.status === 'undelivered') ? false : null;
+    return { id: o.id, status: o.status, financial: o.financial, fulfillment: o.fulfillment, delivered, at: o.createdAt.getTime(), total: o.total };
+  }));
+  res.json({ source: 'store-records', summary });
+}));
+
+r.get('/:storeId/integrations/status', storeAccess(), ah(async (req, res) => {
+  res.json({
+    verified: false,
+    note: 'Shows whether server environment variables are set. This endpoint does not call providers and does not mean an account is connected.',
+    providers: [
+      { id: 'deepseek', role: 'main AI provider', configured: !!config.deepseekKey, env: 'DEEPSEEK_API_KEY', live: 'UNVERIFIED' },
+      { id: 'claude', role: 'optional AI provider', configured: !!config.anthropicKey, env: 'ANTHROPIC_API_KEY', optional: true, live: 'UNVERIFIED' },
+      { id: 'carrier-tracking', role: 'live tracking', configured: !!config.trackingUrl, env: 'TRACKING_API_URL', live: 'UNVERIFIED' },
+    ],
+  });
 }));
 
 /* ---------------- AI website builder ---------------- */

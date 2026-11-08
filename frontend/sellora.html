@@ -361,7 +361,7 @@ var TH=[['dawn','Dawn','#FFFFFF','#1B1B1B','#2E6B4F','s','c',10],['ember','Ember
 function mk(){return TH.map(function(a){return{id:a[0],name:a[1],bg:a[2],tx:a[3],ac:a[4],font:a[5],lay:a[6],rad:a[7],free:1,c:{}}})}
 function th(id){return S.themes.filter(function(t){return t.id===id})[0]}
 function live(){return th(S.live)||S.themes[0]}
-function fresh(n,e){S=Object.assign(JSON.parse(TPL),{name:n,email:e,products:[{id:1,name:'Classic tee',price:25,stock:50,status:'Active',desc:'Soft cotton tee.'},{id:2,name:'Canvas tote',price:18,stock:40,status:'Active',desc:'Sturdy everyday tote.'},{id:3,name:'Ceramic mug',price:14,stock:60,status:'Active',desc:'Holds a generous pour.'}],orders:[],oid:1001,nid:4,themes:mk(),live:'dawn',plan:'Starter',set:{users:{staff:[{email:e,role:'Owner'}]}}})}
+function fresh(n,e){S=Object.assign(JSON.parse(TPL),{name:n,email:e,products:[{id:1,name:'Classic tee',price:25,stock:50,status:'Active',desc:'Soft cotton tee.'},{id:2,name:'Canvas tote',price:18,stock:40,status:'Active',desc:'Sturdy everyday tote.'},{id:3,name:'Ceramic mug',price:14,stock:60,status:'Active',desc:'Holds a generous pour.'}],orders:[],demoOrders:false,oid:1001,nid:4,themes:mk(),live:'dawn',plan:'Starter',set:{users:{staff:[{email:e,role:'Owner'}]}}})}
 function _old_sf272(t){var c=t.c,ps=S.products.filter(function(p){return p.status==='Active'}).slice(0,c.n||4);
 return '<div class="sf" style="--b:'+t.bg+';--t:'+t.tx+';--a:'+t.ac+';--r:'+t.rad+'px;font-family:'+FN[t.font]+'"><div class="sh"><b>'+esc(S.name)+'</b><span>Home</span><span>Catalog</span><span>Contact</span><span>Cart (0)</span></div><div class="hr '+t.lay+'"><div><h2>'+esc(c.h||'Welcome to '+S.name)+'</h2><p>'+esc(c.s||'Discover our latest products.')+'</p><span class="sb">'+esc(c.b||'Shop now')+'</span></div><div class="hi"></div></div><h3 class="sg">Featured products</h3><div class="pg">'+(ps.length?ps.map(function(p){return '<div class="pc"><div class="pi"></div><b>'+esc(p.name)+'</b><span>'+money(p.price)+'</span></div>'}).join(''):'<p>Add products to show them here.</p>')+'</div><div class="sfoot">© '+esc(S.name)+'</div></div>'}
 function fit(){document.querySelectorAll('.thumb').forEach(function(e){var c=e.firstChild;if(c)c.style.transform='scale('+e.clientWidth/1000+')'})}
@@ -1465,11 +1465,11 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       ];
     }
     if (!Array.isArray(S.orders)) S.orders = [];
-    if (S.orders.length === 0) {
+    if (S.orders.length === 0 && S.demoOrders !== false) {
       S.orders = [
-        { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe' },
-        { id: 1002, who: 'Daniel Ruiz', total: 41, st: 'Fulfilled', gw: 'PayPal' },
-        { id: 1003, who: 'Hassan Ali', total: 22, st: 'Paid', gw: 'JazzCash' }
+        { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe', demo: true },
+        { id: 1002, who: 'Daniel Ruiz', total: 41, st: 'Fulfilled', gw: 'PayPal', demo: true },
+        { id: 1003, who: 'Hassan Ali', total: 22, st: 'Paid', gw: 'JazzCash', demo: true }
       ];
     }
     if (!S.payout) S.payout = { m: 'Bank transfer', c: S.country || 'Pakistan', a: 'Meezan Bank' };
@@ -6558,7 +6558,7 @@ try{MORE.forEach(function(c){if(ALLC.indexOf(c)<0)ALLC.push(c)})}catch(e){}
 /* ---------- API LAYER (pluggable) ---------- */
 var PROV={email:{n:'Email (SendGrid/Mailgun/SMTP relay)',f:['endpoint','key','from']},sms:{n:'SMS / OTP (Twilio etc.)',f:['endpoint','key','from']},payments:{n:'Card acquirer API (powers Sellora Pay)',f:['endpoint','key','secret']},payouts:{n:'Payout rails (Wise/Payoneer/bank API)',f:['endpoint','key']},fx:{n:'FX rates (openexchangerates etc.)',f:['endpoint','key']},kyc:{n:'KYC / ID verification (Onfido/Sumsub)',f:['endpoint','key']},llm:{n:'AI / LLM (OpenAI-compatible)',f:['endpoint','key','model']},shipping:{n:'Shipping labels/tracking (ShipStation/EasyPost)',f:['endpoint','key']}};
 function ic(){return S.integrations=S.integrations||{}}
-function live(k){var c=ic()[k];return !!(c&&c.key&&c.endpoint)}
+function live(){return false}
 function post(k,path,body){var c=ic()[k];return fetch(c.endpoint.replace(/\/$/,'')+(path||''),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify(body)}).then(function(r){return r.json()})}
 function logApi(k,act,ok,info){(S.apiLog=S.apiLog||[]).unshift({k:k,act:act,mode:live(k)?'live':'test',ok:ok,info:info||'',at:Date.now()});S.apiLog.length=Math.min(S.apiLog.length,200)}
 X.API={PROV:PROV,live:live,cfg:ic,
@@ -6568,14 +6568,14 @@ X.API={PROV:PROV,live:live,cfg:ic,
  fxRates:function(){return S.rates},
  fx:function(amt,from,to){var R=S.rates;if(!R[from]||!R[to])return amt;return r2(amt/R[from]*R[to])},
  refreshFx:function(){if(!live('fx')){logApi('fx','refresh',1,'using stored demo rates');toast('FX rates refreshed');return Promise.resolve(S.rates)}return fetch(ic().fx.endpoint+'?app_id='+ic().fx.key).then(function(r){return r.json()}).then(function(j){if(j.rates)Object.keys(S.rates).forEach(function(k){if(j.rates[k])S.rates[k]=j.rates[k]});save();return S.rates})},
- charge:function(o){/* o:{amount,cur,card:{num,exp,cvc,name},method} */logApi('payments','charge',1,o.amount+' '+o.cur);if(live('payments'))return post('payments','/charges',{amount:Math.round(o.amount*100),currency:o.cur,source:o.token||'tok_visa'});return new Promise(function(res){setTimeout(function(){var n=(o.card&&o.card.num||'').replace(/\D/g,'');res(n==='4000000000000002'?{ok:false,error:'Card declined'}:{ok:true,id:'ch_'+id(),brand:o.card?brand(n):o.method,last4:n.slice(-4)})},300)})},
- refund:function(chargeId,amt){logApi('payments','refund',1,chargeId+' '+amt);return live('payments')?post('payments','/refunds',{charge:chargeId,amount:Math.round(amt*100)}):Promise.resolve({ok:true,id:'re_'+id()})},
- payout:function(p){logApi('payouts','payout',1,p.amount+' '+p.cur+' via '+p.method);return live('payouts')?post('payouts','/transfers',p):Promise.resolve({ok:true,id:'tr_'+id(),eta:'1-3 business days'})},
+ charge:function(o){logApi('payments','charge',0,o.amount+' '+o.cur);return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No card processor is connected. Nothing was charged.'})},
+ refund:function(){return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No card processor is connected. Nothing was refunded.'})},
+ payout:function(){return Promise.resolve({ok:false,live:false,simulated:true,processor:'none',error:'No payout provider is connected. Nothing was sent.'})},
  microDeposits:function(acct){var a=[0.11+((acct.length*7)%40)/100,0.09+((acct.length*13)%50)/100].map(r2);logApi('payouts','micro-deposits',1,a.join(','));return a},
- kycCheck:function(k){logApi('kyc','verify',1,k.biz&&k.biz.name);return live('kyc')?post('kyc','/checks',k):Promise.resolve({ok:true,score:k.docs&&k.docs.id&&k.docs.addr&&k.docs.selfie?92:40,flags:[]})},
+ kycCheck:function(){return Promise.resolve({ok:false,live:false,error:'No identity provider is configured. Nothing was verified.'})},
  track:function(carrier,num){var u={DHL:'https://www.dhl.com/track?id=',FedEx:'https://www.fedex.com/fedextrack/?trknbr=',UPS:'https://www.ups.com/track?tracknum=',USPS:'https://tools.usps.com/go/TrackConfirmAction?tLabels=',TCS:'https://www.tcsexpress.com/track/',Leopards:'https://www.leopardscourier.com/tracking/'}[carrier];return u?u+encodeURIComponent(num):''},
  llm:function(prompt,sys){if(!live('llm'))return Promise.resolve(null);logApi('llm','complete',1,prompt.slice(0,40));var c=ic().llm;return fetch(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify({model:c.model||'gpt-4o-mini',messages:[{role:'system',content:sys||'You are an ecommerce copywriter.'},{role:'user',content:prompt}]})}).then(function(r){return r.json()}).then(function(j){return j.choices&&j.choices[0].message.content||null}).catch(function(){return null})},
- app:function(appId,act,data){logApi('app:'+appId,act,1,data||'');var c=ic()['app_'+appId];if(c&&c.key&&c.endpoint)return post('app_'+appId,'/'+act,{data:data}).catch(function(){return{ok:false}});return Promise.resolve({ok:true,simulated:true})}
+ app:function(appId,act){logApi('app:'+appId,act,0,'');return Promise.resolve({ok:false,live:false,simulated:true,error:'This app is not connected. Nothing was sent.'})}
 };
 /* clipboard fallback */
 X.copyText=function(t){function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}try{if(navigator.clipboard)navigator.clipboard.writeText(t).catch(fb);else fb()}catch(e){fb()}toast('Copied')};
@@ -6599,6 +6599,8 @@ X.migrate=function(){if(!S)return;if((S.v30||0)<1){fixStr(S);S.v30=1}
  S.pages=S.pages||[{h:'about',t:'About us',b:'We make performance gear for drivers and track-day fans.'},{h:'faq',t:'FAQ',b:'Shipping takes 2-14 days depending on region. Returns accepted within 30 days.'},{h:'shipping',t:'Shipping policy',b:'We ship worldwide via tracked couriers.'},{h:'refund',t:'Refund policy',b:'30-day returns. Funds are held in Sellora Pay escrow until you confirm receipt.'}];
  (S.blogPosts||[]).forEach(function(b){b.body=b.body||('<p>'+h(b.title)+' — an article from the '+h(S.name)+' team.</p>');b.handle=b.handle||slugify(b.title)});
  S.outbox=S.outbox||[];S.stats=S.stats||{views:0,days:{}};S.staffPerm=S.staffPerm||{};S.carts=S.carts||[];
+ if(S.integrations)Object.keys(S.integrations).forEach(function(k){var c=S.integrations[k];if(!c||typeof c!=='object')return;['key','secret','endpoint','token','password'].forEach(function(f){if(c[f])delete c[f]})});
+ if(S.apps2)Object.keys(S.apps2).forEach(function(id){var a=S.apps2[id];if(!a)return;a.connected=false;if(a.token)delete a.token;var cfg=a.cfg||{};Object.keys(cfg).forEach(function(f){if(/token|secret|key|password/i.test(f))delete cfg[f]})});
 };
 function slugify(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}X.slugify=slugify;
 /* ---------- CUSTOMERS ---------- */
@@ -6810,9 +6812,9 @@ A.abrun=function(){var n=0;(S.carts||[]).forEach(function(c){if(!c.sent&&c.email
 V['orders-abandoned']=function(){var L=(S.carts||[]).filter(function(c){return c.email});return '<div class="xw">'+head('Abandoned checkouts','<button class="btn pri" data-x="abrun">Send recovery emails</button>')+'<div class="xc"><table class="xt"><tr><th>Email</th><th>Started</th><th>Items</th><th>Value</th><th>Recovery</th><th></th></tr>'+(L.map(function(c,i){var v=c.items.reduce(function(a,it){var p=prod(it.pid);return a+(p?X.PR.vprice(p,it.vi)*it.q:0)},0);return '<tr><td>'+h(c.email)+'</td><td>'+D(c.at)+'</td><td>'+c.items.length+'</td><td>'+money(v)+'</td><td>'+(c.sent?pill('Email sent'):pill('Not sent'))+'</td><td><button class="btn" data-x="absend:'+i+'">Send email</button></td></tr>'}).join('')||'<tr><td colspan=6 class="mu">No abandoned checkouts. They appear when a shopper enters an email at checkout and leaves.</td></tr>')+'</table></div></div>'};
 A.absend=function(i){var c=S.carts.filter(function(c){return c.email})[+i];X.API.email(c.email,'You left something in your cart','Complete your order at https://'+slug()+'.sellora.app/cart','abandoned_cart');c.sent=Date.now();save();toast('Recovery email sent');route()};
 var SXS={};X.SXS=SXS;
-V.integrations=function(){var c=X.API.cfg();return '<div class="xw">'+head('Integrations — API keys')+'<p class="mu">Sellora works out of the box in test mode. Paste an endpoint + key to switch a service to live. Keys are stored only in this browser (localStorage).</p>'+Object.keys(X.API.PROV).map(function(k){var p=X.API.PROV[k],v=c[k]||{};return '<div class="xc"><h3>'+h(p.n)+' '+(X.API.live(k)?pill('Connected'):'<span class="xpill">Test mode</span>')+'</h3><div class="xg">'+p.f.map(function(f){return '<div>'+fld(f,'xi_'+k+'_'+f,v[f]||'',f==='key'||f==='secret'?'password':'text')+'</div>'}).join('')+'</div><button class="btn" style="margin-top:8px" data-x="intsave:'+k+'">Save</button> <button class="btn" data-x="inttest:'+k+'">Test</button></div>'}).join('')+'<div class="xc"><h3>API call log</h3><table class="xt">'+(S.apiLog||[]).slice(0,30).map(function(l){return '<tr><td class="xk">'+D(l.at)+'</td><td>'+h(l.k)+'</td><td>'+h(l.act)+'</td><td>'+h(l.mode)+'</td><td class="xk">'+h(l.info)+'</td></tr>'}).join('')+'</table></div></div>'};
-A.intsave=function(k){var o={};X.API.PROV[k].f.forEach(function(f){o[f]=val('xi_'+k+'_'+f)});X.API.cfg()[k]=o;save();toast(X.API.live(k)?'Saved — live mode':'Saved — test mode (needs endpoint + key)');route()};
-A.inttest=function(k){toast(X.API.live(k)?'Key saved; a live call will be made on next use':'Test mode: '+k+' service is working')};
+V.integrations=function(){var rows=Object.keys(X.API.PROV).map(function(k){var p=X.API.PROV[k];return '<div class="xc"><h3>'+h(p.n)+' <span class="xpill">Not configured</span></h3><p class="mu">UNVERIFIED. This browser does not store an endpoint or key. Set '+h(p.n)+' on the API server. A missing credential is not a successful connection, and Sellora does not claim every third-party app works.</p></div>'}).join('');return '<div class="xw">'+head('Integrations')+'<p class="mu">These are the adapters this admin knows about. None is marked connected from this page.</p>'+rows+'</div>'};
+A.intsave=function(){toast('Keys are not saved in this browser. Configure the provider on the server.')};
+A.inttest=function(k){toast(k+' was not called. No server credential is configured, so this is not a successful test.')};
 SXS.integrations=function(){return V.integrations()};
 V['staff-access']=function(){var st=staffList();return '<div class="xw">'+head('Staff permissions')+'<p class="mu">Add staff in Settings → Users, then choose what each person can open. Use “Viewing as” (bottom-left) to test their access.</p>'+(st.length?st.map(function(s){var p=S.staffPerm[s.email]||[];return '<div class="xc"><h3>'+h(s.email)+' <span class="xk">'+h(s.role||'')+'</span></h3><div class="xg">'+Object.keys(AREAS).filter(function(a){return a!=='home'}).map(function(a){return '<label><input type="checkbox" data-xc="perm:'+h(s.email)+':'+a+'"'+(p.indexOf(a)>-1?' checked':'')+'> '+AREAS[a]+'</label>'}).join('')+'</div></div>'}).join(''):'<div class="xc">No staff yet. <button class="btn" data-x="staffadd">Add staff member</button></div>')+'</div>'};
 A.perm=function(a,t){var p=a.split(':'),a2=p.pop(),em=p.join(':'),L=S.staffPerm[em]=S.staffPerm[em]||[];if(t.checked){if(L.indexOf(a2)<0)L.push(a2)}else S.staffPerm[em]=L.filter(function(x){return x!==a2});save()};
@@ -7050,7 +7052,7 @@ var AI=X.AI={
   var made=0;N.p.forEach(function(x){if(S.products.some(function(p){return p.name===x[0]}))return;var opts=N.o[1].split(',').map(function(s){return s.trim()});var p={id:S.nid++,name:x[0],price:x[2],cmp:0,stock:0,status:'Active',desc:'',cols:[N.n],tags:x[3],imgs:[],opts:[{name:N.o[0],vals:N.o[1]}],vars:opts.map(function(o,i){return{n:o,price:x[2],qty:10+i,sku:X.slugify(x[0]).toUpperCase().slice(0,8)+'-'+X.slugify(o).toUpperCase()}}),handle:X.slugify(x[0]),sku:''};p.desc='<p>'+h(x[1])+'.</p>'+AI.descFor(p);p.stock=X.PR.vstock(p,-1);p.seo=AI.seoFor(p);S.products.push(p);made++});
   if(!(S.collections||[]).some(function(c){return c.title===N.n}))(S.collections=S.collections||[]).push({title:N.n,type:'Manual',desc:N.s});AI.fix('home');AI.genFaq();AI.genFiles();save();return{niche:N.n,made:made}}
 };
-V['ai-builder']=function(){var au=AI.audit();return '<div class="xw">'+head('AI store builder',X.API.live('llm')?pill('Connected'):'<span class="xpill">Offline templates</span>')+'<p class="mu">Uses your LLM endpoint from Integrations when set; otherwise built-in templates generate everything offline.</p><div class="xc xf"><h3>Generate a store</h3>'+fld('Describe your store','aip','A shoe shop for runners')+'<button class="btn pri" data-x="aistore" style="margin-top:8px">Generate store (theme, sections, products, SEO)</button></div><div class="xg"><div class="xc xf"><h3>Design</h3>'+fld('Accent colour','aic',(live()||{}).ac||'#2E6B4F','color')+sel('Font style','aif',[['n','Modern sans'],['s','Classic serif']],(live()||{}).font||'n')+'<button class="btn" data-x="aitheme" style="margin-top:8px">Apply</button></div><div class="xc"><h3>Products</h3><p class="mu">Write meta titles, descriptions, tags for every product.</p><button class="btn pri" data-x="aiseoall">Write SEO for all products</button><div style="margin-top:8px">'+S.products.slice(0,30).map(function(p){return '<div style="font-size:13px;padding:3px 0">'+h(p.name)+' <a style="cursor:pointer;color:var(--a)" data-x="aiprod:'+p.id+'">rewrite copy</a></div>'}).join('')+'</div></div><div class="xc"><h3>SEO score</h3><div class="xb" style="color:'+(au.score>=80?'#0b6b3a':au.score>=50?'#a16207':'#b42318')+'">'+au.score+'/100</div><button class="btn" data-x="go:ai-seo">See audit & fixes</button></div></div></div>'};
+V['ai-builder']=function(){var au=AI.audit();return '<div class="xw">'+head('AI store builder','<span class="xpill">Local</span>')+'<p class="mu">This page uses on-device templates. DeepSeek and Claude run only on the API server when those keys are set, and a failed or missing key is not labeled as AI-written.</p><div class="xc xf"><h3>Generate a store</h3>'+fld('Describe your store','aip','A shoe shop for runners')+'<button class="btn pri" data-x="aistore" style="margin-top:8px">Generate store (theme, sections, products, SEO)</button></div><div class="xg"><div class="xc xf"><h3>Design</h3>'+fld('Accent colour','aic',(live()||{}).ac||'#2E6B4F','color')+sel('Font style','aif',[['n','Modern sans'],['s','Classic serif']],(live()||{}).font||'n')+'<button class="btn" data-x="aitheme" style="margin-top:8px">Apply</button></div><div class="xc"><h3>Products</h3><p class="mu">Write meta titles, descriptions, tags for every product.</p><button class="btn pri" data-x="aiseoall">Write SEO for all products</button><div style="margin-top:8px">'+S.products.slice(0,30).map(function(p){return '<div style="font-size:13px;padding:3px 0">'+h(p.name)+' <a style="cursor:pointer;color:var(--a)" data-x="aiprod:'+p.id+'">rewrite copy</a></div>'}).join('')+'</div></div><div class="xc"><h3>SEO score</h3><div class="xb" style="color:'+(au.score>=80?'#0b6b3a':au.score>=50?'#a16207':'#b42318')+'">'+au.score+'/100</div><button class="btn" data-x="go:ai-seo">See audit & fixes</button></div></div></div>'};
 V['ai-seo']=function(){var au=AI.audit();return '<div class="xw">'+head('SEO / AEO / GEO audit','<button class="btn pri" data-x="aifixall">Fix all automatically</button>')+'<div class="xg"><div class="xc"><div class="xk">SEO score</div><div class="xb">'+au.score+'/100</div></div><div class="xc"><div class="xk">Issues</div><div class="xb">'+au.issues.length+'</div></div></div><div class="xc"><h3>On-page issues</h3><table class="xt">'+(au.issues.map(function(i){return '<tr><td>'+h(i.t)+'</td><td class="xk">−'+i.pts+'</td><td>'+(i.fix?'<button class="btn" data-x="aifix:'+i.fix+'">Fix</button>':'<span class="xk">manual</span>')+'</td></tr>'}).join('')||'<tr><td>No issues 🎉</td></tr>')+'</table></div><div class="xc"><h3>Homepage meta</h3><div class="xf">'+fld('Meta title','ait',S.seoTitle||'','text','maxlength="70"')+fld('Meta description','aid',S.seoDesc||'','text','maxlength="170"')+'</div><button class="btn" data-x="aimeta" style="margin-top:6px">Save</button><div style="margin-top:10px;border:1px solid #ddd;border-radius:8px;padding:10px;font-family:arial"><div style="color:#1a0dab;font-size:18px">'+h(S.seoTitle||S.name)+'</div><div style="color:#006621;font-size:13px">https://'+h(slug())+'.sellora.app</div><div style="font-size:13px;color:#545454">'+h(S.seoDesc||'')+'</div></div></div><div class="xc"><h3>AEO — FAQ (answer engines)</h3>'+AI.faq().map(function(f){return '<div style="font-size:13px;margin:4px 0"><b>'+h(f.q)+'</b><br>'+h(f.a)+'</div>'}).join('')+'<button class="btn" data-x="aifaq">Publish FAQ page + FAQPage schema</button></div><div class="xc"><h3>GEO — entity description</h3><p>'+h(AI.entity())+'</p></div><div class="xc"><h3>Off-page SEO checklist</h3>'+AI.offpage.map(function(t,i){var d=(S.offpage||{})[i];return '<label style="display:block;margin:4px 0"><input type="checkbox" data-xc="offp:'+i+'"'+(d?' checked':'')+'> '+h(t)+'</label>'}).join('')+'</div></div>'};
 V['ai-files']=function(){var f=S.aiFiles;return '<div class="xw">'+head('Sitemap, robots.txt, llms.txt & JSON-LD','<button class="btn pri" data-x="aifiles">Regenerate</button>')+(f?[['sitemap.xml','sitemap'],['robots.txt','robots'],['llms.txt','llms'],['schema.jsonld','jsonld']].map(function(x){return '<div class="xc"><h3>'+x[0]+' <button class="btn" style="float:right" data-x="aidl:'+x[1]+':'+x[0]+'">Download</button></h3><pre class="xpre">'+h(f[x[1]])+'</pre></div>'}).join(''):'<div class="xc">Not generated yet.</div>')+'</div>'};
 A.aistore=function(){var r=AI.store(val('aip'));toast('Generated '+r.niche+' store: '+r.made+' products, theme, SEO, FAQ, sitemap');route()};
@@ -7118,16 +7120,14 @@ function ap(id){return st()[id]}function inst(id){var s=ap(id);return !!(s&&s.on
 function feedXML(kind){var b='https://'+slug()+'.sellora.app';return '<?xml version="1.0"?>\n<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0"><channel>\n<title>'+h(S.name)+' - '+h(kind)+' product feed</title><link>'+b+'</link>\n'+S.products.filter(function(p){return p.status==='Active'}).map(function(p){var vs=p.vars||[];var items=vs.length?vs.map(function(v,i){return{id:(v.sku||p.id+'-'+i),t:p.name+' - '+v.n,pr:+v.price||+p.price,q:+v.qty||0,g:p.id}}):[{id:p.sku||String(p.id),t:p.name,pr:+p.price,q:+p.stock||0}];return items.map(function(i){return '<item><g:id>'+h(i.id)+'</g:id>'+(i.g?'<g:item_group_id>'+i.g+'</g:item_group_id>':'')+'<g:title>'+h(i.t)+'</g:title><g:description>'+h(String(p.desc||'').replace(/<[^>]+>/g,' ').trim().slice(0,500))+'</g:description><g:link>'+b+'/products/'+(p.handle||p.id)+'</g:link>'+((p.imgs||[])[0]?'<g:image_link>'+h(p.imgs[0])+'</g:image_link>':'')+'<g:price>'+(+i.pr||0).toFixed(2)+' USD</g:price><g:availability>'+(i.q>0?'in_stock':'out_of_stock')+'</g:availability><g:brand>'+h(S.name)+'</g:brand><g:condition>new</g:condition></item>'}).join('\n')}).join('\n')+'\n</channel></rss>'}
 X.feedXML=feedXML;
 function lg(id,t){var s=ap(id);(s.log=s.log||[]).unshift({t:t,at:Date.now()});if(s.log.length>40)s.log.length=40}
-function sync(id){var s=ap(id),x=APPS.filter(function(z){return z.id===id})[0];s.last=Date.now();var n=S.products.filter(function(p){return p.status==='Active'}).length,msg;
- if(/^(meta|google|tiktok|pinterest|snapchat)$/.test(id)){s.feed=feedXML(x.name);msg='Catalog feed generated: '+n+' products'}else if(/amazon|ebay/.test(id)){s.listed=n;msg=n+' listings synced, inventory pushed'}else if(/klaviyo|mailchimp/.test(id)){msg=(S.cust||[]).length+' customers synced'}else if(id==='shipstation'){msg=S.orders.filter(function(o){return o.ful!=='Fulfilled'&&!o.cancelled}).length+' open orders pushed'}else msg='Synced';
- lg(id,msg);X.API.app(id,'sync',msg);save();return msg}
+function sync(id){var s=ap(id),x=APPS.filter(function(z){return z.id===id})[0];var msg=(x?x.name:id)+' was not synced. No server credential is configured, so nothing was sent.';lg(id,msg);save();return msg}
 X.HOOKS.push(function(ev,d){if(!d)return;Object.keys(st()).forEach(function(id){var s=st()[id];if(!s.on)return;
- if(id==='zapier'){var url=(s.cfg||{})['Webhook URL'];if(url&&/^https:\/\//.test(url)&&X.API.live('apps'))fetch(url,{method:'POST',body:JSON.stringify({event:ev,id:d.id,total:d.total})}).catch(function(){});lg(id,'Webhook '+ev+' #'+d.id+(url?' -> '+url:' (no URL, simulated)'))}
- if(/klaviyo|mailchimp/.test(id)&&ev==='order_created')lg(id,'Placed Order event for '+d.email);
- if(/^(meta-pixel|tiktok|ga4|pinterest|snapchat|x|gtm)$/.test(id)&&ev==='order_created'){(S.pixelLog=S.pixelLog||[]).unshift({app:id,ev:'Purchase',v:d.total,at:Date.now()});if(S.pixelLog.length>100)S.pixelLog.length=100;if(id==='meta-pixel')lg(id,'CAPI Purchase event sent (event_id order_'+d.id+')')}
- if(id==='printful'&&ev==='order_created'){var pod=(d.items||[]).filter(function(l){var p=prod(l.pid);return p&&(p.tags||[]).indexOf('pod')>-1});if(pod.length)lg(id,'Order #'+d.id+' forwarded for printing ('+pod.length+' items)')}
- if(/amazon|ebay/.test(id)&&(ev==='order_created'||ev==='order_refunded'))lg(id,'Inventory updated after #'+d.id);
- if(id==='shipstation'&&ev==='order_created')lg(id,'Order #'+d.id+' pushed to ShipStation');
+ if(id==='zapier')lg(id,'Webhook '+ev+' #'+d.id+' was not sent. No server credential is configured.');
+ if(/klaviyo|mailchimp/.test(id)&&ev==='order_created')lg(id,'Placed Order was not sent for '+d.email+'. No server credential is configured.');
+ if(/^(meta-pixel|tiktok|ga4|pinterest|snapchat|x|gtm)$/.test(id)&&ev==='order_created')lg(id,'Purchase event was not sent for order '+d.id+'. No server credential is configured.');
+ if(id==='printful'&&ev==='order_created')lg(id,'Order #'+d.id+' was not forwarded for printing. No server credential is configured.');
+ if(/amazon|ebay/.test(id)&&(ev==='order_created'||ev==='order_refunded'))lg(id,'Inventory was not updated after #'+d.id+'. No server credential is configured.');
+ if(id==='shipstation'&&ev==='order_created')lg(id,'Order #'+d.id+' was not pushed. No server credential is configured.');
  if(id==='reviews'&&ev==='order_fulfilled'&&d.email)X.API.email(d.email,'How was your order #'+d.id+'?','We would love your review: https://'+slug()+'.sellora.app/products/'+((prod((d.items[0]||{}).pid)||{}).handle||'')+'#reviews','review_request')});save()});
 X._apps={st:st,ap:ap,inst:inst,sync:sync,lg:lg,CATS:CATS};
 })();
@@ -7152,35 +7152,35 @@ X.APPS_SF={rating:function(p){var r=revs(p);return{n:r.length,avg:r.length?Math.
   if(inst('x'))add('x',"twq('config','"+cfgv('x','Pixel ID')+"');");
   if(inst('gsc')){var mt=document.createElement('meta');mt.name='google-site-verification';mt.content=cfgv('gsc','Verification meta content');mt.setAttribute('data-sellora-app','gsc');document.head.appendChild(mt)}
   if(S.aiFiles&&S.aiFiles.jsonld){var j=document.createElement('script');j.type='application/ld+json';j.setAttribute('data-sellora-app','jsonld');j.textContent=S.aiFiles.jsonld;document.head.appendChild(j)}
-  if(inst('greviews')){var f=q('footer',root);if(f)f.insertAdjacentHTML('beforeend','<span id="xgrev" style="background:#fff;color:#111;border-radius:8px;padding:4px 10px;border:1px solid #ddd">Google ★ 4.8 (126 reviews)</span>')}
+  if(inst('greviews')){var f=q('footer',root);if(f)f.insertAdjacentHTML('beforeend','<span id="xgrev" style="background:#fff;color:#111;border-radius:8px;padding:4px 10px;border:1px solid #ddd">Google reviews are not connected</span>')}
   if(inst('whatsapp'))root.insertAdjacentHTML('beforeend','<a id="xwa" href="https://wa.me/'+String(cfgv('whatsapp','Phone number (E.164)')).replace(/\D/g,'')+'" target="_blank" rel="noopener" style="position:fixed;left:20px;bottom:20px;background:#25D366;color:#fff;border-radius:30px;padding:12px 16px;text-decoration:none;z-index:9100">WhatsApp us</a>');
   if(inst('chat')){var cc=ap('chat').cfg||{},bc=cc['Brand colour']||'#111';root.insertAdjacentHTML('beforeend','<div id="xchat" style="position:fixed;right:20px;bottom:20px;z-index:9100;color:#111"><div id="xchatp" style="display:none;width:300px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.2);margin-bottom:8px"><div style="background:'+h(bc)+';color:#fff;padding:10px;border-radius:12px 12px 0 0">Chat with '+h(S.name)+'</div><div id="xchatm" style="height:180px;overflow:auto;padding:8px;font-size:13px"><div>'+h(cc['Welcome message']||'Hi! How can we help?')+'</div>'+(S.chats||[]).filter(function(m){return m.sid===sid()}).map(function(m){return '<div style="text-align:'+(m.me?'right':'left')+'"><span style="display:inline-block;background:'+(m.me?'#eef':'#f3f3f3')+';padding:4px 8px;border-radius:8px;margin:2px">'+h(m.t)+'</span></div>'}).join('')+'</div><form id="xchatf" style="display:flex;border-top:1px solid #eee"><input id="xchati" placeholder="Type a message" style="flex:1;border:0;padding:10px"><button style="border:0;background:none;padding:0 12px;cursor:pointer">Send</button></form></div><button id="xchatb" style="float:right;border:0;border-radius:30px;padding:12px 18px;background:'+h(bc)+';color:#fff;cursor:pointer">Chat</button></div>');
    q('#xchatb',root).onclick=function(){var p=q('#xchatp',root);p.style.display=p.style.display==='none'?'':'none'};
    q('#xchatf',root).onsubmit=function(e){e.preventDefault();var t=q('#xchati',root).value.trim();if(!t)return;S.chats=S.chats||[];S.chats.push({sid:sid(),me:1,t:t,at:Date.now()});S.chats.push({sid:sid(),me:0,t:'Thanks! A team member will reply shortly. (auto-reply)',at:Date.now()+1});save();X.SF.render();var p=q('#xchatp');if(p)p.style.display=''}}
   var rf=q('#xrvf',root);if(rf)rf.onsubmit=function(e){e.preventDefault();var b=q('#xrv4',root).value.trim();if(!b)return toast('Write a review first');var pid=+rf.getAttribute('data-pid'),v=false;try{var u=S.sfUser&&X.CU.byEmail(S.sfUser);v=!!(u&&X.CU.orders(u).some(function(o){return o.items.some(function(l){return l.pid===pid})}))}catch(_){}S.reviews=S.reviews||[];S.reviews.unshift({pid:pid,s:+q('#xrv1',root).value,n:q('#xrv2',root).value||'Anonymous',t:q('#xrv3',root).value,b:b,v:v,at:Date.now()});save();toast('Thanks for your review!');X.SF.render()}}};
 var AQ={cat:'All',q:''};
-function card(x){var on=inst(x.id);return '<div class="xc app-card" style="cursor:pointer;margin:0" data-x="go:app-'+x.id+'"><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;border-radius:10px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">'+h(x.name.charAt(0))+'</div><div style="flex:1"><b>'+h(x.name)+'</b><div class="xk">'+h(x.by)+' · '+h(x.cat)+'</div></div>'+(on?pill(ap(x.id).connected?'Connected':'Installed'):'')+'</div><p style="font-size:13px;margin:8px 0 0">'+h(x.desc)+'</p></div>'}
+function card(x){var on=inst(x.id);return '<div class="xc app-card" style="cursor:pointer;margin:0" data-x="go:app-'+x.id+'"><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;border-radius:10px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">'+h(x.name.charAt(0))+'</div><div style="flex:1"><b>'+h(x.name)+'</b><div class="xk">'+h(x.by)+' · '+h(x.cat)+'</div></div>'+(on?pill('Installed')+' <span class="xpill">UNVERIFIED</span>':'')+'</div><p style="font-size:13px;margin:8px 0 0">'+h(x.desc)+'</p></div>'}
 V['app-store']=function(){var L=APPS.filter(function(x){return (AQ.cat==='All'||x.cat===AQ.cat)&&(!AQ.q||(x.name+' '+x.desc+' '+x.cat).toLowerCase().indexOf(AQ.q.toLowerCase())>-1)});return '<div class="xw">'+head('App Store','<button class="btn" data-x="go:app-installed">Installed ('+APPS.filter(function(x){return inst(x.id)}).length+')</button>')+'<input class="xin" id="xaq" style="max-width:360px;margin-bottom:10px" placeholder="Search apps" value="'+h(AQ.q)+'" data-xc="aq"><div class="xtabs">'+['All'].concat(P.CATS).map(function(c){return '<button data-x="acat:'+c+'" class="'+(c===AQ.cat?'on':'')+'">'+c+'</button>'}).join('')+'</div><div class="xg">'+(L.map(card).join('')||'<p class="mu">No apps match.</p>')+'</div></div>'};
-V['app-installed']=function(){var L=APPS.filter(function(x){return inst(x.id)});return '<div class="xw">'+head('Installed apps & sales channels','<button class="btn pri" data-x="go:app-store">Browse App Store</button>')+'<div class="xc"><table class="xt"><tr><th>App</th><th>Category</th><th>Status</th><th>Last sync</th><th></th></tr>'+(L.map(function(x){var s=ap(x.id);return '<tr><td><b>'+h(x.name)+'</b></td><td>'+h(x.cat)+'</td><td>'+pill(s.connected?'Connected':'Installed')+'</td><td class="xk">'+(s.last?D(s.last):'—')+'</td><td><button class="btn" data-x="go:app-'+x.id+'">Open</button></td></tr>'}).join('')||'<tr><td colspan=5 class="mu">No apps installed.</td></tr>')+'</table></div>'+((S.pixelLog||[]).length?'<div class="xc"><h3>Pixel / tracking events</h3><table class="xt">'+S.pixelLog.slice(0,20).map(function(e){return '<tr><td class="xk">'+D(e.at)+'</td><td>'+h(e.app)+'</td><td>'+h(e.ev)+'</td><td>'+money(e.v)+'</td></tr>'}).join('')+'</table></div>':'')+'</div>'};
+V['app-installed']=function(){var L=APPS.filter(function(x){return inst(x.id)});return '<div class="xw">'+head('Installed apps & sales channels','<button class="btn pri" data-x="go:app-store">Browse App Store</button>')+'<div class="xc"><table class="xt"><tr><th>App</th><th>Category</th><th>Status</th><th>Last sync</th><th></th></tr>'+(L.map(function(x){var s=ap(x.id);return '<tr><td><b>'+h(x.name)+'</b></td><td>'+h(x.cat)+'</td><td>'+pill('Installed')+' <span class="xpill">UNVERIFIED</span></td><td class="xk">'+(s.last?D(s.last):'—')+'</td><td><button class="btn" data-x="go:app-'+x.id+'">Open</button></td></tr>'}).join('')||'<tr><td colspan=5 class="mu">No apps installed.</td></tr>')+'</table></div>'+((S.pixelLog||[]).length?'<div class="xc"><h3>Pixel / tracking events</h3><table class="xt">'+S.pixelLog.slice(0,20).map(function(e){return '<tr><td class="xk">'+D(e.at)+'</td><td>'+h(e.app)+'</td><td>'+h(e.ev)+'</td><td>'+money(e.v)+'</td></tr>'}).join('')+'</table></div>':'')+'</div>'};
 A.aq=function(a,t){AQ.q=t.value;route();var i=q('#xaq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}};A.acat=function(c){AQ.cat=c;route()};
 PAGE.app=function(id){var x=byId(id);if(!x)return null;var s=ap(id)||{},on=inst(id),cfg=s.cfg||{},open=S.orders.filter(function(o){return o.ful!=='Fulfilled'&&!o.cancelled});
- return '<div class="xw">'+head('<a data-x="go:app-store" style="cursor:pointer">←</a> '+h(x.name),on?'<button class="btn" data-x="appsync:'+id+'">Sync now</button> <button class="btn" data-x="appun:'+id+'">Uninstall</button>':'<button class="btn pri" data-x="appin:'+id+'">Install app</button>')+'<p class="mu">'+h(x.by)+' · '+h(x.cat)+' '+(on?pill(s.connected?'Connected':'Installed'):'')+'</p><div class="xg2"><div><div class="xc"><h3>About</h3><p>'+h(x.desc)+'</p><ul>'+x.feats.map(function(f){return '<li>'+h(f)+'</li>'}).join('')+'</ul><p class="xk">Connects through the Sellora API layer ('+(x.auth==='oauth'?'OAuth 2.0':x.auth==='key'?'API key':'no credentials needed')+'). '+(function(){var bm={google:'google-merchant',gsc:'search-console',greviews:'reviews',reviews:'',gtm:'',chat:''},bid=id in bm?bm[id]:id;return bid?' Server integration: <code>/api/stores/{storeId}/integrations/'+h(bid)+'</code> — live API calls once keys are saved (encrypted at rest); mock responses when no keys.':' Runs inside your storefront; no external API keys needed.'})()+'</p></div>'
- +(on?'<div class="xc xf"><h3>Settings</h3>'+x.fields.map(function(f,i){return fld(f,'xapf'+i,cfg[f]||'',/token|secret|key|password/i.test(f)?'password':'text')}).join('')+'<button class="btn pri" style="margin-top:8px" data-x="appsave:'+id+'">Save & connect</button>'+(x.auth==='oauth'&&!s.connected?' <button class="btn" data-x="appoauth:'+id+'">Connect with '+h(x.by)+'</button>':'')+'</div>':'')
+ return '<div class="xw">'+head('<a data-x="go:app-store" style="cursor:pointer">←</a> '+h(x.name),on?'<button class="btn" data-x="appsync:'+id+'">Sync now</button> <button class="btn" data-x="appun:'+id+'">Uninstall</button>':'<button class="btn pri" data-x="appin:'+id+'">Install app</button>')+'<p class="mu">'+h(x.by)+' · '+h(x.cat)+' '+(on?pill('Installed')+' <span class="xpill">UNVERIFIED</span>':'')+'</p><div class="xg2"><div><div class="xc"><h3>About</h3><p>'+h(x.desc)+'</p><ul>'+x.feats.map(function(f){return '<li>'+h(f)+'</li>'}).join('')+'</ul><p class="xk">Connects through the Sellora API layer ('+(x.auth==='oauth'?'OAuth 2.0':x.auth==='key'?'API key':'no credentials needed')+'). '+(function(){var bm={google:'google-merchant',gsc:'search-console',greviews:'reviews',reviews:'',gtm:'',chat:''},bid=id in bm?bm[id]:id;return bid?' Server route: <code>/api/stores/{storeId}/integrations/'+h(bid)+'</code>. A call is live only after credentials are stored on the API server. Without them the server reports live false and does not call the provider.':' This one runs inside the storefront and does not call an external API.'})()+'</p></div>'
+ +(on?'<div class="xc"><h3>Account</h3><p class="mu">UNVERIFIED. '+h(x.name)+' is installed in this browser and is not connected to '+h(x.by)+'. '+(x.auth==='none'?'It does not call an external API from here.':'A '+h(x.auth)+' credential has to be saved on the API server. This page does not accept or store that secret.')+'</p></div>':'')
  +(on&&s.feed?'<div class="xc"><h3>Product feed (XML) <button class="btn" style="float:right" data-x="appfeed:'+id+'">Download</button></h3><pre style="white-space:pre-wrap;font-size:11px;max-height:260px;overflow:auto">'+h(s.feed.slice(0,2500))+'</pre></div>':'')
  +(on&&id==='chat'?'<div class="xc"><h3>Chat inbox</h3>'+((S.chats||[]).filter(function(m){return m.me}).map(function(m){return '<div style="font-size:13px">'+D(m.at)+' · <b>'+h(String(m.sid))+'</b>: '+h(m.t)+'</div>'}).join('')||'<p class="mu">No chats yet.</p>')+'</div>':'')
  +(on&&id==='reviews'?'<div class="xc"><h3>Reviews</h3>'+((S.reviews||[]).map(function(r,i){return '<div style="font-size:13px;padding:4px 0">'+'★★★★★'.slice(0,r.s)+' '+h(r.t)+' — '+h((prod(r.pid)||{}).name||'')+' <a style="cursor:pointer;color:#b42318" data-x="rvdel:'+i+'">remove</a></div>'}).join('')||'<p class="mu">No reviews yet.</p>')+'<button class="btn" data-x="rvseed">Add sample reviews</button></div>':'')
  +(on&&id==='printful'?'<div class="xc"><h3>Create print-on-demand product</h3><button class="btn" data-x="podadd:Tee">Unisex T-shirt</button> <button class="btn" data-x="podadd:Mug">11oz Mug</button> <button class="btn" data-x="podadd:Poster">Poster</button></div>':'')
- +(on&&/shipstation|dhl|fedex|tcs|leopards|postex|trax/.test(id)?'<div class="xc"><h3>Buy shipping label</h3>'+(open.length?X.xsel('Order','xlbo',open.map(function(o){return [o.id,'#'+o.id+' '+(o.email||'')]}),'')+'<button class="btn" style="margin-top:6px" data-x="applabel:'+id+'">Create label & fulfil</button>':'<p class="mu">No unfulfilled orders.</p>')+'</div>':'')
+ +(on&&/shipstation|dhl|fedex|tcs|leopards|postex|trax/.test(id)?'<div class="xc"><h3>Shipping label</h3><p class="mu">No label is bought from this page. Carrier tracking and fulfilment stay unchanged until a configured provider account exists on the API server.</p><button class="btn" data-x="applabel:'+id+'">Check label</button></div>':'')
  +'</div><div><div class="xc"><h3>Activity</h3>'+((s.log||[]).slice(0,15).map(function(l){return '<div class="xk" style="padding:3px 0">'+D(l.at)+' — '+h(l.t)+'</div>'}).join('')||'<p class="mu">No activity.</p>')+'</div></div></div></div>'};
-A.appin=function(id){var x=byId(id);st()[id]={on:true,connected:x.auth==='none',cfg:{},log:[{t:'Installed',at:Date.now()}],at:Date.now()};if(x.auth==='none')sync(id);X.API.app(id,'install');save();toast(x.name+' installed');route()};
+A.appin=function(id){var x=byId(id);st()[id]={on:true,connected:false,cfg:{},log:[{t:'Installed. Not connected to an external account.',at:Date.now()}],at:Date.now()};save();toast(x.name+' installed. Not connected.');route()};
 A.appun=function(id){delete st()[id];X.API.app(id,'uninstall');save();toast('Uninstalled');route()};
-A.appsave=function(id){var x=byId(id),s=ap(id);x.fields.forEach(function(f,i){s.cfg[f]=val('xapf'+i)});if(x.auth!=='none'&&!s.cfg[x.fields[0]])return toast('Enter '+x.fields[0]);s.connected=true;lg(id,'Settings saved, connected');sync(id);toast('Connected');route()};
-A.appoauth=function(id){var x=byId(id);modal('Connect '+h(x.by),'<p><b>'+h(S.name)+'</b> wants access to your '+h(x.by)+' account to manage catalog, pixels and orders.</p><p class="xk">OAuth consent. A real integration opens the provider authorize URL and exchanges the code on a backend.</p>','Allow',function(){var s=ap(id);s.connected=true;s.token='oauth_'+Date.now().toString(36);lg(id,'OAuth connected');sync(id)})};
+A.appsave=function(id){var x=byId(id),s=ap(id);if(s){s.connected=false;if(s.token)delete s.token}save();toast((x?x.name:id)+' is not connected. Credentials are not stored in this browser.')};
+A.appoauth=function(id){toast('OAuth was not started for '+(byId(id)?byId(id).name:id)+'. No account was connected.')};
 A.appsync=function(id){toast(sync(id));route()};A.appfeed=function(id){X.xdl(id+'-feed.xml',ap(id).feed,'application/xml')};
 A.rvdel=function(i){S.reviews.splice(+i,1);save();route()};
 A.rvseed=function(){S.reviews=S.reviews||[];S.products.slice(0,4).forEach(function(p,i){S.reviews.push({pid:p.id,s:5-i%2,n:['Ayesha','Tom','Lina','Omar'][i],t:['Love it','Great quality','Fast shipping','As described'][i],b:'Really happy with this purchase.',v:true,at:Date.now()-i*864e5})});save();route()};
 A.podadd=function(k){var b={Tee:[24,'S,M,L,XL','Logo T-shirt','Size'],Mug:[15,'11oz','Logo Mug','Format'],Poster:[19,'A3,A2','Art Poster','Format']}[k],vs=b[1].split(','),p={id:S.nid++,name:S.name+' '+b[2],price:b[0],stock:999*vs.length,status:'Active',desc:'<p>Printed on demand and shipped by our fulfilment partner.</p>',cols:[],tags:['pod'],imgs:[],opts:[{name:b[3],vals:vs.join(', ')}],vars:vs.map(function(v){return{n:v,price:b[0],qty:999,sku:'POD-'+k.toUpperCase()+'-'+v}}),sku:'POD-'+k.toUpperCase()};p.handle=X.slugify(p.name);S.products.push(p);lg('printful','POD product created: '+p.name);save();toast('Created '+p.name);route()};
-A.applabel=function(id){var o=X.ORD.get(val('xlbo'));if(!o)return toast('No open orders');var car={shipstation:'UPS',dhl:'DHL',fedex:'FedEx',tcs:'TCS',leopards:'Leopards',postex:'PostEx',trax:'Trax'}[id],num=({DHL:'JD0',FedEx:'7',TCS:'TCS',Leopards:'LE',PostEx:'PX',Trax:'TRX'}[car]||'1Z')+String(Date.now()).slice(-10);X.ORD.fulfill(o,o.items.map(function(l){return Math.max(0,l.q-(l.fq||0)-(l.rq||0))}),car,num,true);lg(id,'Label '+num+' for #'+o.id);X.API.app(id,'label',num);save();toast('Label created: '+num);route()};
+A.applabel=function(id){toast('No label was created for '+(byId(id)?byId(id).name:id)+'. No carrier account is configured, so the order was not fulfilled and no tracking number was invented.')};
 V["apps-marketplace"]=V["app-store"];V.apps=V["app-store"];
 })();
 
@@ -8296,7 +8296,7 @@ function apply(res,over){var add=0,up=0,skip=0,bad=0;res.items.forEach(function(
  if(p){Object.keys(d).forEach(function(k){if(d[k]!==undefined)p[k]=d[k]});up++}else{d.id=S.nid++;d.cols=[];S.products.push(d);add++}});sv();return{added:add,updated:up,skipped:skip,bad:bad}}
 X.m13apply=apply;
 A.pimport=function(){var cur=null;
- X.xmodal('Import products by CSV','<div class="m13drop" id="m13drop" tabindex="0"><b>Drag and drop a CSV file here</b><span>or</span><label class="btn" for="m13file">Choose file</label><input type="file" id="m13file" accept=".csv,text/csv" class="m13hid"></div><p class="mu"><a href="#" id="m13tpl">Download a sample CSV template</a> to see the columns (Shopify format works too).</p><label class="m13chk"><input type="checkbox" id="m13over" checked> Overwrite products with the same handle (existing values are replaced)</label><div id="m13prev"></div>','Import products',function(){if(!cur){tst('Choose a CSV file first');return false}var r=apply(cur,q('#m13over')?q('#m13over').checked:true);X._m13res=r;
+ X.xmodal('Import products by CSV','<div class="m13drop" id="m13drop" tabindex="0"><b>Drag and drop a CSV file here</b><span>or</span><label class="btn" for="m13file">Choose file</label><input type="file" id="m13file" accept=".csv,text/csv" class="m13hid"></div><p class="mu"><a href="#" id="m13tpl">Download a sample CSV template</a> to see the columns (Shopify format works too).</p><label class="m13chk"><input type="checkbox" id="m13over"> Update products that already use the same handle. Leave this off to keep them. Nothing is deleted.</label><div id="m13prev"></div>','Import products',function(){if(!cur){tst('Choose a CSV file first');return false}var r=apply(cur,q('#m13over')?q('#m13over').checked:true);X._m13res=r;
   var k=BK();if(k&&X._m13text)api('POST','/products/import?overwrite='+(X._m13over!==false),X._m13text);
   tst('Imported '+r.added+' new, updated '+r.updated+(r.skipped?', skipped '+r.skipped:'')+(r.bad?', '+r.bad+' bad row'+(r.bad>1?'s':'')+' left out':''));route()});
  var go=q('#mdl .pri, #ov .pri');function prev(text){cur=X.m13read(text);X._m13text=text;var e=cur.errors,ok=cur.items.filter(function(i){return !i._bad});
@@ -8796,17 +8796,10 @@ function providerState(){
   var claude=!!(llm.claudeKey||/anthropic|claude/i.test(blob));
   var deepseek=!!(llm.key&&llm.endpoint&&!/anthropic/i.test(ep));
   var order=[];if(claude)order.push('claude');if(deepseek)order.push('deepseek');order.push('local');
-  return {claude:claude,deepseek:deepseek,order:order,active:claude?'claude':deepseek?'deepseek':'local',claudeKey:llm.claudeKey||'',endpoint:ep,key:llm.key||'',model:llm.model||llm.claudeModel||''};
+  return {claude:!!claude,deepseek:!!deepseek,order:order,active:'local',model:''};
 }
-function enrich(subject){
-  var st=providerState();if(st.active==='local')return;
-  var names=(S.products||[]).slice(-8).map(function(p){return p.name});
-  var sys='Write one-sentence product descriptions as JSON {"blurbs":[{"name":"","description":""}]}. Mention Sellora Pay. Do not mention other payment brands.';
-  var user='Store '+(S.name||'')+' selling '+subject+'. Products: '+names.join(', ');
-  function apply(text){var j;try{j=JSON.parse(String(text).replace(/^```(?:json)?|```$/g,''))}catch(e){return}(j.blurbs||[]).forEach(function(b){var p=(S.products||[]).filter(function(x){return x.name===b.name})[0];if(p&&b.description)p.desc='<p>'+esc(b.description)+'</p>'});persist()}
-  function deepseek(){if(!st.deepseek||!X.API||!X.API.llm)return Promise.resolve();return X.API.llm(user,sys).then(function(t){if(t)apply(t)}).catch(function(){})}
-  if(st.claude&&st.claudeKey){fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':st.claudeKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:st.model||'claude-sonnet-4-5',max_tokens:700,system:sys,messages:[{role:'user',content:user}]})}).then(function(r){return r.ok?r.json():null}).then(function(j){var t=j&&j.content&&j.content.map(function(c){return c.text||''}).join('');if(t)apply(t);else return deepseek()}).catch(deepseek)}
-  else deepseek();
+function enrich(){
+  /* Provider keys stay on the server. This browser does not call DeepSeek or Claude. */
 }
 var _handle=handle;
 handle=function(text,source){var res=_handle(text,source);if(res&&res.built){try{enrich((state().last&&state().last.subject)||text)}catch(e){}}return res};
@@ -8939,7 +8932,7 @@ function installRenderers(){
 }
 function destOf(node){
   if(!node||!node.closest||!node.closest('#ep'))return null;
-  if(node.closest('#m12plus,#m12menu,[data-m12a],[data-m12m],[data-grip],[data-slc]'))return null;
+  if(node.closest('#m12plus,#m12menu,[data-m12a],[data-m12m],[data-grip],[data-slc],.atc'))return null;
   var page=node.closest('[data-edpage]');if(page)return {page:page.getAttribute('data-edpage')};
   var back=node.closest('[data-edpg]');if(back)return {pg:back.getAttribute('data-edpg')};
   var col=node.closest('[data-edcol]');if(col)return {pg:'collection',col:col.getAttribute('data-edcol')};
@@ -9008,8 +9001,7 @@ document.addEventListener('change',function(e){
 },true);
 var css=document.createElement('style');css.textContent='#qmic{margin-left:6px}#aichat{display:flex;flex-direction:column;gap:8px;margin:12px 0 18px;max-width:760px}.ai-b{background:#f4f4f4;color:#111;border-radius:10px;padding:10px 12px;line-height:1.4}.ai-u{background:#111;color:#fff;align-self:flex-end}.ai-sug{display:flex;flex-wrap:wrap;gap:6px}#ep [data-edcol],#ep [data-pg],#ep [data-pid],#ep [data-edpage],#ep .pc{cursor:pointer}';document.head.appendChild(css);
 ensureSchemas();installRenderers();installEditor();
-if(X.API&&X.API.PROV&&X.API.PROV.llm){var ff=X.API.PROV.llm.f;if(ff.indexOf('claudeKey')<0)ff.push('claudeKey');X.API.PROV.llm.n='AI / LLM (DeepSeek by default, optional Claude key)'}
-if(X.onRoute)X.onRoute(function(r){mountAsk();if(r==='integrations'){document.querySelectorAll('label').forEach(function(l){if((l.getAttribute('for')||'').indexOf('claudeKey')>=0)l.textContent='Claude API key (optional)'})}});
+if(X.onRoute)X.onRoute(function(){mountAsk()});
 if(X.VOICE&&X.VOICE.run&&!X.VOICE.run._m15){var vr=X.VOICE.run;var vn=function(cmd){var r=handle(cmd,'voice');if(r.handled){paintChat();if(!(typeof E!=='undefined'&&E)){try{route()}catch(e){}}else{try{lp();rp()}catch(e){}}return X.VOICE.say(r.reply)}return vr(cmd)};vn._m15=1;X.VOICE.run=vn}
 if(A.m12build){var b0=A.m12build;A.m12build=function(){var pr=(document.getElementById('m12prompt')||{}).value||'';var r=handle(pr,'chat');if(r.handled){var st=document.getElementById('m12vstat');if(st)st.textContent=r.reply;try{toast(r.reply.slice(0,160))}catch(e){}return}return b0()}}
 if(A.m12edit){var e0=A.m12edit;A.m12edit=function(){var c=(document.getElementById('m12cmd')||{}).value||'';var r=handle(c,'chat');if(r.handled){var st=document.getElementById('m12edres');if(st)st.textContent=r.reply;try{toast(r.reply.slice(0,160))}catch(e){}return}return e0()}}
@@ -9022,6 +9014,444 @@ var AIBuild=X.AIBuild={
   previewTo:previewTo,schemas:function(){ensureSchemas();return SCH}
 };
 try{mountAsk()}catch(e){}
+})();
+
+/* Admin and editor continuity: extra templates, preview cart, schemes, honest local actions.
+   Provider calls stay on the server. This file never sends an API key. */
+(function(){
+var X=window;
+var LOCAL=' Local commands only. No AI provider was called.';
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function persist(){try{save()}catch(e){}}
+function pages(){return {page:'Page',blog:'Blog',search:'Search',cart:'Cart',lookbook:'Lookbook'}}
+function ensurePages(t){
+  if(!t||typeof initT!=='function')return t;
+  initT(t);
+  if(typeof P5!=='undefined')Object.keys(pages()).forEach(function(k){if(P5.indexOf(k)<0)P5.push(k)});
+  if(typeof PGS!=='undefined')Object.keys(pages()).forEach(function(k){PGS[k]=pages()[k]});
+  var dfl={
+    page:[['heading',{h:'Page'}],['pagecontent',{txt:''}]],
+    blog:[['heading',{h:'Journal'}],['bloglist',{}]],
+    search:[['heading',{h:'Search'}],['searchbody',{}]],
+    cart:[['heading',{h:'Cart'}],['cartbody',{}]],
+    lookbook:[['heading',{h:'Lookbook'}],['collection',{n:8,cols:2}]]
+  };
+  Object.keys(dfl).forEach(function(k){if(!t.pg[k]||!t.pg[k].length)t.pg[k]=dfl[k].map(function(a){return {id:typeof uid==='function'?uid():('p'+Math.random().toString(36).slice(2)),type:a[0],hide:false,s:Object.assign({},a[1])}})});
+  t.schemes=t.schemes||[{name:'Paper',bg:'#FFFFFF',fg:'#111111',pad:32},{name:'Ink',bg:'#111111',fg:'#FFFFFF',pad:36},{name:'Forest',bg:'#2E6B4F',fg:'#FFFFFF',pad:32}];
+  return t;
+}
+function paint(html,s){
+  if(!html||!s||!s.s)return html;
+  var extra='';
+  if(s.s.fg)extra+=';color:'+String(s.s.fg).replace(/[^#a-zA-Z0-9(),.%\s-]/g,'');
+  if(s.s.pad!=null&&s.s.pad!=='')extra+=';padding:'+(+s.s.pad||0)+'px 40px';
+  if(!extra)return html;
+  return html.replace(/<([a-z0-9]+)([^>]*\sdata-sid="[^"]*"[^>]*)>/i,function(full,tag,attrs){
+    if(/style="/i.test(attrs))return '<'+tag+attrs.replace(/style="([^"]*)"/i,'style="$1'+extra+'"')+'>';
+    return '<'+tag+attrs+' style="'+extra.slice(1)+'">';
+  });
+}
+function productBy(id){return (S.products||[]).filter(function(p){return String(p.id)===String(id)})[0]}
+function installSections(){
+  if(typeof SCH==='undefined'||typeof RN==='undefined')return;
+  Object.keys(SCH).forEach(function(k){
+    if(!SCH[k].some(function(f){return f[0]==='fg'}))SCH[k].push(['fg','Text color','c','','tx']);
+    if(!SCH[k].some(function(f){return f[0]==='pad'}))SCH[k].push(['pad','Padding','r',32,[0,120]]);
+  });
+  LBL.bloglist='Blog posts';LBL.searchbody='Search results';LBL.cartbody='Cart lines';
+  SCH.bloglist=SCH.bloglist||[['h','Heading','t','Journal'],['bg','Background','c','','bg'],['fg','Text color','c','','tx'],['pad','Padding','r',32,[0,120]]];
+  SCH.searchbody=SCH.searchbody||SCH.bloglist;
+  SCH.cartbody=SCH.cartbody||SCH.bloglist;
+  function chosen(s){return productBy(s.s&&s.s.pid)|| (S.products||[]).filter(function(p){return p.status==='Active'})[0]}
+  var prevFeat=RN.feat_product, prevHi=RN.prod_highlight, prevHot=RN.prod_hotspots;
+  if(prevFeat)RN.feat_product=function(t,s,c){var p=chosen(s);if(p){var keep=S.products;S.products=[p].concat(keep.filter(function(x){return x!==p}));try{return prevFeat(t,s,c)}finally{S.products=keep}}return prevFeat(t,s,c)};
+  if(prevHi)RN.prod_highlight=function(t,s,c){var p=chosen(s);var html=prevHi(t,s,c);if(p&&html)html=html.replace(/Product title|Engineered Performance Tee|Track Day Tee/g,esc(p.name));return html};
+  if(prevHot)RN.prod_hotspots=function(t,s,c){var p=chosen(s);var html=prevHot(t,s,c);if(p&&html)html=html.replace('Shop the look','Shop the look · '+esc(p.name));return html};
+  RN.bloglist=function(t,s){var posts=(S.blogPosts||[]).filter(function(p){return p.status!=='Hidden'});var body=posts.length?posts.map(function(p){return '<article style="padding:12px 0;border-bottom:1px solid #ddd"><h3 style="margin:0"><a data-edpost="'+esc(p.id)+'" style="cursor:pointer">'+esc(p.title)+'</a></h3><p style="margin:4px 0 0">'+esc(String(p.body||'').replace(/<[^>]+>/g,' ').slice(0,180))+'</p></article>'}).join(''):'<p>No posts are stored for this store.</p>';return (typeof wrap==='function'?wrap:function(s,h){return '<section class="sx" data-sid="'+s.id+'">'+h+'</section>'})(s,'<h2>'+esc((s.s&&s.s.h)||'Journal')+'</h2>'+body)};
+  RN.searchbody=function(t,s){var q=(typeof E!=='undefined'&&E&&E.preview&&E.preview.q)||'';var items=(S.products||[]).filter(function(p){return p.status==='Active'&&(!q||String(p.name).toLowerCase().indexOf(q.toLowerCase())>=0)});var list=items.length?items.map(function(p){return '<a data-pid="'+esc(p.id)+'" style="display:block;padding:8px 0;cursor:pointer">'+esc(p.name)+'</a>'}).join(''):'<p>No stored products match.</p>';return (typeof wrap==='function'?wrap:function(s,h){return '<section class="sx" data-sid="'+s.id+'">'+h+'</section>'})(s,'<label>Search the catalog<input data-edsearch="1" value="'+esc(q)+'" aria-label="Search the catalog"></label>'+list)};
+  RN.cartbody=function(t,s){var lines=(typeof E!=='undefined'&&E&&E.previewCart)||[];var html=lines.length?lines.map(function(l){var p=productBy(l.id);return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd"><span>'+esc(p?p.name:'Removed product')+' × '+l.q+'</span><span>'+(p&&typeof money==='function'?money(p.price*l.q):'')+'</span></div>'}).join(''):'<p>The preview cart is empty. Use Add to cart on a product card. Nothing is charged.</p>';return (typeof wrap==='function'?wrap:function(s,h){return '<section class="sx" data-sid="'+s.id+'">'+h+'</section>'})(s,'<h2 data-cartlines="1">Cart</h2>'+html+'<p><a data-edpg="home" style="cursor:pointer">Continue browsing</a></p>')};
+  Object.keys(RN).forEach(function(type){var prev=RN[type];if(!prev||prev._m16)return;var next=function(t,s,c){var html='';try{html=prev(t,s,c)||''}catch(e){html=''}html=html.replace(/<a data-pg="catalog">Blog<\/a>/g,'<a data-pg="blog">Blog</a>').replace(/<a data-pg="catalog">Search<\/a>/g,'<a data-pg="search">Search</a>').replace(/<a data-pg="catalog">Cart<\/a>/g,'<a data-pg="cart">Cart</a>');return paint(html,s)};next._m16=1;RN[type]=next});
+}
+function snapshot(){try{var t=live();if(!t)return;S.ai15=S.ai15||{};S.ai15.undo=S.ai15.undo||[];S.ai15.undo.unshift(JSON.stringify({pg:t.pg,hdr:t.hdr,ftr:t.ftr}));S.ai15.undo=S.ai15.undo.slice(0,8)}catch(e){}}
+function undo(){var t=live();var raw=(S.ai15&&S.ai15.undo||[])[0];if(!t||!raw)return {handled:true,source:'local',reply:'Nothing to undo.'+LOCAL};var data=JSON.parse(raw);t.pg=data.pg;t.hdr=data.hdr;t.ftr=data.ftr;S.ai15.undo.shift();persist();return {handled:true,source:'local',built:true,reply:'Restored the previous theme sections.'+LOCAL}}
+function blocked(text){
+  var t=text.toLowerCase();
+  if(/\b(refund|payout|charge the|capture payment)\b/.test(t))return 'Refunds and charges are not run from the assistant.';
+  if(/\b(send email|send sms|whatsapp|newsletter blast)\b/.test(t))return 'Outbound messages are not sent from the assistant.';
+  if(/\b(go live|publish the store|remove the password)\b/.test(t))return 'Publishing stays on Plans and needs a paid plan. Nothing was published.';
+  if(/\b(buy a domain|purchase|subscribe to|open an account)\b/.test(t))return 'This assistant does not make purchases or open third-party accounts.';
+  return '';
+}
+function label(r){
+  if(!r)return r;
+  r.source='local';r.provider='local';
+  if(r.handled&&r.reply&&r.reply.indexOf('No AI provider was called')<0)r.reply=r.reply+LOCAL;
+  return r;
+}
+function ordersOf(list,from,to){
+  var rows=(list||[]).filter(function(o){if(o.demo)return false;var t=o.at||null;if(t==null)return from==null&&to==null;if(from!=null&&t<from)return false;if(to!=null&&t>to)return false;return true});
+  function pay(o){var s=String(o.st||o.status||'').toLowerCase();var f=String(o.financial||'').toLowerCase();if(f==='paid'||f==='held'||/\bpaid\b|\bfulfilled\b/.test(s))return 'paid';if(f==='pending'||f==='unpaid'||/unpaid/.test(s))return 'unpaid';if(/refund/.test(f+s))return 'refunded';return 'unknown'}
+  function ful(o){var s=String(o.st||o.status||o.fulfillment||'').toLowerCase();if(/partial/.test(s))return 'partial';if(/\bfulfilled\b|\bshipped\b/.test(s))return 'fulfilled';if(/unfulfilled|\bpaid\b/.test(s))return 'unfulfilled';return 'unknown'}
+  function del(o){if(o.delivered===true)return 'delivered';if(o.delivered===false)return 'undelivered';var s=String(o.st||o.status||'').toLowerCase();if(/\bundelivered\b|\bnot delivered\b/.test(s))return 'undelivered';if(/\bdelivered\b/.test(s))return 'delivered';return 'unknown'}
+  var out={source:'stored-records',count:rows.length,cancelled:0,payment:{paid:0,unpaid:0,refunded:0,unknown:0},fulfillment:{fulfilled:0,unfulfilled:0,partial:0,unknown:0},delivery:{delivered:0,undelivered:0,unknown:0}};
+  rows.forEach(function(o){if(/cancel/.test(String(o.st||o.status||'').toLowerCase()))out.cancelled++;out.payment[pay(o)]++;out.fulfillment[ful(o)]++;out.delivery[del(o)]++});
+  return out;
+}
+function seoFor(pg,arg){
+  var origin='https://'+(typeof slug==='function'?slug():'store')+'.sellora.app';
+  var path=pg==='product'&&arg?'/products/'+arg:pg==='collection'&&arg?'/collections/'+encodeURIComponent(arg):pg==='page'&&arg?'/pages/'+arg:'/'+(pg==='home'?'':pg);
+  var title=S.name||'Store', desc='';
+  if(pg==='product'){var p=(S.products||[]).filter(function(x){return String(x.id)===String(arg)||x.handle===arg})[0];if(p){title=((p.seo&&p.seo.t)||p.name)+' | '+S.name;desc=(p.seo&&p.seo.d)||String(p.desc||'').replace(/<[^>]+>/g,' ').slice(0,155)}}
+  else if(pg==='page'){var pgd=(S.pages||[]).filter(function(x){return x.h===arg})[0];if(pgd){title=pgd.t+' | '+S.name;desc=String(pgd.b||'').replace(/<[^>]+>/g,' ').slice(0,155)}}
+  else title=(S.seoTitle||S.name)+' | '+S.name;
+  if(!desc)desc=S.seoDesc||'';
+  var faq=(S.pages||[]).filter(function(p){return p.h==='faq'&&p.faq&&p.faq.length})[0];
+  var jsonld={'@context':'https://schema.org','@type':'WebSite',name:S.name,url:origin};
+  if(faq)jsonld={'@context':'https://schema.org','@type':'FAQPage',mainEntity:faq.faq.map(function(f){return {'@type':'Question',name:f.q,acceptedAnswer:{'@type':'Answer',text:f.a}}})};
+  return {title:title,description:desc,canonical:origin+path,jsonld:jsonld};
+}
+function applySeo(pg,arg){
+  var seo=seoFor(pg,arg);
+  var root=document.getElementById('xsf')||document.getElementById('shp');
+  if(!root)return seo;
+  var old=root.querySelector('#seo-meta');if(old)old.remove();
+  var d=document.createElement('div');d.id='seo-meta';d.setAttribute('data-title',seo.title);d.setAttribute('data-canonical',seo.canonical);d.setAttribute('data-description',seo.description);
+  var sc=document.createElement('script');sc.type='application/ld+json';sc.textContent=JSON.stringify(seo.jsonld);d.appendChild(sc);root.prepend(d);
+  return seo;
+}
+function voiceListen(done){
+  var speech=(X.SelloraPlatform&&X.SelloraPlatform.speechFor)?X.SelloraPlatform.speechFor((typeof S!=='undefined'&&S&&S.locale)||'en'):{supported:true,lang:'en-US'};
+  if(speech&&speech.supported===false)return done({state:'unsupported',message:speech.message||'Voice input is not available in this browser. Type your request instead.',lang:null});
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return done({state:'unsupported',message:'Voice input is not available in this browser. Type your request instead.'});
+  var finished=false;
+  function once(r){if(finished)return;finished=true;done(r)}
+  try{var rec=new SR();rec.lang=(speech&&speech.lang)||'en-US';rec.interimResults=false;
+    var timer=setTimeout(function(){try{rec.abort()}catch(e){}once({state:'error',message:'The microphone did not respond. Type your request instead.'})},1200);
+    rec.onresult=function(e){clearTimeout(timer);once({state:'heard',text:e.results[0][0].transcript})};
+    rec.onerror=function(e){clearTimeout(timer);var code=e&&e.error;var state=code==='not-allowed'||code==='service-not-allowed'?'denied':'error';var msg=state==='denied'?'Microphone permission was denied. Type your request instead.':'The microphone could not be used ('+(code||'error')+'). Type your request instead.';once({state:state,message:msg})};
+    rec.start();
+  }catch(err){once({state:'unsupported',message:'Voice input is not available in this browser. Type your request instead.'})}
+}
+function mountVoice(){
+  var mic=document.getElementById('qmic');if(!mic||mic._m16)return;mic._m16=1;
+  mic.onclick=function(){var st=document.getElementById('qvstat');voiceListen(function(r){if(st)st.textContent=r.message||('Heard: '+r.text);if(r.state==='heard'&&X.AIBuild){var q=document.getElementById('q');if(q)q.value=r.text;X.AIBuild.handle(r.text,'voice')}})};
+}
+function decorate(){
+  if(typeof E==='undefined'||!E||!E.open)return;
+  var body=document.querySelector('#edl .erb');if(!body||body.querySelector('.m16extra'))return;
+  var sec=typeof secOf==='function'?secOf(E.open):null;if(!sec||!sec.s)return;
+  var schemes=(E.t.schemes||[]).map(function(s){return '<option>'+esc(s.name)+'</option>'}).join('');
+  var products=(S.products||[]).map(function(p){return '<option value="'+esc(p.id)+'"'+(String(sec.s.pid)===String(p.id)?' selected':'')+'>'+esc(p.name)+'</option>'}).join('');
+  var pick=/feat_product|prod_highlight|prod_hotspots|featured|feat_col/.test(sec.type)?'<label class="m16extra">Product<select data-m16pid="'+esc(sec.id)+'"><option value="">Catalog default</option>'+products+'</select></label>':'';
+  body.insertAdjacentHTML('afterbegin','<label class="m16extra">Color scheme<select data-m16scheme="'+esc(sec.id)+'"><option value="">Custom</option>'+schemes+'</select></label>'+pick);
+}
+function width(mode){
+  var ep=document.getElementById('ep');if(!ep)return;
+  ep.style.maxWidth=mode==='mobile'?'390px':'none';
+  ep.style.margin=mode==='mobile'?'0 auto':'';
+  ep.setAttribute('data-preview',mode);
+  if(E&&E.t){E.t.ts=E.t.ts||{};E.t.ts.preview=mode;persist()}
+}
+function toolbar(){
+  var bar=document.querySelector('#ov .ovt');if(!bar||document.getElementById('m16view'))return;
+  bar.insertAdjacentHTML('beforeend','<span id="m16view" style="display:inline-flex;gap:6px"><button type="button" class="btn" data-m16w="desktop">Desktop</button><button type="button" class="btn" data-m16w="mobile">Mobile</button></span>');
+  if(E&&E.preview&&E.preview.col){
+    var col=(S.collections||[]).filter(function(c){return c.title===E.preview.col})[0];
+    if(col&&!document.getElementById('m16tpl'))bar.insertAdjacentHTML('beforeend','<label id="m16tpl">Template <select data-m16tpl="1"><option '+(col.template!=='lookbook'?'selected':'')+'>collection</option><option '+(col.template==='lookbook'?'selected':'')+'>lookbook</option></select></label>');
+  }
+}
+document.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var w=t.closest('[data-m16w]');if(w){width(w.getAttribute('data-m16w'));return}
+  var atc=t.closest('#ep .atc');if(atc&&typeof E!=='undefined'&&E){var card=atc.closest('[data-pid]');var id=card&&card.getAttribute('data-pid');if(!id)return;e.preventDefault();e.stopPropagation();E.previewCart=E.previewCart||[];var line=E.previewCart.filter(function(l){return String(l.id)===String(id)})[0];if(line)line.q++;else E.previewCart.push({id:id,q:1});try{toast('Added to the preview cart. Nothing was charged.')}catch(err){}if(E.pg==='cart')try{rp()}catch(err){}return}
+  var post=t.closest('[data-edpost]');if(post&&E){e.preventDefault();var bp=(S.blogPosts||[]).filter(function(p){return String(p.id)===post.getAttribute('data-edpost')})[0];E.preview=E.preview||{};E.preview.post=bp||null;return}
+},true);
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||typeof E==='undefined'||!E)return;
+  if(t.dataset&&t.dataset.m16scheme){var sec=typeof secOf==='function'?secOf(t.dataset.m16scheme):null;var scheme=(E.t.schemes||[]).filter(function(s){return s.name===t.value})[0];if(sec&&scheme){sec.s.bg=scheme.bg;sec.s.fg=scheme.fg;sec.s.pad=scheme.pad;sec.s.scheme=scheme.name;persist();try{lp();rp()}catch(err){}}}
+  if(t.dataset&&t.dataset.m16pid){var s2=typeof secOf==='function'?secOf(t.dataset.m16pid):null;if(s2){s2.s.pid=t.value;persist();try{rp()}catch(err){}}}
+  if(t.dataset&&t.dataset.m16tpl){var col=(S.collections||[]).filter(function(c){return c.title===E.preview.col})[0];if(col){col.template=t.value;ensurePages(E.t);E.pg=t.value==='lookbook'?'lookbook':'collection';persist();try{lp();rp()}catch(err){}}}
+},true);
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t)return;
+  if(t.dataset&&t.dataset.edsearch&&typeof E!=='undefined'&&E){E.preview=E.preview||{};E.preview.q=t.value;try{rp()}catch(err){}}
+  if(t.dataset&&t.dataset.sk&&typeof E!=='undefined'&&E)setTimeout(function(){persist()},40);
+},true);
+if(X.AIBuild&&X.AIBuild.handle&&!X.AIBuild.handle._m16){
+  var h0=X.AIBuild.handle;
+  var wrapped=function(text,source){
+    var raw=String(text||'').trim();
+    var block=blocked(raw);
+    if(block)return {handled:true,applied:false,source:'local',provider:'local',reply:block+LOCAL};
+    if(/^undo\b/i.test(raw))return undo();
+    if(/\b(delete|remove|wipe)\b/i.test(raw)&&/\b(all|every)\b/i.test(raw)){
+      if(!/^confirm:/i.test(raw))return {handled:true,applied:false,needsConfirm:true,source:'local',provider:'local',reply:'Nothing was deleted. Say “confirm: '+raw+'” to delete stored records.'};
+    }
+    if(/\b(build|redesign|generate)\b/i.test(raw)&&/\b(website|store|shop)\b/i.test(raw))snapshot();
+    var r=h0(raw.replace(/^confirm:\s*/i,''),source||'text');
+    return label(r);
+  };
+  wrapped._m16=1;X.AIBuild.handle=wrapped;
+  X.AIBuild.orders=ordersOf;X.AIBuild.seo=seoFor;X.AIBuild.undo=undo;X.AIBuild.voiceListen=voiceListen;
+}
+if(typeof edit==='function'&&!edit._m16){var ed0=edit;var edn=function(id){var t=typeof th==='function'?th(id):null;if(t)ensurePages(t);var r=ed0(id);setTimeout(toolbar,0);return r};edn._m16=1;edit=edn}
+if(typeof lp==='function'&&!lp._m16){var lp0=lp;var lpn=function(){lp0();try{decorate();toolbar()}catch(e){}};lpn._m16=1;lp=lpn}
+if(typeof rp==='function'&&!rp._m16){var rpA=rp;var rpB=function(){try{rpA()}catch(e){console.error(e)}if(typeof E==='undefined'||!E)return;var pg=E.pg;if(!pg||pg==='home'||pg==='signin')return;var el=document.getElementById('ep');if(!el||typeof sf!=='function')return;try{var t=E.t;if(t)ensurePages(t);el.innerHTML=sf(t,pg,E.preview&&E.preview.pid);el.setAttribute('data-m16pg',pg)}catch(e){el.setAttribute('data-m16pg','err')}};rpB._m16=1;rp=rpB}
+if(X.AIBuild&&X.AIBuild.previewTo&&!X.AIBuild.previewTo._m16){var pv0=X.AIBuild.previewTo;var pv1=function(d){if(typeof E!=='undefined'&&E&&E.t)ensurePages(E.t);var r=pv0(d);try{rp()}catch(e){}return r};pv1._m16=1;X.AIBuild.previewTo=pv1}
+if(X.SF&&X.SF.go&&!X.SF.go._m16){var g0=X.SF.go;var gn=function(to){var r=g0(to);try{var p=String(to||'home').split(':');applySeo(p[0],p.slice(1).join(':'))}catch(e){}return r};gn._m16=1;X.SF.go=gn;if(X.SF.open){var o0=X.SF.open;X.SF.open=function(pg){return gn(pg||'home')}}}
+if(X.onRoute)X.onRoute(function(r){
+  mountVoice();
+  try{var t=typeof live==='function'?live():null;if(t)ensurePages(t)}catch(e){}
+  var main=document.getElementById('main');if(!main)return;
+  if((r==='orders'||r==='orders-all')&&!document.getElementById('m16orders')){
+    var sum=ordersOf(S.orders||[]);
+    var box=document.createElement('div');box.id='m16orders';box.className='panel';
+    box.innerHTML='<h3>Stored orders</h3><p>Placed '+sum.count+' · Cancelled '+sum.cancelled+' · Paid '+sum.payment.paid+' · Unpaid '+sum.payment.unpaid+' · Payment unknown '+sum.payment.unknown+' · Fulfilled '+sum.fulfillment.fulfilled+' · Unfulfilled '+sum.fulfillment.unfulfilled+' · Delivered '+sum.delivery.delivered+' · Undelivered '+sum.delivery.undelivered+' · Delivery unknown '+sum.delivery.unknown+'.</p><p class="mu">These numbers are counted from orders saved in this store. Delivery unknown means the record does not say whether it was delivered.</p>';
+    main.insertBefore(box,main.firstChild);
+  }
+  if(r==='integrations'&&!document.getElementById('m16int')){
+    var note=document.createElement('div');note.id='m16int';note.className='panel';
+    note.innerHTML='<h3>Provider status</h3><p>Live connections are <b>UNVERIFIED</b> until the API server is configured. Keys are not stored in this browser for the assistant, and this page does not mark a provider connected.</p><ul><li>DeepSeek — set DEEPSEEK_API_KEY on the server. Not configured here.</li><li>Claude — optional, set ANTHROPIC_API_KEY on the server. Not configured here.</li><li>Carrier tracking — set TRACKING_API_URL on the server. Not configured, so tracking is not shown as live.</li></ul><p class="mu">A pasted key in an older form is not a health check and is not used by the assistant.</p>';
+    main.insertBefore(note,main.firstChild);
+  }
+});
+if(typeof sf==='function'&&!sf._m16){var sf0=sf;var sf1=function(t,pg,pid){if(t&&pg&&t.pg&&t.pg[pg]&&/^(cart|blog|search|page|lookbook)$/.test(pg)){ensurePages(t);var ctx={pg:pg,pid:pid},rd=function(a){return (a||[]).filter(function(s){return !s.hide}).map(function(s){var f=RN[s.type];return f?f(t,s,ctx):''}).join('')};return '<div class="sf" style="--b:'+t.bg+';--t:'+t.tx+';--a:'+t.ac+';--r:'+(t.rad||0)+'px">'+rd(t.hdr)+rd(t.pg[pg])+rd(t.ftr)+'</div>'}return sf0.apply(this,arguments)};sf1._m16=1;sf=sf1}
+installSections();
+var css=document.createElement('style');css.textContent='.m16extra{display:block;margin:0 0 8px}.m16extra select{width:100%}#ep[data-preview="mobile"]{box-shadow:0 0 0 8px #111;border-radius:16px}#m16orders,#m16int{margin:0 0 12px}';document.head.appendChild(css);
+})();
+
+/* Browser copy of the setup rules. No provider key is read or stored here. */
+(function(){
+var RTL={ar:1,ur:1,fa:1,he:1,ps:1,sd:1,yi:1,dv:1};
+var LOCALES=[
+  {id:'en',language:'en',name:'English',native:'English',dir:'ltr',coverage:'verified',speech:'en-US'},
+  {id:'ur',language:'ur',name:'Urdu',native:'اردو',dir:'rtl',coverage:'verified',speech:'ur-PK'},
+  {id:'ar',language:'ar',name:'Arabic',native:'العربية',dir:'rtl',coverage:'verified',speech:'ar'},
+  {id:'fr',language:'fr',name:'French',native:'Français',dir:'ltr',coverage:'verified',speech:'fr-FR'},
+  {id:'es',language:'es',name:'Spanish',native:'Español',dir:'ltr',coverage:'verified',speech:'es-ES'},
+  {id:'de',language:'de',name:'German',native:'Deutsch',dir:'ltr',coverage:'verified',speech:'de-DE'},
+  {id:'hi',language:'hi',name:'Hindi',native:'हिन्दी',dir:'ltr',coverage:'framework',speech:null},
+  {id:'pt',language:'pt',name:'Portuguese',native:'Português',dir:'ltr',coverage:'framework',speech:null},
+  {id:'zh',language:'zh',name:'Chinese',native:'中文',dir:'ltr',coverage:'framework',speech:null},
+  {id:'ja',language:'ja',name:'Japanese',native:'日本語',dir:'ltr',coverage:'framework',speech:null},
+  {id:'tr',language:'tr',name:'Turkish',native:'Türkçe',dir:'ltr',coverage:'framework',speech:null},
+  {id:'fa',language:'fa',name:'Persian',native:'فارسی',dir:'rtl',coverage:'framework',speech:null},
+  {id:'he',language:'he',name:'Hebrew',native:'עברית',dir:'rtl',coverage:'framework',speech:null}
+];
+var EN={
+  'next.addProduct':'Add your first product. You can type it in or import a spreadsheet.',
+  'next.addProductBtn':'Add a product',
+  'next.finishListing':'Finish listings that are missing a price, description, or image.',
+  'next.finishBtn':'Review listings',
+  'next.launch':'Publishing is blocked until a paid plan is active. Your products stay saved.',
+  'next.launchBtn':'See what is blocked',
+  'next.payment':'Card checkout is not connected to a processor. Nothing can be charged yet.',
+  'next.paymentBtn':'See payment setup',
+  'next.ready':'The saved setup steps are filled in. Publishing and live payments stay separate checks.',
+  'voice.unsupported':'Voice input is not available for this language in this browser. Type your request instead.',
+  'voice.denied':'Microphone permission was denied. Type your request instead.',
+  'publish.blocked':'Buy a plan to publish. The trial does not make the store public.',
+  'import.approve':'Existing products are updated only after you approve. Nothing is deleted.',
+  'health.title':'Store check',
+  'insights.none':'No stored orders in this range. There is no trend to report.',
+  'insights.few':'Fewer than 5 stored orders. A trend is not reported.',
+  'bulk.preview':'Preview the changes, then approve them. Prices and SKUs stay as they are.',
+  'locale.fallback':'This language is supported by the locale list. The words below are still English.'
+};
+var COPY={
+  en:EN,
+  ur:{
+    'next.addProduct':'پہلے ایک پروڈکٹ شامل کریں۔ آپ خود لکھ سکتے ہیں یا اسپریڈشیٹ درآمد کر سکتے ہیں۔',
+    'next.addProductBtn':'پروڈکٹ شامل کریں','next.finishListing':'جن فہرستوں میں قیمت، تفصیل یا تصویر نہیں، انہیں مکمل کریں۔','next.finishBtn':'فہرستیں دیکھیں',
+    'next.launch':'ادائیگی والا پلان فعال ہونے تک اشاعت بند ہے۔ آپ کی پروڈکٹس محفوظ رہتی ہیں۔','next.launchBtn':'دیکھیں کیا بند ہے',
+    'next.payment':'کارڈ چیک آؤٹ کسی پروسیسر سے جڑا نہیں۔ ابھی کوئی رقم نہیں کٹی۔','next.paymentBtn':'ادائیگی کی ترتیب دیکھیں',
+    'next.ready':'محفوظ ترتیب کے مراحل بھر چکے ہیں۔ اشاعت اور براہ راست ادائیگی الگ جانچ ہیں۔',
+    'voice.unsupported':'اس زبان کے لیے آواز اس براؤزر میں دستیاب نہیں۔ درخواست ٹائپ کریں۔','voice.denied':'مائیکروفون کی اجازت نہیں ملی۔ درخواست ٹائپ کریں۔',
+    'publish.blocked':'اشاعت کے لیے پلان خریدیں۔ آزمائش اسٹور کو عوامی نہیں کرتی۔','import.approve':'موجودہ پروڈکٹس تب ہی بدلیں گی جب آپ منظور کریں۔ کچھ حذف نہیں ہوتا۔',
+    'health.title':'اسٹور کی جانچ','insights.none':'اس مدت میں کوئی محفوظ آرڈر نہیں۔ رجحان نہیں بتایا جا سکتا۔','insights.few':'5 سے کم محفوظ آرڈر ہیں۔ رجحان نہیں بتایا جاتا۔',
+    'bulk.preview':'تبدیلیاں پہلے دیکھیں، پھر منظور کریں۔ قیمت اور SKU وہی رہتے ہیں۔','locale.fallback':'یہ زبان فہرست میں ہے۔ نیچے کے الفاظ اب بھی انگریزی ہیں۔'
+  },
+  ar:{
+    'next.addProduct':'أضف منتجك الأول. يمكنك كتابته أو استيراد جدول.','next.addProductBtn':'أضف منتجًا',
+    'next.finishListing':'أكمل القوائم التي تنقصها سعر أو وصف أو صورة.','next.finishBtn':'راجع القوائم',
+    'next.launch':'النشر متوقف حتى تفعيل خطة مدفوعة. منتجاتك تبقى محفوظة.','next.launchBtn':'انظر ما المتوقف',
+    'next.payment':'الدفع بالبطاقة غير متصل بمعالج. لم يُخصم شيء.','next.paymentBtn':'انظر إعداد الدفع',
+    'next.ready':'خطوات الإعداد المحفوظة مكتملة. النشر والدفع المباشر فحصان منفصلان.',
+    'voice.unsupported':'الإدخال الصوتي غير متاح لهذه اللغة في هذا المتصفح. اكتب طلبك.','voice.denied':'تم رفض إذن الميكروفون. اكتب طلبك.',
+    'publish.blocked':'اشتر خطة للنشر. الفترة التجريبية لا تجعل المتجر عامًا.','import.approve':'لا تُحدَّث المنتجات الحالية إلا بعد موافقتك. لا يُحذف شيء.',
+    'health.title':'فحص المتجر','insights.none':'لا طلبات محفوظة في هذه الفترة. لا يوجد اتجاه يُعرض.','insights.few':'أقل من 5 طلبات محفوظة. لا يُعرض اتجاه.',
+    'bulk.preview':'عاين التغييرات ثم وافق. السعر وSKU يبقيان كما هما.','locale.fallback':'هذه اللغة في القائمة. الكلمات أدناه ما زالت بالإنجليزية.'
+  },
+  fr:{'next.addProduct':'Ajoutez un premier produit. Vous pouvez le saisir ou importer un tableau.','next.addProductBtn':'Ajouter un produit','next.finishListing':'Complétez les fiches sans prix, description ou image.','next.finishBtn':'Voir les fiches','next.launch':'La publication est bloquée tant qu’un forfait payant n’est pas actif. Vos produits restent enregistrés.','next.launchBtn':'Voir ce qui est bloqué','next.payment':'Le paiement par carte n’est pas relié à un prestataire. Rien n’est débité.','next.paymentBtn':'Voir le paiement','next.ready':'Les étapes enregistrées sont remplies. Publication et paiement réel restent des contrôles séparés.','voice.unsupported':'La voix n’est pas disponible pour cette langue dans ce navigateur. Saisissez votre demande.','voice.denied':'Le micro a été refusé. Saisissez votre demande.','publish.blocked':'Achetez un forfait pour publier. L’essai ne rend pas la boutique publique.','import.approve':'Les produits existants ne changent qu’après votre accord. Rien n’est supprimé.','health.title':'Contrôle de la boutique','insights.none':'Aucune commande enregistrée sur cette période. Aucune tendance n’est affichée.','insights.few':'Moins de 5 commandes enregistrées. Aucune tendance n’est affichée.','bulk.preview':'Prévisualisez, puis approuvez. Les prix et SKU ne changent pas.','locale.fallback':'Cette langue est dans la liste. Le texte ci-dessous reste en anglais.'},
+  es:{'next.addProduct':'Añade tu primer producto. Puedes escribirlo o importar una hoja.','next.addProductBtn':'Añadir un producto','next.finishListing':'Completa las fichas a las que les falta precio, descripción o imagen.','next.finishBtn':'Revisar fichas','next.launch':'Publicar está bloqueado hasta que haya un plan de pago activo. Tus productos siguen guardados.','next.launchBtn':'Ver qué está bloqueado','next.payment':'El pago con tarjeta no está conectado a un procesador. No se cobra nada.','next.paymentBtn':'Ver el pago','next.ready':'Los pasos guardados están completos. Publicar y el cobro real siguen siendo comprobaciones aparte.','voice.unsupported':'La voz no está disponible para este idioma en este navegador. Escribe tu solicitud.','voice.denied':'Se denegó el micrófono. Escribe tu solicitud.','publish.blocked':'Compra un plan para publicar. La prueba no hace pública la tienda.','import.approve':'Los productos existentes solo cambian si lo apruebas. No se borra nada.','health.title':'Revisión de la tienda','insights.none':'No hay pedidos guardados en este periodo. No hay una tendencia que mostrar.','insights.few':'Hay menos de 5 pedidos guardados. No se muestra una tendencia.','bulk.preview':'Revisa los cambios y luego apruébalos. El precio y el SKU no cambian.','locale.fallback':'Este idioma está en la lista. El texto de abajo sigue en inglés.'},
+  de:{'next.addProduct':'Fügen Sie ein erstes Produkt hinzu. Sie können es eingeben oder eine Tabelle importieren.','next.addProductBtn':'Produkt hinzufügen','next.finishListing':'Vervollständigen Sie Einträge ohne Preis, Beschreibung oder Bild.','next.finishBtn':'Einträge prüfen','next.launch':'Veröffentlichen ist blockiert, bis ein bezahlter Plan aktiv ist. Ihre Produkte bleiben gespeichert.','next.launchBtn':'Sehen, was blockiert ist','next.payment':'Kartenzahlung ist mit keinem Anbieter verbunden. Es wird nichts abgebucht.','next.paymentBtn':'Zahlung ansehen','next.ready':'Die gespeicherten Schritte sind ausgefüllt. Veröffentlichen und echte Zahlung bleiben eigene Prüfungen.','voice.unsupported':'Spracheingabe ist für diese Sprache in diesem Browser nicht verfügbar. Tippen Sie Ihre Anfrage.','voice.denied':'Das Mikrofon wurde abgelehnt. Tippen Sie Ihre Anfrage.','publish.blocked':'Kaufen Sie einen Plan zum Veröffentlichen. Die Testphase macht den Shop nicht öffentlich.','import.approve':'Vorhandene Produkte ändern sich erst nach Ihrer Zustimmung. Nichts wird gelöscht.','health.title':'Shop-Prüfung','insights.none':'Keine gespeicherten Bestellungen in diesem Zeitraum. Es gibt keinen Trend.','insights.few':'Weniger als 5 gespeicherte Bestellungen. Ein Trend wird nicht angezeigt.','bulk.preview':'Änderungen zuerst ansehen, dann freigeben. Preis und SKU bleiben gleich.','locale.fallback':'Diese Sprache steht in der Liste. Der Text darunter bleibt Englisch.'}
+};
+var NAMES={USD:'US Dollar',PKR:'Pakistani Rupee',EUR:'Euro',GBP:'British Pound',AED:'UAE Dirham',SAR:'Saudi Riyal',INR:'Indian Rupee'};
+function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function parseLocale(input){var raw=String(input==null?'':input).trim().replace(/_/g,'-');if(!raw||raw.length>32||/all languages/i.test(raw))return {ok:false,error:'Enter a locale such as en, ur-PK, or zh-Hans.'};var parts=raw.split('-').filter(Boolean),language=parts[0].toLowerCase();if(!/^[a-z]{2,3}$/.test(language))return {ok:false,error:'The language code must be 2 or 3 letters.'};var i=1,script,region;if(parts[i]&&/^[A-Za-z]{4}$/.test(parts[i])){script=parts[i][0].toUpperCase()+parts[i].slice(1).toLowerCase();i++}if(parts[i]){region=/^\d{3}$/.test(parts[i])?parts[i]:parts[i].toUpperCase();if(!/^([A-Z]{2}|\d{3})$/.test(region))return {ok:false,error:'The region code is not valid.'};i++}if(parts[i])return {ok:false,error:'This locale has an extra segment that Sellora does not use.'};return {ok:true,canonical:[language,script,region].filter(Boolean).join('-'),language:language,region:region}}
+function localeInfo(language){return LOCALES.filter(function(l){return l.language===language||l.id===language})[0]||null}
+function directionFor(language){return RTL[language]?'rtl':'ltr'}
+function resolveText(locale,key){var parsed=parseLocale(locale),requested=parsed.ok?parsed.canonical:'en',language=parsed.ok?parsed.language:'en',info=localeInfo(language),chain=[language,'en'],i;for(i=0;i<chain.length;i++){var text=COPY[chain[i]]&&COPY[chain[i]][key];if(text){var status=chain[i]===language&&info&&info.coverage==='verified'?'translated':'fallback';return {text:text,status:chain[i]===language?status:'fallback',locale:chain[i],requested:requested,coverage:info?info.coverage:'unknown'}}}return {text:key,status:'missing',locale:'en',requested:requested,coverage:info?info.coverage:'unknown'}}
+function speechFor(locale){var parsed=parseLocale(locale),language=parsed.ok?parsed.language:'en',info=localeInfo(language);if(info&&info.coverage==='verified'&&info.speech)return {supported:true,lang:info.speech,message:''};return {supported:false,lang:null,message:resolveText('en','voice.unsupported').text}}
+function formatMoney(amount,currency,locale){var code=String(currency||'USD').toUpperCase(),name=NAMES[code]||code,parsed=parseLocale(locale||'en'),loc=parsed.ok?parsed.canonical:'en',num=Number(amount).toFixed(2);try{num=new Intl.NumberFormat(loc,{minimumFractionDigits:2,maximumFractionDigits:2}).format(amount)}catch(e){}return {text:num+' '+name+' ('+code+')',currency:code,name:name,converted:false}}
+function convertMoney(amount,from,to,rate){var src=String(from||'').toUpperCase(),dst=String(to||'').toUpperCase();if(src===dst)return {ok:true,amount:amount,converted:false,source:null,asOf:null};if(!rate||rate.source==null||!rate.asOf||String(rate.from).toUpperCase()!==src||String(rate.to).toUpperCase()!==dst||!(rate.value>0))return {ok:false,converted:false,error:'No sourced exchange rate is stored for this pair. The amount was not converted.'};return {ok:true,amount:Math.round(amount*rate.value*100)/100,converted:true,source:rate.source,asOf:rate.asOf}}
+function nextStep(store){var products=(store.products||[]).filter(function(p){return !p.demo});if(!products.length)return {id:'addProduct',blocked:[],ready:false};var incomplete=products.filter(function(p){return p.price==null||p.price===''||!String(p.desc||p.description||'').trim()||!((p.imgs||p.images||[]).length)});if(incomplete.length)return {id:'finishListing',blocked:[],ready:false,count:incomplete.length};if(!store.sub9||store.sub9.status!=='active')return {id:'launch',blocked:['publish'],ready:false};if(!store.paymentLive)return {id:'payment',blocked:['payment'],ready:false};return {id:'ready',blocked:[],ready:true}}
+var CLAIM=/#\s*1|number one|guaranteed ranking|best in the world|clinically proven|cure[sd]? /i;
+function bulkDryRun(products,ids,change,explicit){explicit=explicit||{};if(change.price!=null&&!explicit.price)return {ok:false,error:'Price stays unchanged unless the request explicitly includes price.'};if(change.sku!=null&&!explicit.sku)return {ok:false,error:'SKU stays unchanged unless the request explicitly includes SKU.'};var diffs=[],rejected=[];products.filter(function(p){return ids.map(String).indexOf(String(p.id))>=0}).forEach(function(p){var name=p.name||p.title||'';if(change.alt==='use-name')diffs.push({id:p.id,field:'alt',before:p.alt||'',after:name});if(change.description!=null){if(CLAIM.test(change.description)&&!CLAIM.test(p.desc||p.description||''))rejected.push({id:p.id,field:'description',reason:'The text adds a ranking or proof claim that was not in the original.'});else diffs.push({id:p.id,field:'description',before:p.desc||p.description||'',after:change.description})}if(explicit.price&&change.price!=null)diffs.push({id:p.id,field:'price',before:String(p.price==null?'':p.price),after:String(change.price)});if(explicit.sku&&change.sku!=null)diffs.push({id:p.id,field:'sku',before:p.sku||'',after:change.sku})});return {ok:true,diffs:diffs,rejected:rejected,applied:false}}
+function bulkApply(products,dry){if(!dry.ok)return {ok:false,error:dry.error};var undo=dry.diffs.map(function(d){return {id:d.id,field:d.field,before:d.before,after:d.after}});undo.forEach(function(d){var p=products.filter(function(x){return String(x.id)===String(d.id)})[0];if(!p)return;if(d.field==='alt')p.alt=d.after;if(d.field==='description'){p.desc=d.after;p.description=d.after}if(d.field==='price')p.price=Number(d.after);if(d.field==='sku')p.sku=d.after});return {ok:true,undo:undo,applied:dry.diffs.length}}
+function bulkUndo(products,undo){undo.forEach(function(d){var p=products.filter(function(x){return String(x.id)===String(d.id)})[0];if(!p)return;if(d.field==='alt')p.alt=d.before;if(d.field==='description'){p.desc=d.before;p.description=d.before}if(d.field==='price')p.price=d.before===''?null:Number(d.before);if(d.field==='sku')p.sku=d.before});return {ok:true,reverted:undo.length}}
+function neutralizeFormula(value){var s=String(value==null?'':value);if(/^[=+\-@\t\r]/.test(s))return {value:"'"+s,neutralized:true};return {value:s,neutralized:false}}
+function parseCsv(text){var src=String(text||'').replace(/^\uFEFF/,''),out=[],row=[],field='',quoted=false,i,c;for(i=0;i<src.length;i++){c=src[i];if(quoted){if(c==='"'&&src[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&src[i+1]==='\n')i++;row.push(field);out.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field);out.push(row)}return out.filter(function(r){return r.some(function(c){return String(c).trim()})})}
+function dryRunCsv(text,existing,opts){opts=opts||{};var rows=parseCsv(text);if(!rows.length)return {ok:false,error:'The file is empty.',rows:[],neutralized:0};var header=rows[0].map(function(h){return h.trim().toLowerCase()});function ix(){for(var i=0;i<arguments.length;i++){var k=header.indexOf(arguments[i]);if(k>=0)return k}return -1}if(ix('handle','title')<0)return {ok:false,error:'The file needs a Handle or Title column.',rows:[],neutralized:0};var have={},seen={},neutralized=0,planned=[];(existing||[]).forEach(function(h){have[String(h).toLowerCase()]=1});rows.slice(1).forEach(function(r,n){function cell(i){return i<0?'':(r[i]||'')}var titleCell=neutralizeFormula(cell(ix('title'))),bodyCell=neutralizeFormula(cell(ix('body (html)','body','description'))),skuCell=neutralizeFormula(cell(ix('variant sku','sku')));if(titleCell.neutralized||bodyCell.neutralized||skuCell.neutralized)neutralized++;var raw=(cell(ix('handle'))||'').trim();var handle=(raw||titleCell.value).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');var line=n+2;if(!handle){planned.push({line:line,action:'error',message:'Missing Handle and Title.'});return}if(!titleCell.value){if(seen[handle]){planned.push({line:line,action:'variant',handle:handle});return}planned.push({line:line,action:'error',handle:handle,message:'Missing Title.'});return}if(seen[handle]){planned.push({line:line,action:'error',handle:handle,message:'This handle already has a title row in the file.'});return}seen[handle]=1;var exists=!!have[handle];var action=!exists?'create':opts.approveOverwrite?'update':'skip';planned.push({line:line,action:action,handle:handle,title:titleCell.value,description:bodyCell.value,sku:skuCell.value,message:exists&&action==='skip'?'Already stored. Approve overwrite to update it. It was not changed.':''})});return {ok:true,neutralized:neutralized,rows:planned,deleted:0}}
+function classifyUrl(url){if(!url)return {class:'invalid',reason:'empty'};if(url.charAt(0)==='/'||url.charAt(0)==='#')return {class:'relative',reason:'internal'};var u;try{u=new URL(url)}catch(e){return {class:'invalid',reason:'unparseable'}}if(u.protocol!=='http:'&&u.protocol!=='https:')return {class:'blocked',reason:'protocol'};var host=u.hostname.replace(/^\[|\]$/g,'').toLowerCase();if(host==='localhost'||/\.localhost$/.test(host)||/\.local$/.test(host)||host==='0.0.0.0')return {class:'blocked',reason:'local'};var m=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);if(m){var p=[+m[1],+m[2],+m[3],+m[4]];if(p.some(function(n){return n>255}))return {class:'invalid',reason:'ip'};var a=p[0],b=p[1];if(a===10||a===127||a===0||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168))return {class:'blocked',reason:'private'}}if(host==='::1'||host.indexOf('fc')===0||host.indexOf('fd')===0||host.indexOf('fe80')===0)return {class:'blocked',reason:'private'};return {class:'external-unverified',reason:'not fetched'}}
+function healthCheck(store,browserMobile){var findings=[],products=(store.products||[]).filter(function(p){return !p.demo}),handles={},pages={};products.forEach(function(p){if(p.handle)handles[String(p.handle).toLowerCase()]=1});(store.pages||[]).forEach(function(p){pages[String(p.h||p.handle||'').toLowerCase()]=1});products.forEach(function(p){var name=p.name||p.title||'Untitled product';if(p.price==null||p.price==='')findings.push({code:'incomplete-price',severity:'attention',verified:'structural',detail:name+' has no price.'});if(!String(p.desc||p.description||'').trim())findings.push({code:'incomplete-description',severity:'attention',verified:'structural',detail:name+' has no description.'});if(!((p.imgs||p.images||[]).length))findings.push({code:'missing-image',severity:'attention',verified:'structural',detail:name+' has no image.'});(p.imgs||p.images||[]).forEach(function(src){var c=classifyUrl(String(src));if(c.class==='blocked')findings.push({code:'blocked-link',severity:'attention',verified:'structural',detail:name+' image was not requested ('+c.reason+').'});if(c.class==='external-unverified')findings.push({code:'external-link',severity:'info',verified:'structural',detail:name+' image is on another site and was not fetched.'})})});(store.menus||[]).forEach(function(m){(m.items||[]).forEach(function(item){var url=item.url||'',product=url.match(/^\/products\/([^/?#]+)/),page=url.match(/^\/pages\/([^/?#]+)/);if(product&&!handles[decodeURIComponent(product[1]).toLowerCase()])findings.push({code:'broken-link',severity:'attention',verified:'structural',detail:'Menu link '+url+' does not match a stored product.'});if(page&&!pages[decodeURIComponent(page[1]).toLowerCase()])findings.push({code:'broken-link',severity:'attention',verified:'structural',detail:'Menu link '+url+' does not match a stored page.'});var c=classifyUrl(url);if(c.class==='blocked')findings.push({code:'blocked-link',severity:'attention',verified:'structural',detail:'Menu link was not requested ('+c.reason+').'})})});if(browserMobile==null)findings.push({code:'mobile-unverified',severity:'info',verified:'possible',detail:'Mobile layout was not measured in a browser. This is not a confirmed mobile error.'});else if(browserMobile.overflow)findings.push({code:'mobile-overflow',severity:'attention',verified:'browser',detail:'A browser check found content wider than the screen.'});return {source:'stored-records',findings:findings}}
+function salesInsights(orders,opts){opts=opts||{};var rows=(orders||[]).filter(function(o){if(o.demo)return false;var raw=o.at!=null?o.at:(o.createdAt?new Date(o.createdAt).getTime():null);if(raw==null||!isFinite(+raw))return opts.from==null&&opts.to==null;var t=+raw;if(opts.from!=null&&t<opts.from)return false;if(opts.to!=null&&t>opts.to)return false;return true}),groups={};rows.forEach(function(o){var cur=String(o.cur||o.currency||'UNKNOWN').toUpperCase(),g=groups[cur]||(groups[cur]={count:0,total:0,unknownPayment:0,unpaid:0,fulfilled:0,unfulfilled:0,deliveryUnknown:0,delivered:0});g.count++;if(typeof o.total==='number'&&isFinite(o.total))g.total+=o.total;var fin=((o.financial||'')+' '+(o.st||'')+' '+(o.status||'')).toLowerCase(),ful=((o.fulfillment||'')+' '+(o.st||'')).toLowerCase();if(/unpaid|pending/.test(fin)&&!/paid/.test(fin))g.unpaid++;else if(!/paid|held|refund/.test(fin))g.unknownPayment++;if(/unfulfilled/.test(ful)||(/\bpaid\b/.test(fin)&&!/fulfilled|shipped/.test(ful)))g.unfulfilled++;if(/fulfilled|shipped/.test(ful))g.fulfilled++;if(o.delivered===true||/\bdelivered\b/.test(fin))g.delivered++;else g.deliveryUnknown++});var suggestions=[];if(!rows.length)suggestions.push({code:'no-orders',text:'No stored orders in this range. There is no trend to report.'});else if(rows.length<5)suggestions.push({code:'few',text:'Fewer than 5 stored orders. A trend is not reported.'});var unfulfilled=Object.keys(groups).reduce(function(a,k){return a+groups[k].unfulfilled},0);if(unfulfilled)suggestions.push({code:'unfulfilled',text:unfulfilled+' stored order'+(unfulfilled===1?' is':'s are')+' unfulfilled. Fulfilled does not mean delivered.'});if(rows.length&&Object.keys(groups).every(function(k){return groups[k].deliveryUnknown===groups[k].count}))suggestions.push({code:'delivery-unknown',text:'Delivery is unknown for every stored order in this range. That is not the same as undelivered.'});return {source:'stored-records',synchronizedWithServer:false,sourceNote:opts.sourceNote||'This browser store. It is not the server database.',timeZone:opts.timeZone||'UTC',from:opts.from==null?null:opts.from,to:opts.to==null?null:opts.to,count:rows.length,currencies:groups,suggestions:suggestions,summedAcrossCurrencies:false}}
+function readiness(){return [
+  {id:'sellora-pay',area:'payment',state:'not-connected',env:[],note:'Browser checkout does not call a processor. A local card result is not a live charge.'},
+  {id:'stripe',area:'payment',state:'missing-config',env:['PAYMENT_PROVIDER','STRIPE_SECRET_KEY'],note:'Not activated from this admin.'},
+  {id:'deepseek',area:'translation',state:'missing-config',env:['DEEPSEEK_API_KEY'],note:'Main translation provider. A missing key is not a completed translation.'},
+  {id:'claude',area:'translation',state:'missing-config',env:['ANTHROPIC_API_KEY'],optional:true,note:'Optional. Used on the server only when DeepSeek returns nothing.'},
+  {id:'tracking',area:'shipping',state:'missing-config',env:['TRACKING_API_URL','TRACKING_API_KEY'],note:'A shipping zone you type is not a live carrier account.'}
+]}
+function sizeChart(rows){return {converted:false,note:'These sizes are the labels you entered. Sellora does not guess a conversion.',rows:(rows||[]).map(function(r){return {label:r.label,region:r.region,value:r.value}})}}
+function draftTranslation(input){var parsed=parseLocale(input.locale);if(!parsed.ok)return {ok:false,translated:false,reason:parsed.error};if(input.provider!=='manual'){if(!input.providerText)return {ok:false,translated:false,blocked:'missing-provider'}}var joined=Object.keys(input.fields||{}).map(function(k){return input.fields[k]}).join('\n');var names=(input.brandNames||[]).filter(function(n){return n&&input.original.indexOf(n)>=0&&joined.indexOf(n)<0});if(names.length)return {ok:false,translated:false,reason:'A brand name was removed from the translation.',names:names};return {ok:true,record:{id:input.id,entity:input.entity,entityId:input.entityId,locale:parsed.canonical,fields:input.fields,status:'draft',provider:input.provider,brandKept:true}}}
+window.SelloraPlatform={LOCALES:LOCALES,escapeHtml:escapeHtml,parseLocale:parseLocale,directionFor:directionFor,resolveText:resolveText,speechFor:speechFor,formatMoney:formatMoney,convertMoney:convertMoney,nextStep:nextStep,bulkDryRun:bulkDryRun,bulkApply:bulkApply,bulkUndo:bulkUndo,neutralizeFormula:neutralizeFormula,dryRunCsv:dryRunCsv,classifyUrl:classifyUrl,healthCheck:healthCheck,salesInsights:salesInsights,readiness:readiness,sizeChart:sizeChart,draftTranslation:draftTranslation};
+})();
+
+/* Beginner setup, locale, import guard, health, and order insights. */
+(function(){
+var X=window,P=X.SelloraPlatform;
+if(!P)return;
+function esc(s){return P.escapeHtml(s)}
+function persist(){try{save()}catch(e){}}
+function locale(){return (S&&S.locale)||'en'}
+function t(key){return P.resolveText(locale(),key)}
+function applyLocale(){
+  var parsed=P.parseLocale(locale());
+  var lang=parsed.ok?parsed.language:'en';
+  document.documentElement.lang=parsed.ok?parsed.canonical:'en';
+  document.documentElement.dir=P.directionFor(lang);
+  if(S&&S.plus&&S.plus.cfg&&(lang==='en'||lang==='ur'||lang==='ar'))S.plus.cfg.lang=lang;
+}
+function stepButton(step){
+  if(step.id==='addProduct')return '<button class="btn pri" type="button" data-m17go="products">'+esc(t('next.addProductBtn').text)+'</button>';
+  if(step.id==='finishListing')return '<button class="btn pri" type="button" data-m17go="products">'+esc(t('next.finishBtn').text)+'</button>';
+  if(step.id==='launch')return '<button class="btn pri" type="button" data-m17go="setup">'+esc(t('next.launchBtn').text)+'</button>';
+  if(step.id==='payment')return '<button class="btn" type="button" data-m17go="setup">'+esc(t('next.paymentBtn').text)+'</button>';
+  return '';
+}
+function nextPanel(){
+  var step=P.nextStep(S||{});
+  var phrase=t('next.'+step.id);
+  var note=phrase.status==='fallback'?'<p class="mu">'+esc(t('locale.fallback').text)+'</p>':'';
+  return '<section id="m17next" class="panel" style="margin:0 0 16px"><h2 id="m17step" data-step="'+esc(step.id)+'" data-status="'+esc(phrase.status)+'" style="font-size:18px;margin:0 0 8px">'+esc(phrase.text)+'</h2>'+note+stepButton(step)+'</section>';
+}
+function honestHome(html){
+  var rep=P.salesInsights((S&&S.orders)||[],{timeZone:(S&&S.tz)||'UTC',sourceNote:'This browser store. It is not the server database.'});
+  var bits=Object.keys(rep.currencies).map(function(c){return c+': '+rep.currencies[c].count+' · '+P.formatMoney(rep.currencies[c].total,c,locale()).text}).join(' · ')||'No stored orders in this browser.';
+  var metrics='<div class="metrics" id="m17metrics"><div class="metric"><small>Stored orders</small><b>'+rep.count+'</b></div><div class="metric"><small>By currency</small><b style="font-size:14px;font-weight:600">'+esc(bits)+'</b></div></div><p class="mu" id="m17src">Orders saved in this browser. They are not the server database, and different currencies are not added together.</p>';
+  var i=html.indexOf('<div class="metrics">');
+  if(i>=0){var depth=0,j=i;for(;j<html.length;j++){if(html.slice(j,j+4)==='<div')depth++;else if(html.slice(j,j+6)==='</div>'){depth--;if(depth===0){j+=6;break}}}html=html.slice(0,i)+metrics+html.slice(j)}
+  else html=metrics+html;
+  html=html.replace('Connect local and international gateways and turn on Sellora Pay.','Card checkout is not connected. This page does not start a live charge.');
+  html=html.replace('Search a name, connect it and get free SSL.','You can look up a name. Buying a domain is not included.');
+  html=html.replace('Let AI write the description for you.','Add a name, price, and photo. A provider is not called from this page.');
+  return nextPanel()+html;
+}
+if(typeof V!=='undefined'&&V.home&&!V.home._m17){var h0=V.home;var h1=function(){return honestHome(h0())};h1._m17=1;V.home=h1}
+V.setup=function(){
+  var step=P.nextStep(S||{});
+  var langs=P.LOCALES.map(function(l){return '<option value="'+esc(l.id)+'"'+(l.id===locale()?' selected':'')+'>'+esc(l.native+' · '+l.name)+(l.coverage==='verified'?'':' · English words')+'</option>'}).join('');
+  var ready=P.readiness().map(function(r){return '<li><b>'+esc(r.id)+'</b> — '+esc(r.state)+'. '+esc(r.note)+(r.env.length?' Needs '+esc(r.env.join(', '))+'.':'')+'</li>'}).join('');
+  var sizes=(S.sizes||[]).map(function(r,i){return '<li>'+esc(r.region)+' '+esc(r.label)+': '+esc(r.value)+' <button type="button" class="btn" data-m17sz="'+i+'">Remove</button></li>'}).join('')||'<li>No size labels yet.</li>';
+  var health=(S._health17&&S._health17.findings||[]).map(function(f){return '<li data-kind="'+esc(f.verified)+'">'+esc(f.detail)+'</li>'}).join('')||'<li>Not checked yet.</li>';
+  var paid=S.sub9&&S.sub9.status==='active';
+  var cur=S.cur||'USD',pay=S.checkoutCur||cur;
+  var money=P.formatMoney(0,cur,locale()).text;
+  var conv=P.convertMoney(10,cur,pay,S.fxRate||null);
+  return '<div class="xw" id="m17setup"><h1>Setup</h1>'+nextPanel()
+    +'<div class="panel"><h2>Launch checks</h2><ul><li>'+(paid?'A paid plan is active. Use the Plans page to publish.':esc(t('publish.blocked').text))+'</li><li>'+esc(t('next.payment').text)+'</li></ul><p class="mu">Shown amount format: '+esc(money)+'. Checkout currency is '+esc(pay)+' and display currency is '+esc(cur)+'.</p><p class="mu">'+(conv.ok&&conv.converted?'Converted with '+esc(conv.source)+' as of '+esc(conv.asOf)+'.':esc(conv.error||'No conversion was applied.'))+'</p></div>'
+    +'<details class="panel"><summary>Language</summary><label for="m17lang">Language for this browser</label><select id="m17lang">'+langs+'</select><p class="mu">Verified languages have these setup phrases translated. The others stay in English and say so. This is not every language, and voice is only offered for the verified list.</p><button class="btn pri" type="button" id="m17save">Save language</button></details>'
+    +'<details class="panel"><summary id="m17healthsum">'+esc(t('health.title').text)+'</summary><button class="btn" type="button" id="m17health">Check this store</button><ul id="m17findings">'+health+'</ul><p class="mu">External sites are not opened. A phone layout is called a possible issue until a browser measures it.</p></details>'
+    +'<details class="panel"><summary>Regions, sizes, and providers</summary><p class="mu">'+esc(t('import.approve').text)+'</p><ul>'+ready+'</ul><h3>Size labels</h3><p class="mu">'+esc(P.sizeChart(S.sizes||[]).note)+'</p><form id="m17size"><label>Region <input id="m17sr" required></label> <label>Label <input id="m17sl" required></label> <label>Value <input id="m17sv" required></label> <button class="btn" type="submit">Add label</button></form><ul>'+sizes+'</ul></details></div>';
+};
+function saveLocale(id){
+  var parsed=P.parseLocale(id);
+  if(!parsed.ok){try{toast(parsed.error)}catch(e){}return}
+  S.locale=parsed.language;
+  S.tz=S.tz||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+  persist();applyLocale();
+  try{toast('Language saved')}catch(e){}
+  if(typeof route==='function')route();
+}
+document.addEventListener('click',function(e){
+  var tEl=e.target&&e.target.closest?e.target:null;if(!tEl)return;
+  var go=tEl.closest('[data-m17go]');
+  if(go){e.preventDefault();location.hash=go.getAttribute('data-m17go');return}
+  if(tEl.id==='m17save'){var sel=document.getElementById('m17lang');if(sel)saveLocale(sel.value);return}
+  if(tEl.id==='m17health'){S._health17=P.healthCheck(S,S._mobile17||null);persist();if(typeof route==='function')route();return}
+  var rm=tEl.closest('[data-m17sz]');
+  if(rm){S.sizes.splice(+rm.getAttribute('data-m17sz'),1);persist();if(typeof route==='function')route();return}
+  if(tEl.closest&&tEl.closest('#addo')){
+    e.preventDefault();e.stopImmediatePropagation();
+    var p=(S.products||[])[0];
+    if(!p){try{toast('Add a product before saving a sample order.')}catch(err){}return}
+    S.orders=S.orders||[];S.oid=S.oid||1000;
+    S.orders.push({id:S.oid++,who:'Sample',total:p.price,st:'Paid',pay:'Paid',ful:'Unfulfilled',gw:'Sample',demo:true,cur:S.cur||'USD',at:Date.now()});
+    persist();try{toast('Sample order saved. It is not counted as a sale.')}catch(err){}
+    if(typeof route==='function')route();
+  }
+  var gw=tEl.closest('[data-g]');
+  if(gw){e.preventDefault();e.stopImmediatePropagation();try{toast('This switch does not connect a processor. Nothing was charged.')}catch(err){}}
+},true);
+document.addEventListener('submit',function(e){
+  if(!e.target||e.target.id!=='m17size')return;
+  e.preventDefault();
+  S.sizes=S.sizes||[];
+  S.sizes.push({region:document.getElementById('m17sr').value,label:document.getElementById('m17sl').value,value:document.getElementById('m17sv').value});
+  persist();if(typeof route==='function')route();
+});
+if(window.NAV_CONFIG&&!NAV_CONFIG.some(function(n){return n.id==='setup'}))NAV_CONFIG.splice(1,0,{id:'setup',label:'Setup',icon:'store'});
+if(X.m13read&&!X.m13read._m17){var read0=X.m13read;var read1=function(text){var res=read0(text),n=0;(res.items||[]).forEach(function(it){['name','desc','sku','vendor'].forEach(function(k){var c=P.neutralizeFormula(it[k]||'');if(c.neutralized){it[k]=c.value;n++}})});res.neutralized=n;return res};read1._m17=1;X.m13read=read1}
+if(X.AIBuild&&X.AIBuild.handle&&!X.AIBuild.handle._m17){
+  var prev=X.AIBuild.handle;
+  var LOCAL=' Local commands only. No AI provider was called.';
+  X.AIBuild.handle=function(text,source){
+    var raw=String(text||'').trim();
+    if(/\b(set|switch|change) language\b/i.test(raw)){
+      var name=(raw.match(/\b(urdu|arabic|english|french|spanish|german|hindi)\b/i)||[])[1];
+      var map={urdu:'ur',arabic:'ar',english:'en',french:'fr',spanish:'es',german:'de',hindi:'hi'};
+      if(!name||!map[name.toLowerCase()])return {handled:true,applied:false,source:'local',provider:'local',reply:'Name a language such as Urdu, Arabic, French, or Hindi.'+LOCAL};
+      saveLocale(map[name.toLowerCase()]);
+      var info=P.LOCALES.filter(function(l){return l.id===map[name.toLowerCase()]})[0];
+      return {handled:true,applied:true,source:'local',provider:'local',reply:(info.coverage==='verified'?'Language saved.':'Language saved. The setup phrases for this language are still English.')+LOCAL};
+    }
+    if(/\b(health check|broken links|missing images)\b/i.test(raw)){
+      var report=P.healthCheck(S,null);
+      return {handled:true,applied:false,source:'local',provider:'local',reply:(report.findings.map(function(f){return f.detail}).join(' ')||'No stored problems found.')+LOCAL};
+    }
+    if(/\b(how are sales|sales insight|sales report)\b/i.test(raw)){
+      var sales=P.salesInsights(S.orders||[],{timeZone:(S&&S.tz)||'UTC',sourceNote:'browser'});
+      return {handled:true,applied:false,source:'local',provider:'local',reply:sales.suggestions.map(function(s){return s.text}).join(' ')+' Source: this browser, not the server database.'+LOCAL};
+    }
+    if(/\btranslate\b/i.test(raw))return {handled:true,applied:false,translated:false,blocked:'missing-provider',source:'local',provider:'local',reply:'Not translated. No provider key is configured on the server. You can type a translation and approve it yourself.'+LOCAL};
+    if(/\bbulk alt\b/i.test(raw)){
+      var ids=(S.products||[]).map(function(p){return p.id});
+      var dry=P.bulkDryRun(S.products||[],ids,{alt:'use-name'});
+      if(!/^confirm:/i.test(raw))return {handled:true,applied:false,needsConfirm:true,source:'local',provider:'local',reply:'Preview only: '+(dry.diffs||[]).length+' alt text change(s). Prices and SKUs stay the same. Say “confirm: bulk alt” to apply.'+LOCAL};
+      var applied=P.bulkApply(S.products,dry);S.bulkUndo=S.bulkUndo||[];if(applied.ok)S.bulkUndo.unshift(applied.undo);persist();
+      return {handled:true,applied:true,source:'local',provider:'local',reply:'Applied '+(applied.applied||0)+' alt text change(s). Say “undo bulk” to put the old text back.'+LOCAL};
+    }
+    if(/^undo bulk\b/i.test(raw)){var stack=S.bulkUndo||[],last=stack.shift();if(last)P.bulkUndo(S.products,last);persist();return {handled:true,applied:!!last,source:'local',provider:'local',reply:(last?'Bulk edit undone.':'Nothing to undo.')+LOCAL}}
+    return prev(raw,source);
+  };
+  X.AIBuild.handle._m17=1;
+}
+if(X.onRoute)X.onRoute(function(){try{applyLocale()}catch(e){}});
+var css=document.createElement('style');
+css.textContent='#m17setup details{margin:0 0 12px;padding:12px}#m17setup summary{cursor:pointer;font-weight:700}#m17setup input,#m17setup select{max-width:100%;font-size:16px}#m17next .btn{margin-top:8px}@media(max-width:760px){body{flex-direction:column!important}aside{width:100%!important;height:auto!important;position:relative!important}nav{flex-direction:row!important;overflow-x:auto}main{width:100%!important}#m17metrics{display:block}#m17setup form{display:grid;gap:8px}}';
+document.head.appendChild(css);
 })();
 
 ;try{route()}catch(e){console.error(e)}
