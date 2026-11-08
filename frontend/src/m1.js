@@ -29,7 +29,7 @@ try{MORE.forEach(function(c){if(ALLC.indexOf(c)<0)ALLC.push(c)})}catch(e){}
 /* ---------- API LAYER (pluggable) ---------- */
 var PROV={email:{n:'Email (SendGrid/Mailgun/SMTP relay)',f:['endpoint','key','from']},sms:{n:'SMS / OTP (Twilio etc.)',f:['endpoint','key','from']},payments:{n:'Card acquirer API (powers Sellora Pay)',f:['endpoint','key','secret']},payouts:{n:'Payout rails (Wise/Payoneer/bank API)',f:['endpoint','key']},fx:{n:'FX rates (openexchangerates etc.)',f:['endpoint','key']},kyc:{n:'KYC / ID verification (Onfido/Sumsub)',f:['endpoint','key']},llm:{n:'AI / LLM (OpenAI-compatible)',f:['endpoint','key','model']},shipping:{n:'Shipping labels/tracking (ShipStation/EasyPost)',f:['endpoint','key']}};
 function ic(){return S.integrations=S.integrations||{}}
-function live(k){var c=ic()[k];return !!(c&&c.key&&c.endpoint)}
+function live(){return false}
 function post(k,path,body){var c=ic()[k];return fetch(c.endpoint.replace(/\/$/,'')+(path||''),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify(body)}).then(function(r){return r.json()})}
 function logApi(k,act,ok,info){(S.apiLog=S.apiLog||[]).unshift({k:k,act:act,mode:live(k)?'live':'test',ok:ok,info:info||'',at:Date.now()});S.apiLog.length=Math.min(S.apiLog.length,200)}
 X.API={PROV:PROV,live:live,cfg:ic,
@@ -70,6 +70,8 @@ X.migrate=function(){if(!S)return;if((S.v30||0)<1){fixStr(S);S.v30=1}
  S.pages=S.pages||[{h:'about',t:'About us',b:'We make performance gear for drivers and track-day fans.'},{h:'faq',t:'FAQ',b:'Shipping takes 2-14 days depending on region. Returns accepted within 30 days.'},{h:'shipping',t:'Shipping policy',b:'We ship worldwide via tracked couriers.'},{h:'refund',t:'Refund policy',b:'30-day returns. Funds are held in Sellora Pay escrow until you confirm receipt.'}];
  (S.blogPosts||[]).forEach(function(b){b.body=b.body||('<p>'+h(b.title)+' — an article from the '+h(S.name)+' team.</p>');b.handle=b.handle||slugify(b.title)});
  S.outbox=S.outbox||[];S.stats=S.stats||{views:0,days:{}};S.staffPerm=S.staffPerm||{};S.carts=S.carts||[];
+ if(S.integrations)Object.keys(S.integrations).forEach(function(k){var c=S.integrations[k];if(!c||typeof c!=='object')return;['key','secret','endpoint','token','password'].forEach(function(f){if(c[f])delete c[f]})});
+ if(S.apps2)Object.keys(S.apps2).forEach(function(id){var a=S.apps2[id];if(!a)return;a.connected=false;if(a.token)delete a.token;var cfg=a.cfg||{};Object.keys(cfg).forEach(function(f){if(/token|secret|key|password/i.test(f))delete cfg[f]})});
 };
 function slugify(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}X.slugify=slugify;
 /* ---------- CUSTOMERS ---------- */
