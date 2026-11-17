@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sellora platform owner</title>
+<style>
+body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#fff;color:#111}
+main{max-width:880px;margin:0 auto;padding:24px}
+label{display:block;margin-top:10px}
+input,button{font:inherit;padding:8px 10px}
+button{background:#111;color:#fff;border:0;border-radius:8px;margin-top:12px}
+table{border-collapse:collapse;width:100%;margin-top:16px}
+td,th{border-bottom:1px solid #ddd;text-align:left;padding:8px}
+.err{color:#b42318}
+</style>
+</head>
+<body>
+<main>
+<h1>Platform owner</h1>
+<p>This page lists stores, users, orders, and AI token totals. It does not show integration secrets.</p>
+<form id="f">
+<label>Email <input id="email" type="email" autocomplete="username" required></label>
+<label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+<button type="submit">Sign in</button>
+<p id="err" class="err" role="alert"></p>
+</form>
+<div id="out"></div>
+</main>
+<script>
+var API=(window.SELLORA_API||document.querySelector('meta[name=sellora-api]')||{content:'http://localhost:4000'}).content||window.SELLORA_API||'http://localhost:4000';
+function csrf(){var m=document.cookie.match(/(?:^|; )sellora_csrf=([^;]+)/);return m?decodeURIComponent(m[1]):''}
+function call(path,opt){opt=opt||{};opt.credentials='include';opt.headers=Object.assign({'content-type':'application/json'},opt.headers||{});if(opt.method&&opt.method!=='GET')opt.headers['x-csrf-token']=csrf();return fetch(API.replace(/\/$/,'')+path,opt).then(function(r){return r.json().then(function(j){j._status=r.status;return j})})}
+function draw(j){var rows=(j.stores||[]).map(function(s){return '<tr><td>'+s.name+'</td><td>'+s.orders+'</td><td>'+s.products+'</td><td>'+s.aiTokens+'</td><td>'+(s.stripeConnected?'account id saved':'not connected')+'</td><td>'+(s.integrations||[]).map(function(i){return i.appName+': '+(i.connected?'connected':'not connected')}).join(', ')+'</td></tr>'}).join('');document.getElementById('out').innerHTML='<p>Users '+j.users+' · Orders '+j.orders+'</p><table><tr><th>Store</th><th>Orders</th><th>Products</th><th>AI tokens</th><th>Stripe</th><th>Integrations</th></tr>'+rows+'</table>'}
+document.getElementById('f').onsubmit=function(e){e.preventDefault();call('/api/auth/session/login',{method:'POST',body:JSON.stringify({email:email.value,password:password.value})}).then(function(j){if(j._status!==200){err.textContent=j.error||'Sign-in failed';return}return call('/api/owner/overview').then(function(o){if(o._status!==200){err.textContent=o.error||'This account is not a platform admin.';return}document.getElementById('f').hidden=true;draw(o)})})};
+call('/api/owner/overview').then(function(o){if(o._status===200){document.getElementById('f').hidden=true;draw(o)}});
+</script>
+</body>
+</html>

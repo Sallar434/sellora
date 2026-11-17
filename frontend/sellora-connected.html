@@ -309,7 +309,7 @@ function head(t,btn){return '<div class="top"><h1>'+t+'</h1>'+(btn||'')+'</div>'
 function tag(s){var c={Paid:'warn',Fulfilled:'ok',Refunded:'bad',Active:'ok',Draft:''}[s]||'';return '<span class="tag '+c+'">'+s+'</span>'}
 var V={};
 V.home=function(){var rev=S.orders.reduce(function(a,o){return a+o.total},0);
-return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+(13+S.orders.length*7)+'</b></div><div class="metric"><small>Total sales</small><b>'+money(rev)+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>'+(S.orders.length*7/(13+S.orders.length*7)*100).toFixed(1)+'%</b></div></div>'
+return '<div class="metrics"><div class="metric"><small>Sessions</small><b>Not connected</b></div><div class="metric"><small>Total sales</small><b>'+(S.orders.length?money(rev):'No orders')+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>Not connected</b></div></div>'
 +'<div class="hero"><h2>'+esc(S.name)+' is open for business.<br>What do you want to work on next?</h2></div>'
 +'<div class="ask"><input id="q" aria-label="Ask Sellora AI" placeholder="Ask Sellora AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
 +'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on Sellora Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
@@ -1457,14 +1457,10 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.rates) S.rates = { USD: 1, PKR: 280, EUR: 0.92, AED: 3.67, GBP: 0.79 };
     if (!S.sym) S.sym = { USD: '$', PKR: 'Rs ', EUR: '€', AED: 'AED ', GBP: '£' };
     if (!Array.isArray(S.products)) S.products = [];
-    if (S.products.length === 0) {
-      S.products = [
-        { id: 1, name: 'Race Day Gloves', price: 48, stock: 34, status: 'Active', desc: 'Leather gloves built for grip and airflow.', cat: 'Apparel & Accessories', track: true, pub: true },
-        { id: 2, name: 'Carbon Visor Cover', price: 22, stock: 120, status: 'Active', desc: 'Lightweight cover that keeps your visor clear.', cat: 'Sporting Goods', track: true, pub: true },
-        { id: 3, name: 'Track Day Tee', price: 19, stock: 15, status: 'Active', desc: 'Breathable cotton blend tee for track sessions.', cat: 'Apparel & Accessories', track: true, pub: true }
-      ];
-    }
+    // An emptied catalog stays empty. Sample products are not put back.
     if (!Array.isArray(S.orders)) S.orders = [];
+    ['draftOrders','abandonedCheckouts','checkoutsList','purchaseOrders','transfers','giftCards','customerSegments','companies','discountsList','filesList','blogPosts','marketsList','catalogsList'].forEach(function(k){ if (!Array.isArray(S[k])) S[k] = []; });
+    if (!S.growth || S.growth.seeded) S.growth = { roas: null, attributedRev: null, activeAutomations: 0, channels: [], autopilotRules: [], campaigns: [] };
     if (S.orders.length === 0 && S.demoOrders !== false) {
       S.orders = [
         { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe', demo: true },
@@ -9354,6 +9350,7 @@ function honestHome(html){
   var i=html.indexOf('<div class="metrics">');
   if(i>=0){var depth=0,j=i;for(;j<html.length;j++){if(html.slice(j,j+4)==='<div')depth++;else if(html.slice(j,j+6)==='</div>'){depth--;if(depth===0){j+=6;break}}}html=html.slice(0,i)+metrics+html.slice(j)}
   else html=metrics+html;
+  if(S&&S.apiStoreId)html=html.replace('Orders saved in this browser. They are not the server database, and different currencies are not added together.','This account has no server orders yet. Sessions and conversion are not connected, and currencies are not added together.');
   html=html.replace('Connect local and international gateways and turn on Sellora Pay.','Card checkout is not connected. This page does not start a live charge.');
   html=html.replace('Search a name, connect it and get free SSL.','You can look up a name. Buying a domain is not included.');
   html=html.replace('Let AI write the description for you.','Add a name, price, and photo. A provider is not called from this page.');
@@ -9452,6 +9449,33 @@ if(X.onRoute)X.onRoute(function(){try{applyLocale()}catch(e){}});
 var css=document.createElement('style');
 css.textContent='#m17setup details{margin:0 0 12px;padding:12px}#m17setup summary{cursor:pointer;font-weight:700}#m17setup input,#m17setup select{max-width:100%;font-size:16px}#m17next .btn{margin-top:8px}@media(max-width:760px){body{flex-direction:column!important}aside{width:100%!important;height:auto!important;position:relative!important}nav{flex-direction:row!important;overflow-x:auto}main{width:100%!important}#m17metrics{display:block}#m17setup form{display:grid;gap:8px}}';
 document.head.appendChild(css);
+})();
+
+/* API session. Passwords stay on the server. This file does not put a token in localStorage. */
+(function(){
+var X=window;
+function apiBase(){var m=document.querySelector('meta[name="sellora-api"]');return (X.SELLORA_API||(m&&m.content)||'').replace(/\/$/,'')}
+function csrf(){var m=document.cookie.match(/(?:^|; )sellora_csrf=([^;]+)/);return m?decodeURIComponent(m[1]):''}
+function call(path,opt){opt=opt||{};opt.credentials='include';opt.headers=Object.assign({'content-type':'application/json'},opt.headers||{});if(opt.method&&opt.method!=='GET')opt.headers['x-csrf-token']=csrf();return fetch(apiBase()+path,opt).then(function(r){return r.json().catch(function(){return {}}).then(function(j){j._status=r.status;return j})})}
+X.SelloraApi={base:apiBase,call:call};
+if(!apiBase())return;
+var pending=null;
+function emptyStore(name,email){var base={};try{base=JSON.parse(TPL)}catch(e){}return Object.assign(base,{name:name,email:email,products:[],orders:[],demoOrders:false,catalogLocked:true,draftOrders:[],abandonedCheckouts:[],checkoutsList:[],purchaseOrders:[],transfers:[],giftCards:[],customerSegments:[],companies:[],discountsList:[],filesList:[],blogPosts:[],cust:[],growth:{channels:[],campaigns:[],autopilotRules:[]}})}
+function enter(email,store){S=emptyStore(store&&store.name||'Store',email);S.apiStoreId=store&&store.id||'';DB.a={};DB.d=DB.d||{};DB.d[email]=S;if(typeof startSession==='function')startSession(email)}
+function fail(t){var el=document.getElementById('ae');if(el)el.textContent=t}
+if(typeof accountForm==='function'){var form0=accountForm;accountForm=function(up){form0(up);var b=document.getElementById('ab');if(!b)return;b.onclick=function(){var email=(document.getElementById('a2').value||'').trim().toLowerCase(),password=document.getElementById('a3').value;if(password.length<8)return fail('Password must be at least 8 characters.');pending={email:email,password:password,up:!!up};if(up){if(typeof authView==='function')authView('plan');return}call('/api/auth/session/login',{method:'POST',body:JSON.stringify({email:email,password:password})}).then(function(j){if(j._status!==200)return fail(j.error||'Email or password is incorrect.');enter(email,(j.stores||[])[0]);loadReal()})}}
+if(typeof storeForm==='function'){var store0=storeForm;storeForm=function(){store0();var b=document.getElementById('ab');if(!b||!pending)return;b.onclick=function(){var name=(document.getElementById('a1').value||'').trim();if(!name)return fail('Name your store.');call('/api/auth/register',{method:'POST',body:JSON.stringify({email:pending.email,password:pending.password,storeName:name})}).then(function(j){if(j._status!==201)return fail(j.error||'Could not create the account.');enter(pending.email,j.store);loadReal()})}}}
+function loadReal(){if(!S||!S.apiStoreId)return;call('/api/stores/'+S.apiStoreId+'/products').then(function(j){if(Array.isArray(j)){S.products=j.map(function(p){return {id:p.id,name:p.title,price:(p.price||0)/100,desc:p.description||'',status:p.status||'Active',imgs:p.images||[]}});S.catalogLocked=true;try{save()}catch(e){}if(typeof route==='function')route()}}).catch(function(){})}
+V['ai-studio']=function(){return '<div class="xw"><h1>AI Studio</h1><p class="mu">Generates a title and description from the configured provider. If the provider refuses, nothing is invented.</p><label for="m18p">Prompt</label><textarea id="m18p" rows="4"></textarea><p id="m18e" class="err" role="alert"></p><button class="btn pri" type="button" id="m18go">Generate</button><div id="m18out"></div></div>'};
+V['apps-connect']=function(){return '<div class="xw"><h1>Apps & integrations</h1><p class="mu">Keys are saved on the server encrypted. This page never shows the secret again. Courier booking stays unavailable until an official API document is confirmed.</p><button class="btn" type="button" id="m18apps">Load my apps</button><div id="m18list"></div></div>'};
+if(window.NAV_CONFIG&&!NAV_CONFIG.some(function(n){return n.id==='ai-studio'}))NAV_CONFIG.splice(2,0,{id:'ai-studio',label:'AI Studio',icon:'store'},{id:'apps-connect',label:'Apps & integrations',icon:'store'});
+document.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.id)return;
+  if(t.id==='m18go'){var prompt=(document.getElementById('m18p').value||'').trim();if(!prompt)return;call('/api/ai/generate',{method:'POST',body:JSON.stringify({prompt:prompt,storeId:S.apiStoreId||undefined})}).then(function(j){var box=document.getElementById('m18out');if(j._status!==200){document.getElementById('m18e').textContent=j.error||'Not generated.';return}document.getElementById('m18e').textContent='';box.innerHTML='<h2>'+j.title+'</h2><p>'+j.description+'</p><p>'+j.seoTitle+' — '+j.seoDescription+'</p><button class="btn" type="button" id="m18save">Save as product</button>';document.getElementById('m18save').onclick=function(){call('/api/stores/'+S.apiStoreId+'/products',{method:'POST',body:JSON.stringify({title:j.title,handle:j.title.toLowerCase().replace(/[^a-z0-9]+/g,'-'),description:j.description,price:0,seoTitle:j.seoTitle,seoDesc:j.seoDescription})}).then(function(){try{toast('Saved on the server')}catch(err){}})}})}
+  if(t.id==='m18apps'){call('/api/integrations?storeId='+(S.apiStoreId||'')).then(function(j){var box=document.getElementById('m18list');if(j._status!==200){box.textContent=j.error||'Could not load apps.';return}box.innerHTML=(j.adapters||[]).map(function(a){return '<div class="panel"><b>'+a.label+'</b><p>'+a.note+'</p><p>Status: '+a.state+'</p></div>'}).join('')})}
+});
+call('/api/auth/session/me').then(function(j){if(j._status===200&&j.user){enter(j.user.email,(j.stores||[])[0]);loadReal()}});
+}
 })();
 
 ;try{route()}catch(e){console.error(e)}

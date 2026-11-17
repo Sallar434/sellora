@@ -239,7 +239,7 @@ function head(t,btn){return '<div class="top"><h1>'+t+'</h1>'+(btn||'')+'</div>'
 function tag(s){var c={Paid:'warn',Fulfilled:'ok',Refunded:'bad',Active:'ok',Draft:''}[s]||'';return '<span class="tag '+c+'">'+s+'</span>'}
 var V={};
 V.home=function(){var rev=S.orders.reduce(function(a,o){return a+o.total},0);
-return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+(13+S.orders.length*7)+'</b></div><div class="metric"><small>Total sales</small><b>'+money(rev)+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>'+(S.orders.length*7/(13+S.orders.length*7)*100).toFixed(1)+'%</b></div></div>'
+return '<div class="metrics"><div class="metric"><small>Sessions</small><b>Not connected</b></div><div class="metric"><small>Total sales</small><b>'+(S.orders.length?money(rev):'No orders')+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>Not connected</b></div></div>'
 +'<div class="hero"><h2>'+esc(S.name)+' is open for business.<br>What do you want to work on next?</h2></div>'
 +'<div class="ask"><input id="q" aria-label="Ask Sellora AI" placeholder="Ask Sellora AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
 +'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on Sellora Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
@@ -1387,14 +1387,10 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.rates) S.rates = { USD: 1, PKR: 280, EUR: 0.92, AED: 3.67, GBP: 0.79 };
     if (!S.sym) S.sym = { USD: '$', PKR: 'Rs ', EUR: '€', AED: 'AED ', GBP: '£' };
     if (!Array.isArray(S.products)) S.products = [];
-    if (S.products.length === 0) {
-      S.products = [
-        { id: 1, name: 'Race Day Gloves', price: 48, stock: 34, status: 'Active', desc: 'Leather gloves built for grip and airflow.', cat: 'Apparel & Accessories', track: true, pub: true },
-        { id: 2, name: 'Carbon Visor Cover', price: 22, stock: 120, status: 'Active', desc: 'Lightweight cover that keeps your visor clear.', cat: 'Sporting Goods', track: true, pub: true },
-        { id: 3, name: 'Track Day Tee', price: 19, stock: 15, status: 'Active', desc: 'Breathable cotton blend tee for track sessions.', cat: 'Apparel & Accessories', track: true, pub: true }
-      ];
-    }
+    // An emptied catalog stays empty. Sample products are not put back.
     if (!Array.isArray(S.orders)) S.orders = [];
+    ['draftOrders','abandonedCheckouts','checkoutsList','purchaseOrders','transfers','giftCards','customerSegments','companies','discountsList','filesList','blogPosts','marketsList','catalogsList'].forEach(function(k){ if (!Array.isArray(S[k])) S[k] = []; });
+    if (!S.growth || S.growth.seeded) S.growth = { roas: null, attributedRev: null, activeAutomations: 0, channels: [], autopilotRules: [], campaigns: [] };
     if (S.orders.length === 0 && S.demoOrders !== false) {
       S.orders = [
         { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe', demo: true },

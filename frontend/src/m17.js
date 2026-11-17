@@ -33,6 +33,7 @@ function honestHome(html){
   var i=html.indexOf('<div class="metrics">');
   if(i>=0){var depth=0,j=i;for(;j<html.length;j++){if(html.slice(j,j+4)==='<div')depth++;else if(html.slice(j,j+6)==='</div>'){depth--;if(depth===0){j+=6;break}}}html=html.slice(0,i)+metrics+html.slice(j)}
   else html=metrics+html;
+  if(S&&S.apiStoreId)html=html.replace('Orders saved in this browser. They are not the server database, and different currencies are not added together.','This account has no server orders yet. Sessions and conversion are not connected, and currencies are not added together.');
   html=html.replace('Connect local and international gateways and turn on Sellora Pay.','Card checkout is not connected. This page does not start a live charge.');
   html=html.replace('Search a name, connect it and get free SSL.','You can look up a name. Buying a domain is not included.');
   html=html.replace('Let AI write the description for you.','Add a name, price, and photo. A provider is not called from this page.');
