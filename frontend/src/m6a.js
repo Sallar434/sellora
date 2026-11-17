@@ -41,16 +41,14 @@ function ap(id){return st()[id]}function inst(id){var s=ap(id);return !!(s&&s.on
 function feedXML(kind){var b='https://'+slug()+'.sellora.app';return '<?xml version="1.0"?>\n<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0"><channel>\n<title>'+h(S.name)+' - '+h(kind)+' product feed</title><link>'+b+'</link>\n'+S.products.filter(function(p){return p.status==='Active'}).map(function(p){var vs=p.vars||[];var items=vs.length?vs.map(function(v,i){return{id:(v.sku||p.id+'-'+i),t:p.name+' - '+v.n,pr:+v.price||+p.price,q:+v.qty||0,g:p.id}}):[{id:p.sku||String(p.id),t:p.name,pr:+p.price,q:+p.stock||0}];return items.map(function(i){return '<item><g:id>'+h(i.id)+'</g:id>'+(i.g?'<g:item_group_id>'+i.g+'</g:item_group_id>':'')+'<g:title>'+h(i.t)+'</g:title><g:description>'+h(String(p.desc||'').replace(/<[^>]+>/g,' ').trim().slice(0,500))+'</g:description><g:link>'+b+'/products/'+(p.handle||p.id)+'</g:link>'+((p.imgs||[])[0]?'<g:image_link>'+h(p.imgs[0])+'</g:image_link>':'')+'<g:price>'+(+i.pr||0).toFixed(2)+' USD</g:price><g:availability>'+(i.q>0?'in_stock':'out_of_stock')+'</g:availability><g:brand>'+h(S.name)+'</g:brand><g:condition>new</g:condition></item>'}).join('\n')}).join('\n')+'\n</channel></rss>'}
 X.feedXML=feedXML;
 function lg(id,t){var s=ap(id);(s.log=s.log||[]).unshift({t:t,at:Date.now()});if(s.log.length>40)s.log.length=40}
-function sync(id){var s=ap(id),x=APPS.filter(function(z){return z.id===id})[0];s.last=Date.now();var n=S.products.filter(function(p){return p.status==='Active'}).length,msg;
- if(/^(meta|google|tiktok|pinterest|snapchat)$/.test(id)){s.feed=feedXML(x.name);msg='Catalog feed generated: '+n+' products'}else if(/amazon|ebay/.test(id)){s.listed=n;msg=n+' listings synced, inventory pushed'}else if(/klaviyo|mailchimp/.test(id)){msg=(S.cust||[]).length+' customers synced'}else if(id==='shipstation'){msg=S.orders.filter(function(o){return o.ful!=='Fulfilled'&&!o.cancelled}).length+' open orders pushed'}else msg='Synced';
- lg(id,msg);X.API.app(id,'sync',msg);save();return msg}
+function sync(id){var s=ap(id),x=APPS.filter(function(z){return z.id===id})[0];var msg=(x?x.name:id)+' was not synced. No server credential is configured, so nothing was sent.';lg(id,msg);save();return msg}
 X.HOOKS.push(function(ev,d){if(!d)return;Object.keys(st()).forEach(function(id){var s=st()[id];if(!s.on)return;
- if(id==='zapier'){var url=(s.cfg||{})['Webhook URL'];if(url&&/^https:\/\//.test(url)&&X.API.live('apps'))fetch(url,{method:'POST',body:JSON.stringify({event:ev,id:d.id,total:d.total})}).catch(function(){});lg(id,'Webhook '+ev+' #'+d.id+(url?' -> '+url:' (no URL, simulated)'))}
- if(/klaviyo|mailchimp/.test(id)&&ev==='order_created')lg(id,'Placed Order event for '+d.email);
- if(/^(meta-pixel|tiktok|ga4|pinterest|snapchat|x|gtm)$/.test(id)&&ev==='order_created'){(S.pixelLog=S.pixelLog||[]).unshift({app:id,ev:'Purchase',v:d.total,at:Date.now()});if(S.pixelLog.length>100)S.pixelLog.length=100;if(id==='meta-pixel')lg(id,'CAPI Purchase event sent (event_id order_'+d.id+')')}
- if(id==='printful'&&ev==='order_created'){var pod=(d.items||[]).filter(function(l){var p=prod(l.pid);return p&&(p.tags||[]).indexOf('pod')>-1});if(pod.length)lg(id,'Order #'+d.id+' forwarded for printing ('+pod.length+' items)')}
- if(/amazon|ebay/.test(id)&&(ev==='order_created'||ev==='order_refunded'))lg(id,'Inventory updated after #'+d.id);
- if(id==='shipstation'&&ev==='order_created')lg(id,'Order #'+d.id+' pushed to ShipStation');
+ if(id==='zapier')lg(id,'Webhook '+ev+' #'+d.id+' was not sent. No server credential is configured.');
+ if(/klaviyo|mailchimp/.test(id)&&ev==='order_created')lg(id,'Placed Order was not sent for '+d.email+'. No server credential is configured.');
+ if(/^(meta-pixel|tiktok|ga4|pinterest|snapchat|x|gtm)$/.test(id)&&ev==='order_created')lg(id,'Purchase event was not sent for order '+d.id+'. No server credential is configured.');
+ if(id==='printful'&&ev==='order_created')lg(id,'Order #'+d.id+' was not forwarded for printing. No server credential is configured.');
+ if(/amazon|ebay/.test(id)&&(ev==='order_created'||ev==='order_refunded'))lg(id,'Inventory was not updated after #'+d.id+'. No server credential is configured.');
+ if(id==='shipstation'&&ev==='order_created')lg(id,'Order #'+d.id+' was not pushed. No server credential is configured.');
  if(id==='reviews'&&ev==='order_fulfilled'&&d.email)X.API.email(d.email,'How was your order #'+d.id+'?','We would love your review: https://'+slug()+'.sellora.app/products/'+((prod((d.items[0]||{}).pid)||{}).handle||'')+'#reviews','review_request')});save()});
 X._apps={st:st,ap:ap,inst:inst,sync:sync,lg:lg,CATS:CATS};
 })();

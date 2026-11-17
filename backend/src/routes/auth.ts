@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authenticator } from 'otplib';
 import { db } from '../lib/db';
 import { ah, parse, HttpError, bad, slug } from '../lib/http';
-import { auth, issueTokens } from '../lib/auth';
+import { auth, issueTokens, setSession, clearSession } from '../lib/auth';
 import { sha256, rand } from '../lib/crypto';
 import { notify } from '../providers/notify';
 import { audit } from '../lib/audit';
@@ -41,17 +41,69 @@ r.post('/signup', ah(async (req, res) => {
   const store = b.type === 'SELLER' ? await createStore(u.id, b.storeName || `${b.name || email.split('@')[0]}'s store`, b.currency) : null;
   const devCode = await sendOtp(email, 'verify_email', 'email');
   await audit(req, 'auth.signup', { userId: u.id });
-  res.status(201).json({ user: pub(u), store, ...(await issueTokens(u)), devCode });
+  const tokens = await issueTokens(u);
+  setSession(res, tokens.accessToken);
+  res.status(201).json({ user: pub(u), store, devCode, ...(config.legacyTokens ? tokens : {}) });
+}));
+r.post('/register', ah(async (req, res) => {
+  if (!originOk(req)) throw new HttpError(403, 'Origin is not allowed');
+  const b = parse(z.object({ email: z.string().email(), password: z.string().min(8).max(200), name: z.string().max(120).optional(), storeName: z.string().min(1).max(120), currency: z.string().length(3).optional() }), req.body);
+  const email = b.email.toLowerCase();
+  if (await db.user.findUnique({ where: { email } })) throw new HttpError(409, 'Email already registered');
+  const platform = !!config.platformAdminEmail && email === config.platformAdminEmail;
+  const passwordHash = await bcrypt.hash(b.password, 10);
+  const created = await db.$transaction(async (tx) => {
+    const u = await tx.user.create({ data: { email, name: b.name, type: platform ? 'PLATFORM_ADMIN' : 'SELLER', passwordHash } });
+    let handle = slug(b.storeName); if (await tx.store.findUnique({ where: { handle } })) handle += '-' + rand(3).toLowerCase();
+    const store = await tx.store.create({ data: { name: b.storeName, handle, ownerId: u.id, currency: (b.currency || 'USD').toUpperCase(), publishableKey: 'pk_' + rand(18), secretKey: 'sk_' + rand(24), feeBps: config.platformFeeBps, settings: { general: { name: b.storeName } } } });
+    await tx.membership.create({ data: { userId: u.id, storeId: store.id, role: 'owner' } });
+    return { u, store };
+  });
+  const tokens = await issueTokens(created.u);
+  setSession(res, tokens.accessToken);
+  res.status(201).json({ user: pub(created.u), store: { id: created.store.id, name: created.store.name, handle: created.store.handle } });
 }));
 r.post('/login', ah(async (req, res) => {
   const b = parse(z.object({ email: z.string().email(), password: z.string(), totp: z.string().optional() }), req.body);
   const u = await db.user.findUnique({ where: { email: b.email.toLowerCase() } });
   if (!u || !(await bcrypt.compare(b.password, u.passwordHash))) throw new HttpError(401, 'Invalid email or password');
   if (u.totpEnabled) { if (!b.totp) throw new HttpError(401, 'TOTP required', { totpRequired: true }); if (!authenticator.check(b.totp, u.totpSecret!)) throw new HttpError(401, 'Invalid TOTP'); }
+  if (config.platformAdminEmail && u.email === config.platformAdminEmail && u.type !== 'PLATFORM_ADMIN') {
+    await db.user.update({ where: { id: u.id }, data: { type: 'PLATFORM_ADMIN' } });
+    u.type = 'PLATFORM_ADMIN';
+  }
   const stores = await db.membership.findMany({ where: { userId: u.id }, include: { store: true } });
   await audit(req, 'auth.login', { userId: u.id });
-  res.json({ user: pub(u), stores: stores.map(m => ({ ...m.store, secretKey: undefined, role: m.role })), ...(await issueTokens(u)) });
+  const tokens = await issueTokens(u);
+  setSession(res, tokens.accessToken);
+  res.json({ user: pub(u), stores: stores.map(m => ({ ...m.store, secretKey: undefined, role: m.role })), ...(config.legacyTokens ? tokens : {}) });
 }));
+function originOk(req: { headers: { origin?: string } }) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  if (config.corsOrigins.includes('*')) return config.env !== 'production';
+  return config.corsOrigins.includes(origin);
+}
+r.post('/session/login', ah(async (req, res) => {
+  if (!originOk(req)) throw new HttpError(403, 'Origin is not allowed');
+  const b = parse(z.object({ email: z.string().email(), password: z.string().min(1).max(200) }), req.body);
+  const u = await db.user.findUnique({ where: { email: b.email.toLowerCase() } });
+  if (!u || !(await bcrypt.compare(b.password, u.passwordHash))) throw new HttpError(401, 'Invalid email or password');
+  if (config.platformAdminEmail && u.email === config.platformAdminEmail && u.type !== 'PLATFORM_ADMIN') {
+    await db.user.update({ where: { id: u.id }, data: { type: 'PLATFORM_ADMIN' } });
+    u.type = 'PLATFORM_ADMIN';
+  }
+  const tokens = await issueTokens(u);
+  setSession(res, tokens.accessToken);
+  const stores = await db.membership.findMany({ where: { userId: u.id }, include: { store: true } });
+  res.json({ user: pub(u), stores: stores.map(m => ({ id: m.store.id, name: m.store.name, handle: m.store.handle, role: m.role })) });
+}));
+r.get('/session/me', auth, ah(async (req, res) => {
+  const u = await db.user.findUniqueOrThrow({ where: { id: req.user!.sub } });
+  const ms = await db.membership.findMany({ where: { userId: u.id }, include: { store: true } });
+  res.json({ user: pub(u), stores: ms.map(m => ({ id: m.store.id, name: m.store.name, handle: m.store.handle, role: m.role, currency: m.store.currency })) });
+}));
+r.post('/session/logout', ah(async (req, res) => { clearSession(res); res.json({ ok: true }); }));
 r.post('/refresh', ah(async (req, res) => {
   const t = await db.refreshToken.findUnique({ where: { tokenHash: sha256(String(req.body?.refreshToken || '')) }, include: { user: true } });
   if (!t || t.revoked || t.expiresAt < new Date()) throw new HttpError(401, 'Invalid refresh token');

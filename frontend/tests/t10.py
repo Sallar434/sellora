@@ -7,31 +7,29 @@ with sync_playwright() as p:
   b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':900})
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]));pg.on('console',lambda m:m.type=='error' and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html');pg.wait_for_timeout(800)
+  import os
+  pg.goto('file://'+os.path.abspath(os.path.join(os.path.dirname(__file__),'..','sellora.html')));pg.wait_for_timeout(800)
+  pg.click('#door-up');pg.wait_for_timeout(200);pg.fill('#a2','apps@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(300)
+  pg.click('[data-m13p=basic]');pg.wait_for_timeout(200);pg.fill('#a1','Apps Shop');pg.click('#ab');pg.wait_for_timeout(800)
   ids=pg.evaluate("X=window;X.APPS.map(a=>a.id)")
   for i in ['tcs','leopards','postex','trax','xero','quickbooks','google-ads','meta','tiktok','whatsapp','dhl']: ok('app listed '+i,i in ids)
   pg.evaluate("location.hash='app-store'");pg.wait_for_timeout(300)
   ok('app store shows TCS card','TCS Courier' in pg.inner_text('#main'))
-  for app,vals in [('tcs',['CL-1','user','pw','CC1']),('xero',['tenant-123'])]:
+  for app in ['tcs','xero']:
     pg.evaluate(f"location.hash='app-{app}'");pg.wait_for_timeout(300)
     pg.click(f'[data-x="appin:{app}"]');pg.wait_for_timeout(300)
-    for i,v in enumerate(vals): pg.fill(f'#xapf{i}',v)
-    pg.click(f'[data-x="appsave:{app}"]');pg.wait_for_timeout(300)
-    t=pg.inner_text('#main');ok(app+' connected','Connected' in t);ok(app+' shows server integration path','/integrations/'+app in t)
-  pg.evaluate("location.hash='app-tcs'");pg.wait_for_timeout(400)
-  ok('password field masked',pg.get_attribute('#xapf2','type')=='password',pg.get_attribute('#xapf2','type'))
-  pg.click('[data-x="appsave:tcs"]') if False else None
-  # empty required field rejected
-  pg.evaluate("location.hash='app-store'");pg.wait_for_timeout(200);pg.evaluate("location.hash='app-postex'");pg.wait_for_timeout(300)
-  pg.click('[data-x="appin:postex"]');pg.wait_for_timeout(200);pg.click('[data-x="appsave:postex"]');pg.wait_for_timeout(300)
+    t=pg.inner_text('#main');ok(app+' not marked connected','UNVERIFIED' in t and pg.evaluate(f"!(S.apps2['{app}']||{{}}).connected"));ok(app+' shows server integration path','/integrations/'+app in t)
+    ok(app+' has no secret field',pg.query_selector('input[type=password]') is None)
+  pg.evaluate("location.hash='app-postex'");pg.wait_for_timeout(300)
+  pg.click('[data-x="appin:postex"]');pg.wait_for_timeout(200)
   ok('postex empty token not connected',pg.evaluate("!(S.apps2.postex||{}).connected"))
   pg.reload();pg.wait_for_timeout(800)
-  ok('credentials persist after reload',pg.evaluate("S.apps2.tcs.cfg['Client ID']==='CL-1'&&S.apps2.xero.connected"))
+  ok('secrets are not stored after reload',pg.evaluate("!(S.apps2.tcs&&S.apps2.tcs.cfg&&S.apps2.tcs.cfg['Client ID'])&&!(S.apps2.xero||{}).connected"))
   ok('localStorage key is sellora','sellora' in pg.evaluate("Object.keys(localStorage)"))
   # courier label
   pg.evaluate("location.hash='app-tcs'");pg.wait_for_timeout(300)
   if pg.query_selector('[data-x="applabel:tcs"]'):
-    pg.click('[data-x="applabel:tcs"]');pg.wait_for_timeout(300);ok('TCS label created',pg.evaluate("S.orders.some(o=>(o.fulfillments||[]).some(f=>JSON.stringify(f).includes('TCS')))") or 'Label' in pg.inner_text('body'))
+    pg.click('[data-x="applabel:tcs"]');pg.wait_for_timeout(300);ok('TCS label not invented',not pg.evaluate("S.orders.some(o=>(o.fulfillments||[]).some(f=>JSON.stringify(f).includes('TCS')))") and 'No label was created' in pg.inner_text('body'))
   else: ok('TCS label UI (no open orders)',True)
   pg.evaluate("location.hash='product-'+S.products[0].id");pg.wait_for_timeout(500);ok('#product-<id> deep link opens editor','Edit product' in pg.inner_text('#main'))
   # performance 1000 products

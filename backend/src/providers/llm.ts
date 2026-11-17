@@ -56,16 +56,15 @@ async function claudeChat(system: string, user: string, opts: { maxTokens?: numb
   } catch { return null; }
 }
 /**
- * Store-building copy: try Claude when ANTHROPIC_API_KEY is set (stronger prose), then DeepSeek / the configured
- * OpenAI-compatible model, then null so the caller uses its local template. Other AI routes keep DeepSeek via llmChat.
+ * DeepSeek (or the configured OpenAI-compatible model) is the main provider.
+ * Claude is used only when that call is unavailable and ANTHROPIC_API_KEY is set.
+ * Null means the caller must use its own template and must not label the result as provider text.
  */
 export async function llmChatBest(system: string, user: string, opts: { json?: boolean; maxTokens?: number; temperature?: number } = {}): Promise<{ text: string; usage: LlmUsage } | null> {
-  if (config.anthropicKey) {
-    const sys = system + (opts.json ? ' Reply with a single valid JSON object only.' : '');
-    const c = await claudeChat(sys, user, opts);
-    if (c) return c;
-  }
-  return llmChat(system, user, opts);
+  const primary = await llmChat(system, user, opts);
+  if (primary) return primary;
+  if (!config.anthropicKey) return null;
+  return claudeChat(system, user, opts);
 }
 /** JSON helper: returns parsed object, or the fallback (source:'template') */
 export async function llmJson<T>(system: string, user: string, fallback: () => T, maxTokens = 4000): Promise<{ source: 'llm' | 'template'; result: T; usage?: LlmUsage }> {
@@ -73,7 +72,7 @@ export async function llmJson<T>(system: string, user: string, fallback: () => T
   if (!out) return { source: 'template', result: fallback() };
   try { return { source: 'llm', result: JSON.parse(out.text.replace(/^\s*```(?:json)?|```\s*$/g, '')), usage: out.usage }; } catch { return { source: 'template', result: fallback(), usage: out.usage }; }
 }
-/** Same as llmJson, but prefers Claude for store-building copy when that key exists, then DeepSeek, then the template. */
+/** Same as llmJson. DeepSeek is tried first; Claude is used only if that call returns nothing and ANTHROPIC_API_KEY is set. */
 export async function llmJsonBest<T>(system: string, user: string, fallback: () => T, maxTokens = 4000): Promise<{ source: 'llm' | 'template'; result: T; usage?: LlmUsage }> {
   const out = await llmChatBest(system + ' Reply with a single valid JSON object only.', user, { json: true, maxTokens });
   if (!out) return { source: 'template', result: fallback() };

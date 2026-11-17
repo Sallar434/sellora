@@ -9,12 +9,12 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String         @id @default(uuid())
   email         String         @unique
   phone         String?
   name          String?
   passwordHash  String
-  type          String         @default("SELLER") // ADMIN | SELLER | BUYER
+  type          String         @default("SELLER") // PLATFORM_ADMIN | ADMIN | SELLER | BUYER
   emailVerified Boolean        @default(false)
   phoneVerified Boolean        @default(false)
   totpSecret    String?
@@ -22,6 +22,7 @@ model User {
   createdAt     DateTime       @default(now())
   memberships   Membership[]
   refreshTokens RefreshToken[]
+  ownedStores   Store[]
 }
 
 model RefreshToken {
@@ -44,10 +45,12 @@ model Otp {
 }
 
 model Store {
-  id             String       @id @default(cuid())
+  id             String       @id @default(uuid())
   name           String
   handle         String       @unique
   ownerId        String
+  owner          User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  stripeAccountId String?
   currency       String       @default("USD")
   address        Json?
   settings       Json? // general, policies, checkout, notifications
@@ -59,6 +62,32 @@ model Store {
   memberships    Membership[]
   products       Product[]
   orders         Order[]
+  integrations   Integration[]
+  aiUsage        AiUsage[]
+}
+
+model Integration {
+  id             String   @id @default(uuid())
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  appName        String
+  isActive       Boolean  @default(false)
+  credentialsEnc String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([storeId, appName])
+}
+
+model AiUsage {
+  id           String   @id @default(uuid())
+  storeId      String
+  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  provider     String
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  createdAt    DateTime @default(now())
 }
 
 model Membership {
@@ -82,7 +111,7 @@ model Domain {
 }
 
 model Product {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   storeId     String
   store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   title       String
@@ -278,7 +307,7 @@ model Cart {
 }
 
 model Order {
-  id           String      @id @default(cuid())
+  id           String      @id @default(uuid())
   number       Int
   storeId      String
   store        Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -303,8 +332,9 @@ model Order {
   lines        OrderLine[]
 }
 
+/// Line on an order. This is the order item; the name stays OrderLine so existing queries keep working.
 model OrderLine {
-  id           String  @id @default(cuid())
+  id           String  @id @default(uuid())
   orderId      String
   order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId    String?
