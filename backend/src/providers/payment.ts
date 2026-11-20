@@ -29,3 +29,24 @@ export const stripeProvider: PaymentProvider = {
   async microDeposits() { return { amounts: [32, 45] }; }, // Stripe handles bank verification via Financial Connections; placeholder.
 };
 export const payments = (): PaymentProvider => (config.paymentProvider === 'stripe' ? stripeProvider : mockProvider);
+
+/**
+ * Payment methods shown at checkout, by the buyer's country. Cards (Visa, Mastercard, Amex, UnionPay, JCB, Discover),
+ * Apple Pay and Google Pay work from every country through the card processor (Stripe when PAYMENT_PROVIDER=stripe);
+ * local methods are added where the processor supports them. Pakistan wallets go through a local processor (Safepay / JazzCash / Easypaisa).
+ */
+const LOCAL: Record<string, [string, string][]> = {
+  PK: [['jazzcash', 'JazzCash'], ['easypaisa', 'Easypaisa'], ['raast', 'Raast / bank transfer']],
+  IN: [['upi', 'UPI']], NL: [['ideal', 'iDEAL']], BE: [['bancontact', 'Bancontact']], AT: [['eps', 'EPS']], PL: [['blik', 'BLIK'], ['p24', 'Przelewy24']],
+  DE: [['klarna', 'Klarna'], ['sepa_debit', 'SEPA Direct Debit']], FR: [['cartes_bancaires', 'Cartes Bancaires'], ['klarna', 'Klarna']], IT: [['klarna', 'Klarna']], ES: [['klarna', 'Klarna']],
+  GB: [['klarna', 'Klarna'], ['bacs_debit', 'Bacs Direct Debit']], US: [['klarna', 'Klarna'], ['affirm', 'Affirm'], ['cashapp', 'Cash App Pay'], ['us_bank_account', 'US bank account (ACH)']],
+  CA: [['affirm', 'Affirm']], AU: [['afterpay_clearpay', 'Afterpay'], ['au_becs_debit', 'BECS Direct Debit']], NZ: [['afterpay_clearpay', 'Afterpay']],
+  CN: [['alipay', 'Alipay'], ['wechat_pay', 'WeChat Pay']], HK: [['alipay', 'Alipay'], ['wechat_pay', 'WeChat Pay']], SG: [['paynow', 'PayNow'], ['grabpay', 'GrabPay']], MY: [['fpx', 'FPX'], ['grabpay', 'GrabPay']],
+  TH: [['promptpay', 'PromptPay']], JP: [['konbini', 'Konbini'], ['paypay', 'PayPay']], KR: [['kakao_pay', 'Kakao Pay'], ['naver_pay', 'Naver Pay']], BR: [['pix', 'Pix'], ['boleto', 'Boleto']], MX: [['oxxo', 'OXXO']],
+  AE: [['tabby', 'Tabby']], SA: [['mada', 'mada'], ['tabby', 'Tabby']], TR: [['troy', 'Troy']],
+};
+export function methodsFor(country: string, currency: string) {
+  const global = [{ id: 'card', label: 'Credit or debit card (Visa, Mastercard, Amex, UnionPay, JCB)', scope: 'global' }, { id: 'apple_pay', label: 'Apple Pay', scope: 'global' }, { id: 'google_pay', label: 'Google Pay', scope: 'global' }];
+  if (config.paypalClientId) global.push({ id: 'paypal', label: 'PayPal', scope: 'global' });
+  return { country, currency, methods: [...global, ...(LOCAL[country] || []).map(([id, label]) => ({ id, label, scope: 'local' }))], processor: country === 'PK' ? 'local (Safepay / JazzCash / Easypaisa) + card processor' : config.paymentProvider };
+}

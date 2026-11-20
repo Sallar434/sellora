@@ -119,21 +119,30 @@ describe('VendOm Pay', () => {
     const pw = await db.wallet.findFirstOrThrow({ where: { ownerType: 'ADMIN', ownerId: 'platform' } }); expect(pw.available).toBe(fee);
     const chk = (await A().get('/api/admin/ledger/check').set(H(admin.accessToken)).expect(200)).body; expect(chk.unbalanced).toBe(0);
   });
-  it('auto-release after N days via scheduled job', async () => {
-    const o = (await A().post(`/api/storefront/${store.handle}/checkout`).send({ lines: [{ variantId: product.variants[1].id, qty: 1 }], email: 'x@t.io', shipTo: { country: 'US' } }).expect(201)).body;
+  it('auto-release only after the seller ships, and only after the confirm window', async () => {
+    const o = (await A().post(`/api/storefront/${store.handle}/checkout`).set(H(buyer.accessToken)).send({ lines: [{ variantId: product.variants[1].id, qty: 1 }], shipTo: { country: 'US' } }).expect(201)).body;
+    expect(o.order.protected).toBe(true); expect(o.escrow.releaseAt).toBeNull();
+    const job = async () => (await A().post('/api/admin/jobs/escrow-auto-release').set(H(admin.accessToken)).expect(200)).body.released;
+    expect(await job()).toBe(0); // not shipped → never released, however old
+    await A().post(S(`/orders/${o.order.id}/fulfill`)).set(H(seller.accessToken)).send({ carrier: 'DHL', tracking: 'DHL1', shippingCost: 1500 }).expect(200);
+    const e = await db.escrow.findUniqueOrThrow({ where: { id: o.escrow.id } }); expect(e.shippedAt).not.toBeNull(); expect(e.shippingCost).toBe(1500); expect(+e.releaseAt! - Date.now()).toBeGreaterThan(6 * 864e5);
+    expect(await job()).toBe(0); // shipped but the buyer still has time
     await db.escrow.update({ where: { id: o.escrow.id }, data: { releaseAt: new Date(Date.now() - 1000) } });
-    const r = (await A().post('/api/admin/jobs/escrow-auto-release').set(H(admin.accessToken)).expect(200)).body; expect(r.released).toBe(1);
+    expect(await job()).toBe(1);
+    expect((await db.escrow.findUniqueOrThrow({ where: { id: o.escrow.id } })).status).toBe('released');
   });
-  it('dispute → admin arbitration → refund buyer', async () => {
+  it('dispute → admin arbitration → refund to the buyer\'s card', async () => {
     const r = (await A().post(`/api/storefront/${store.handle}/checkout`).set(H(buyer.accessToken)).send({ lines: [{ variantId: product.variants[1].id, qty: 1 }], shipTo: { country: 'US' } }).expect(201)).body;
-    const d = (await A().post('/api/pay/disputes').set(H(buyer.accessToken)).send({ orderId: r.order.id, reason: 'Item never arrived' }).expect(201)).body;
+    await A().post(S(`/orders/${r.order.id}/fulfill`)).set(H(seller.accessToken)).send({ tracking: 'X1' }).expect(200);
+    const d = (await A().post('/api/pay/disputes').set(H(buyer.accessToken)).send({ orderId: r.order.id, reason: 'Item damaged' }).expect(201)).body;
     await db.escrow.update({ where: { id: r.escrow.id }, data: { releaseAt: new Date(Date.now() - 1000) } });
-    expect((await A().post('/api/admin/jobs/escrow-auto-release').set(H(admin.accessToken))).body.released).toBe(1); // due but disputed → skipped
+    expect((await A().post('/api/admin/jobs/escrow-auto-release').set(H(admin.accessToken))).body.released).toBe(0); // due but disputed → skipped
     expect((await db.escrow.findUnique({ where: { id: r.escrow.id } }))!.status).toBe('held');
     await A().post(`/api/admin/disputes/${d.id}/resolve`).set(H(seller.accessToken)).send({ outcome: 'refund_buyer' }).expect(403);
     await A().post(`/api/admin/disputes/${d.id}/resolve`).set(H(admin.accessToken)).send({ outcome: 'refund_buyer' }).expect(200);
-    const bw = (await A().get('/api/pay/wallets').set(H(buyer.accessToken))).body[0]; expect(bw.available).toBe(r.order.total);
-    expect((await db.order.findUnique({ where: { id: r.order.id } }))!.financial).toBe('refunded');
+    const bw = (await A().get('/api/pay/wallets').set(H(buyer.accessToken))).body[0]; expect(bw.available).toBe(0); // went back to the card, not left in the wallet
+    expect((await db.order.findUnique({ where: { id: r.order.id } }))!).toMatchObject({ financial: 'refunded', refunded: r.order.total });
+    expect((await A().get('/api/admin/ledger/check').set(H(admin.accessToken))).body.unbalanced).toBe(0);
   });
   it('partial refund with restock from seller balance', async () => {
     const inv = (await db.variant.findUnique({ where: { id: product.variants[0].id } }))!.inventory;

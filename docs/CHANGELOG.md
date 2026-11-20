@@ -1,5 +1,13 @@
 # VendOm v36 changelog
 
+## v39: Direct or protected payments, "not received" settlement, international methods, phone layout (20 Nov 2026)
+- **Payments:** each store chooses Buyer chooses (default), Always protected, or Direct only. Direct payments go straight to the seller. Protected payments need a free buyer account (created at checkout).
+- **VendOm Pay Protection fixes:** money is never auto-released before the seller ships (it used to release 7 days after payment); the seller is told "payment secured, ship now" with a 5-day ship-by date; the 7-day confirm window starts at shipping; unshipped orders past the date are refunded in full.
+- **Parcel not received:** before shipping → full refund; after shipping → seller has 3 days to prove delivery or mark "parcel returned", otherwise the buyer is refunded minus the seller's shipping cost (seller keeps it, no fee). Refunds go back to the buyer's card. Platform admin gets a "not received: refund minus shipping" decision.
+- **International:** cards, Apple Pay, Google Pay (and PayPal when configured) for every country, plus local methods by country (JazzCash, Easypaisa, UPI, iDEAL, Klarna, Alipay, Pix, …). See `docs/Payments.md`.
+- **App fixes:** the admin now works on phones (top bar, ☰ menu, pages fit the screen); the trial banner no longer overflows; sellers no longer see the fake "Create test order" button.
+- Tests: backend 93/93 (10 new protection tests), new frontend t20 (28 checks); all earlier suites pass.
+
 ## v38: VendOm AI assistant, three AI models by plan, Connect any app (20 Nov 2026)
 - **VendOm AI** chat replaces the AI builder, SEO / AEO / GEO, Off-page SEO, AI tools and Sitemap menu items. It reads and changes real store data through the seller's own API access: sales, orders (find, fulfil), stock, products, SEO audit and fixes, AEO/GEO, keywords, content calendar, social posts, discounts, website build and edits. Voice input; asks before big changes.
 - **Models by plan:** Basic → DeepSeek, Grow → Kimi, Advanced/Enterprise → Claude (official Anthropic SDK, automatic fallback on a declined request). Falls back to cheaper models, never up; built-in answers without keys. Credits per reply 1 / 2 / 5, all configurable. Token use and cost logged per reply. See `docs/AI-models.md`.

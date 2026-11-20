@@ -301,6 +301,8 @@ model Order {
   fulfillments Json?
   createdAt    DateTime    @default(now())
   lines        OrderLine[]
+  protected    Boolean     @default(false) // paid through VendOm Pay Protection (held until the buyer confirms)
+  chargeId     String? // payment provider charge, used to send refunds back to the card / wallet
 }
 
 model OrderLine {
@@ -350,13 +352,18 @@ model Escrow {
   fee            Int
   currency       String
   status         String   @default("held")
-  releaseAt      DateTime
+  releaseAt      DateTime? // set when the seller ships: shippedAt + confirm window; never auto-released before shipping
+  shipBy         DateTime? // seller must ship by then, or the buyer is refunded in full
+  shippedAt      DateTime?
+  shippingCost   Int      @default(0) // seller's courier cost; kept by the seller if the buyer does not receive the parcel
   createdAt      DateTime @default(now())
 }
 
 model Dispute {
   id           String   @id @default(cuid())
   escrowId     String
+  kind         String   @default("other") // not_received | other
+  respondBy    DateTime?
   reason       String
   status       String   @default("open")
   resolution   String?

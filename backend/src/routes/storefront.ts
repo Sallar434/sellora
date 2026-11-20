@@ -8,7 +8,10 @@ import { config } from '../lib/config';
 import { collectionProducts, priceCart } from '../lib/commerce';
 import { placeOrder } from '../lib/checkout';
 import { idempotent } from '../lib/idem';
-import { releaseEscrow } from '../lib/ledger';
+import { releaseEscrow, cancelUnshipped } from '../lib/ledger';
+import { notify } from '../providers/notify';
+import { tl } from '../lib/commerce';
+import { methodsFor } from '../providers/payment';
 export const r = Router();
 const optUser = (req: any, _r: any, n: any) => { try { const t = (req.headers.authorization || '').slice(7); if (t) req.user = jwt.verify(t, config.jwtSecret); } catch {} n(); };
 r.use(optUser);
@@ -38,7 +41,7 @@ r.get('/:shop/carts/:id', ah(async (req: any, res) => { const c = await db.cart.
 r.patch('/:shop/carts/:id', ah(async (req: any, res) => { const b = parse(z.object({ lines: lineS, email: z.string().email(), discountCode: z.string().nullable(), giftCode: z.string().nullable(), shipTo: z.any(), shippingRate: z.string(), currency: z.string().length(3) }).partial(), req.body); res.json(await db.cart.update({ where: { id: req.params.id }, data: b })); }));
 r.post('/:shop/checkout/quote', ah(async (req: any, res) => res.json(await priceCart(req.shop.id, req.body))));
 r.post('/:shop/checkout', idempotent, ah(async (req: any, res) => {
-  const b = parse(z.object({ cartId: z.string().optional(), lines: lineS.optional(), email: z.string().email().optional(), currency: z.string().length(3).optional(), discountCode: z.string().optional(), giftCode: z.string().optional(), shipTo: z.object({ name: z.string().optional(), address1: z.string().optional(), city: z.string().optional(), country: z.string().length(2), region: z.string().optional(), zip: z.string().optional() }).optional(), shippingRate: z.string().optional(), payment: z.object({ source: z.string() }).optional() }), req.body);
+  const b = parse(z.object({ cartId: z.string().optional(), lines: lineS.optional(), email: z.string().email().optional(), currency: z.string().length(3).optional(), discountCode: z.string().optional(), giftCode: z.string().optional(), shipTo: z.object({ name: z.string().optional(), address1: z.string().optional(), city: z.string().optional(), country: z.string().length(2), region: z.string().optional(), zip: z.string().optional() }).optional(), shippingRate: z.string().optional(), payment: z.object({ source: z.string() }).optional(), protection: z.boolean().optional() }), req.body);
   let input: any = b;
   if (b.cartId) { const c = await db.cart.findFirst({ where: { id: b.cartId, storeId: req.shop.id, status: 'open' } }); if (!c) throw nf('Cart not found'); input = { currency: c.currency, discountCode: c.discountCode || undefined, giftCode: c.giftCode || undefined, shipTo: c.shipTo, shippingRate: c.shippingRate || undefined, email: c.email || undefined, ...b, lines: c.lines }; }
   if (!input.lines?.length) throw bad('Cart is empty');
@@ -51,8 +54,28 @@ r.post('/:shop/orders/:id/confirm', ah(async (req: any, res) => {
   const o = await db.order.findFirst({ where: { id: req.params.id, storeId: req.shop.id } }); if (!o) throw nf();
   const ok = (req.user?.type === 'BUYER' && req.user.email === o.email) || (req.body?.email && req.body.email.toLowerCase() === o.email && req.body.orderNumber === o.number);
   if (!ok) throw forbid('Only the buyer can confirm');
-  const e = await db.escrow.findUnique({ where: { orderId: o.id } }); if (!e) throw bad('No escrow');
+  const e = await db.escrow.findUnique({ where: { orderId: o.id } }); if (!e) throw bad('This order was paid directly; there is nothing to release');
   res.json(await releaseEscrow(e.id, 'buyer confirmed'));
+}));
+/** Buyer reports the parcel did not arrive. Not shipped yet → full refund now. Shipped → the seller has a few days to show proof of delivery; otherwise the buyer is refunded minus the seller's shipping cost. */
+r.post('/:shop/orders/:id/not-received', ah(async (req: any, res) => {
+  if (req.user?.type !== 'BUYER') throw forbid('Sign in to your buyer account');
+  const o = await db.order.findFirst({ where: { id: req.params.id, storeId: req.shop.id } }); if (!o || o.email !== req.user.email) throw forbid('Not your order');
+  const e = await db.escrow.findUnique({ where: { orderId: o.id } }); if (!e || e.status !== 'held') throw bad('This payment is no longer held by VendOm Pay; contact the seller');
+  const note = String(req.body?.note || '').slice(0, 1000);
+  if (!e.shippedAt) { const c = await cancelUnshipped(e.id, 'buyer reported it was never shipped'); await notify('email', o.email, 'refund_notice', { number: o.number, amount: e.amount, currency: o.currency, why: 'The order was not shipped.' }); return res.json({ outcome: 'refunded_in_full', order: c }); }
+  if (await db.dispute.findFirst({ where: { escrowId: e.id, status: { in: ['open', 'under_review'] } } })) throw bad('A report is already open for this order');
+  const respondBy = new Date(Date.now() + config.notReceivedResponseDays * 864e5);
+  const d = await db.dispute.create({ data: { escrowId: e.id, kind: 'not_received', reason: 'Parcel not received' + (note ? ': ' + note : ''), respondBy } });
+  await db.order.update({ where: { id: o.id }, data: { timeline: tl(o, 'Buyer reported the parcel was not received') } });
+  const owner = await db.user.findUnique({ where: { id: req.shop.ownerId }, select: { email: true } });
+  if (owner) await notify('email', owner.email, 'not_received', { number: o.number, days: config.notReceivedResponseDays, shippingCost: e.shippingCost, currency: o.currency });
+  res.status(201).json({ outcome: 'reported', dispute: d, refundIfNotDelivered: e.amount - Math.min(e.shippingCost, e.amount), sellerKeeps: Math.min(e.shippingCost, e.amount) });
+}));
+/** Payment methods a buyer in this country can use. */
+r.get('/:shop/payment-methods', ah(async (req: any, res) => {
+  const mode = (req.shop.settings as any)?.payments?.mode || 'choice';
+  res.json({ mode, protection: mode !== 'direct', methods: methodsFor(String(req.query.country || 'US').toUpperCase(), String(req.query.currency || req.shop.currency).toUpperCase()) });
 }));
 // buyer: my orders
 r.get('/:shop/me/orders', ah(async (req: any, res) => { if (req.user?.type !== 'BUYER') throw forbid(); res.json(await db.order.findMany({ where: { storeId: req.shop.id, email: req.user.email }, include: { lines: true } })); }));

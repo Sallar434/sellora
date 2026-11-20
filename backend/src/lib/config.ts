@@ -11,11 +11,13 @@ export const config = {
   corsOrigins: (e.CORS_ORIGINS || '*').split(','),
   publicUrl: e.PUBLIC_URL || `http://localhost:${e.PORT || 4000}`,
   platformFeeBps: +(e.PLATFORM_FEE_BPS || 250),
-  escrowAutoReleaseDays: +(e.ESCROW_AUTO_RELEASE_DAYS || 7),
+  escrowAutoReleaseDays: +(e.ESCROW_AUTO_RELEASE_DAYS || 7), // days after shipping before a protected payment releases if the buyer neither confirms nor reports a problem
+  shipByDays: +(e.SHIP_BY_DAYS || 5), // a protected order not shipped within this many days is refunded in full
+  notReceivedResponseDays: +(e.NOT_RECEIVED_RESPONSE_DAYS || 3), // seller's time to answer a "not received" report before it is settled
   redisUrl: e.REDIS_URL || '',
   smtpUrl: e.SMTP_URL || '', mailFrom: e.MAIL_FROM || 'VendOm <no-reply@vendom.app>',
   smsProvider: e.SMS_PROVIDER || 'mock', twilioSid: e.TWILIO_ACCOUNT_SID || '', twilioToken: e.TWILIO_AUTH_TOKEN || '', twilioFrom: e.TWILIO_FROM || '',
-  paymentProvider: e.PAYMENT_PROVIDER || 'mock', stripeKey: e.STRIPE_SECRET_KEY || '', stripeWebhookSecret: e.STRIPE_WEBHOOK_SECRET || '',
+  paymentProvider: e.PAYMENT_PROVIDER || 'mock', paypalClientId: e.PAYPAL_CLIENT_ID || '', stripeKey: e.STRIPE_SECRET_KEY || '', stripeWebhookSecret: e.STRIPE_WEBHOOK_SECRET || '',
   llmBaseUrl: e.LLM_BASE_URL || '', llmApiKey: e.LLM_API_KEY || '', llmModel: e.LLM_MODEL || 'gpt-4o-mini',
   llmProvider: e.LLM_PROVIDER || (e.DEEPSEEK_API_KEY ? 'deepseek' : e.LLM_API_KEY ? 'openai' : 'mock'),
   deepseekKey: e.DEEPSEEK_API_KEY || '', deepseekBase: e.DEEPSEEK_BASE_URL || 'https://api.deepseek.com', deepseekModel: e.DEEPSEEK_MODEL || 'deepseek-flash', deepseekThinking: e.DEEPSEEK_THINKING === '1',

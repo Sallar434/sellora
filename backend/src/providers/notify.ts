@@ -17,6 +17,10 @@ export const TEMPLATES: Record<string, (p: any) => { subject: string; text: stri
   shipping_update: p => ({ subject: `Order #${p.number} shipped`, text: `Tracking: ${p.tracking || '-'} ${p.url || ''}` }),
   generic: p => ({ subject: p.subject, text: p.text }),
   payout_paid: p => ({ subject: 'Payout sent', text: `A payout of ${(p.amount / 100).toFixed(2)} ${p.currency} was sent.` }),
+  ship_now: p => ({ subject: `Payment secured for order #${p.number}: ship it now`, text: `VendOm Pay is holding ${(p.total / 100).toFixed(2)} ${p.currency} for order #${p.number}. Ship the parcel by ${p.shipBy} and add the tracking number. The money is released when the buyer confirms delivery (or ${p.days} days after shipping if they don't respond).` }),
+  confirm_receipt: p => ({ subject: `Did you receive order #${p.number}?`, text: `Your order #${p.number} has shipped${p.tracking ? ' (tracking ' + p.tracking + ')' : ''}. When it arrives, confirm in your account so the seller is paid. If it doesn't arrive, report it there: you get your money back minus the seller's shipping cost.` }),
+  not_received: p => ({ subject: `Buyer reports order #${p.number} not received`, text: `The buyer says order #${p.number} has not arrived. Reply with proof of delivery within ${p.days} days, or mark the parcel as returned. If you don't answer, the buyer is refunded and you keep your shipping cost (${(p.shippingCost / 100).toFixed(2)} ${p.currency}).` }),
+  refund_notice: p => ({ subject: `Refund for order #${p.number}`, text: `${(p.amount / 100).toFixed(2)} ${p.currency} is on its way back to you. ${p.why || ''}` }),
 };
 /** Writes to outbox then delivers (outbox keeps a durable record + retries via job). */
 export async function notify(channel: 'email' | 'sms', to: string, template: string, payload: any) {

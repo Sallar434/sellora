@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '../lib/db';
 import { ah, parse, bad, nf } from '../lib/http';
 import { requireType, auth } from '../lib/auth';
-import { releaseEscrow, refundEscrow, post, externalWallet, autoReleaseDue } from '../lib/ledger';
+import { releaseEscrow, refundBuyer, post, externalWallet, autoReleaseDue, settleNotReceived } from '../lib/ledger';
 import { payments } from '../providers/payment';
 import { notify } from '../providers/notify';
 import { audit } from '../lib/audit';
@@ -17,13 +17,13 @@ r.get('/kyc', ah(async (req, res) => res.json(await db.kyc.findMany({ where: { s
 r.post('/kyc/:id/review', ah(async (req, res) => { const b = parse(z.object({ decision: z.enum(['approved', 'rejected', 'needs_info']), notes: z.string().optional() }), req.body); audit(req, 'admin.kyc', { id: req.params.id, ...b }); res.json(await db.kyc.update({ where: { id: req.params.id }, data: { status: b.decision, notes: b.notes } })); }));
 r.get('/disputes', ah(async (req, res) => res.json(await db.dispute.findMany({ orderBy: { createdAt: 'desc' } }))));
 r.post('/disputes/:id/resolve', ah(async (req, res) => {
-  const b = parse(z.object({ outcome: z.enum(['refund_buyer', 'release_seller', 'partial']), refundAmount: z.number().int().positive().optional(), note: z.string().optional() }), req.body);
+  const b = parse(z.object({ outcome: z.enum(['refund_buyer', 'release_seller', 'partial', 'not_received']), refundAmount: z.number().int().positive().optional(), note: z.string().optional() }), req.body);
   const d = await db.dispute.findUnique({ where: { id: req.params.id } }); if (!d || d.status === 'resolved') throw bad('Dispute not open');
+  if (b.outcome === 'not_received') { const out = await settleNotReceived(d.escrowId, 'decided by VendOm' + (b.note ? ': ' + b.note : '')); audit(req, 'admin.dispute', { id: d.id, ...b, ...out }); return res.json({ ...(await db.dispute.findUniqueOrThrow({ where: { id: d.id } })), ...out }); }
   const e = await db.escrow.findUniqueOrThrow({ where: { id: d.escrowId } }); let refund = 0;
-  if (b.outcome === 'refund_buyer') { refund = e.amount; await refundEscrow(e.id, e.amount); }
-  if (b.outcome === 'partial') { refund = b.refundAmount || 0; await refundEscrow(e.id, refund); }
-  if (b.outcome !== 'refund_buyer') { const ne = await db.escrow.findUniqueOrThrow({ where: { id: e.id } }); if (ne.status === 'held' && ne.amount > 0) await releaseEscrow(e.id, 'dispute resolved'); }
-  if (refund) { const o = await db.order.findUniqueOrThrow({ where: { id: e.orderId } }); const tot = o.refunded + refund; await db.order.update({ where: { id: o.id }, data: { refunded: tot, financial: tot >= o.total ? 'refunded' : 'partially_refunded' } }); }
+  if (b.outcome === 'refund_buyer') { refund = e.amount; await refundBuyer(e.id, e.amount); }
+  if (b.outcome === 'partial') { refund = b.refundAmount || 0; await refundBuyer(e.id, refund); }
+  if (b.outcome !== 'refund_buyer') { const ne = await db.escrow.findUniqueOrThrow({ where: { id: e.id } }); if (ne.status === 'held' && ne.amount > 0) await releaseEscrow(e.id, 'dispute resolved'); if (refund) await db.order.update({ where: { id: e.orderId }, data: { financial: 'partially_refunded' } }); }
   audit(req, 'admin.dispute', { id: d.id, ...b });
   res.json(await db.dispute.update({ where: { id: d.id }, data: { status: 'resolved', resolution: `${b.outcome}${b.note ? ': ' + b.note : ''}`, refundAmount: refund || null } }));
 }));

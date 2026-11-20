@@ -45,11 +45,14 @@ with sync_playwright() as p:
   for f in pg.query_selector_all('#xsf [data-ckf]'):
     if f.evaluate('e=>e.tagName')!='SELECT' and not f.input_value(): f.fill('10001' if 'zip' in (f.get_attribute('data-ckf') or '') else 'Test')
   pg.fill('#xk_email','buyer@test.com')
+  # VendOm Pay Protection: a guest turns it on and creates a free buyer account at checkout
+  if not pg.is_checked('#xk_prot'): pg.check('#xk_prot'); W(300)
+  pg.fill('#xk_pw','password123')
   pg.fill('#xk_num','4000000000000002');pg.fill('#xk_exp','12/30');pg.fill('#xk_cvc','123')
   if pg.query_selector('#xk_cn'):pg.fill('#xk_cn','Test Buyer')
   pg.click('#xkpaybtn'); W(1200)
   ok('declined card rejected', E("S.orders.length")==n0)
-  pg.fill('#xk_num','4242424242424242'); pg.click('#xkpaybtn'); W(1500)
+  pg.fill('#xk_num','4242424242424242'); pg.fill('#xk_pw','password123') if pg.query_selector('#xk_pw') else None; pg.click('#xkpaybtn'); W(1500)
   ok('order placed', E("S.orders.length")==n0+1)
   if E("S.orders.length")==n0: print('ckerr:',E("(document.querySelector('#xkerr')||{}).innerText")); print(E("[...document.querySelectorAll('#xsf [data-ckf]')].map(e=>e.dataset.ckf+'='+e.value).join(';')"))
   o=E("S.orders[0].id>S.orders[S.orders.length-1].id?S.orders[0].id:S.orders[S.orders.length-1].id")
@@ -71,7 +74,7 @@ with sync_playwright() as p:
   ok('admin fee', E("JSON.stringify(S.sp.tx).includes('admin')"))
   E("var c=document.querySelector('#xsfclose');c&&c.click()")
   # dispute flow on API-placed order
-  E("window._o2=ORD.place([{pid:"+str(pid)+",vi:0,q:1}],{email:'b2@test.com',first:'B',last:'Two',country:'US',ship:0,codes:[],addr:{}},{method:'card',id:'ch_t',escrow:true})")
+  E("window._o2=ORD.place([{pid:"+str(pid)+",vi:0,q:1}],{email:'b2@test.com',first:'B',last:'Two',country:'US',ship:0,codes:[],addr:{},prot:true},{method:'card',id:'ch_t',escrow:true})")
   d=E("var e=PAY.escOf(_o2);var r=PAY.dispute(e.id,'Item not received');S.sp.disputes.length")
   go('pay-admin'); cx('pat:disputes'); W(200)
   E("var dd=S.sp.disputes[S.sp.disputes.length-1];PAY.resolve(dd.id,'buyer')")
