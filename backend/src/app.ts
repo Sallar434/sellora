@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import { config } from './lib/config';
+import { isInternal } from './lib/internal';
 import { errorHandler } from './lib/http';
 import { auth } from './lib/auth';
 import { r as authR } from './routes/auth';
@@ -18,6 +19,7 @@ import { r as growthR, pub as growthPub } from './routes/growth';
 import { r as publicR } from './routes/public';
 import { r as plusR } from './routes/plus';
 import { r as integR, hooks as integHooks, oauthPublic } from './routes/integrations';
+import { r as assistantR } from './routes/assistant';
 import { openapi, addPaths } from './openapi';
 import { r as billingR, pub as plansR, meter, meterNewStore } from './routes/billing';
 export function createApp() {
@@ -29,13 +31,13 @@ export function createApp() {
   app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '10mb' }));
   const test = config.env === 'test';
   app.use('/api/auth', rateLimit({ windowMs: 15 * 60e3, limit: test ? 10000 : +(process.env.RATE_LIMIT_AUTH || 50), standardHeaders: true, legacyHeaders: false }));
-  app.use('/api', rateLimit({ windowMs: 60e3, limit: test && !process.env.RATE_LIMIT_API ? 100000 : +(process.env.RATE_LIMIT_API || 600), standardHeaders: true, legacyHeaders: false }));
+  app.use('/api', rateLimit({ windowMs: 60e3, limit: test && !process.env.RATE_LIMIT_API ? 100000 : +(process.env.RATE_LIMIT_API || 600), standardHeaders: true, legacyHeaders: false, skip: (req) => isInternal(req.headers['x-vendom-internal']) }));
   app.get('/health', (_q, s) => s.json({ ok: true }));
   app.get('/openapi.json', (_q, s) => s.json(openapi));
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
   app.use('/uploads/private', (_q, s) => s.status(404).end());
   app.use('/uploads', express.static(path.resolve(config.uploadDir), { fallthrough: false }));
-  const mounts: [string, any, boolean][] = [['/api/auth', authR, false], ['/api/storefront', storefrontR, false], ['/api/pay', payBuyer, false], ['/api/admin', adminR, true], ['/api/stores', storesR, true], ['/api/stores', ordersR, true], ['/api/stores', paySeller, true], ['/api/stores', aiR, true], ['/api/stores', growthR, true], ['/api/storefront', growthPub, false], ['/api/stores', plusR, true], ['/api/stores', integR, true], ['/api/stores', billingR, true], ['/api/plans', plansR, false], ['/api/hooks', integHooks, false], ['/api/integrations', oauthPublic, false], ['', publicR, false]];
+  const mounts: [string, any, boolean][] = [['/api/auth', authR, false], ['/api/storefront', storefrontR, false], ['/api/pay', payBuyer, false], ['/api/admin', adminR, true], ['/api/stores', storesR, true], ['/api/stores', ordersR, true], ['/api/stores', paySeller, true], ['/api/stores', aiR, true], ['/api/stores', growthR, true], ['/api/storefront', growthPub, false], ['/api/stores', plusR, true], ['/api/stores', integR, true], ['/api/stores', billingR, true], ['/api/stores', assistantR, true], ['/api/plans', plansR, false], ['/api/hooks', integHooks, false], ['/api/integrations', oauthPublic, false], ['', publicR, false]];
   app.use('/api/stores', auth, meterNewStore, meter);
   for (const [p, r, a] of mounts) { if (p.startsWith('/api/stores')) app.use(p, auth, r); else app.use(p || '/', r); addPaths(p, r, a); }
   app.use((_q, s) => s.status(404).json({ error: 'Not found' }));

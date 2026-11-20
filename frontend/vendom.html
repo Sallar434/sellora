@@ -9034,6 +9034,111 @@ var AIBuild=X.AIBuild={
 try{mountAsk()}catch(e){}
 })();
 
+/* ===== v38: VendOm AI assistant (chat) + "Connect any app" connectors ===== */
+(function(){
+var X=window,q=X.SX.q,qa=X.SX.qa,h=X.SX.h,A=X.ACT;
+function money(n){try{return X.mF?String(X.mF(n)).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim():('$'+(+n).toFixed(2))}catch(e){return String(n)}}
+function head(t,b){return '<div class="xh"><h1>'+t+'</h1>'+(b||'')+'</div>'}
+function be(){var b=X.VendOmBackend;return b&&b.status&&b.status().status==='ok'&&b.cfg().storeId?b:null}
+
+/* ---------- navigation: one "VendOm AI" item replaces the AI builder group; Apps gets "Connect any app" ---------- */
+try{var NC=X.NAV_CONFIG;if(NC){var i=NC.findIndex(function(n){return n.id==='ai-builder'});if(i>-1)NC.splice(i,1,{id:'ai-assistant',label:'VendOm AI',icon:'store'});
+ var ap=NC.filter(function(n){return n.id==='apps'})[0];if(ap&&ap.sub&&!ap.sub.some(function(s){return s.id==='apps-connectors'}))ap.sub.splice(2,0,{id:'apps-connectors',label:'Connect any app'})}}catch(e){}
+
+/* ---------- plan → model (mirrors the backend; shown to the seller) ---------- */
+var TIER={free:'deepseek',basic:'deepseek',grow:'kimi',advanced:'claude',enterprise:'claude'};
+var MODEL={deepseek:'DeepSeek',kimi:'Kimi',claude:'Claude',local:'Built-in'};
+function planCode(){return ((S.sub9||{}).plan)||'grow'}
+function chatState(){S.ai16=S.ai16||{log:[]};return S.ai16}
+
+/* ---------- local engine: answers from this browser's store data when no backend AI is connected ---------- */
+function orders(){return (S.orders||[]).filter(function(o){return !o.cancelled})}
+function stockOf(p){try{return X.PR.vstock(p,-1)}catch(e){return +p.stock||0}}
+function local(text){
+ var t=String(text||'').toLowerCase().trim(),m,steps=[];
+ function step(n){steps.push(n)}
+ if(/\bfix\b.*\b(seo|meta)\b|\b(seo|meta)\b.*\bfix/.test(t)&&X.m12fix){step('seo_fix');var before=X.m12audit().score;X.m12fix();var after=X.m12audit().score;save();return{text:'Done. I applied the automatic SEO fixes. Score: '+before+' → '+after+'/100.',steps:steps}}
+ if(/\bseo\b|\baudit\b/.test(t)&&X.m12audit){step('seo_audit');var a=X.m12audit(),fx=a.issues.filter(function(i){return i.fix}).length;return{text:'Your SEO score is '+a.score+'/100 with '+a.issues.length+' issue'+(a.issues.length===1?'':'s')+'.'+(a.issues.length?'\nTop issues:\n'+a.issues.slice(0,5).map(function(i){return '• '+i.title+': '+i.issue}).join('\n'):'')+(fx?'\n\n'+fx+' can be fixed automatically. Say "fix SEO" to apply them.':''),steps:steps}}
+ if((m=t.match(/(?:order|#)\s*#?(\d{3,})/))){step('get_order');var o=(S.orders||[]).filter(function(x){return String(x.id)===m[1]})[0];if(!o)return{text:'I could not find order #'+m[1]+'.',steps:steps};return{text:'Order #'+o.id+' · '+(o.who||'')+'\nTotal '+money(o.total)+' · '+(o.pay||o.st)+' · '+(o.ful||'')+(o.cancelled?' · cancelled':'')+'\n'+(o.items||[]).map(function(l){return '• '+l.q+'× '+l.name+(l.variant?' ('+l.variant+')':'')}).join('\n'),steps:steps}}
+ if(/unfulfil|not shipped|to ship|pending order|ship today/.test(t)){step('list_orders');var L=orders().filter(function(o){return o.ful!=='Fulfilled'});return{text:L.length?L.length+' order'+(L.length===1?'':'s')+' to ship:\n'+L.slice(0,10).map(function(o){return '• #'+o.id+' · '+(o.who||'')+' · '+money(o.total)}).join('\n'):'Every order is fulfilled. 🎉',steps:steps}}
+ if(/low stock|out of stock|inventory|restock|stock/.test(t)){step('list_products');var P=(S.products||[]).filter(function(p){return stockOf(p)<5});return{text:P.length?'Low stock:\n'+P.map(function(p){return '• '+p.name+': '+stockOf(p)}).join('\n'):'Nothing is low on stock.',steps:steps}}
+ if((m=t.match(/(?:create|make|add)\s+(?:a\s+)?(\d{1,2})\s*%\s*(?:off\s+)?(?:discount|code|coupon)(?:\s+(?:code|called|named))?\s*([a-z0-9_-]{3,20})?/))){step('create_discount');var code=(m[2]||('SAVE'+m[1])).toUpperCase();S.disc2=S.disc2||[];if(S.disc2.some(function(d){return d.code===code}))return{text:'A discount called '+code+' already exists.',steps:steps};S.disc2.push({id:'D'+Date.now(),code:code,title:m[1]+'% off',type:'percent',value:+m[1],min:0,auto:false,limit:0,once:false,used:0,starts:'',ends:'',on:true});save();return{text:'Created discount code '+code+' for '+m[1]+'% off. Customers enter it at checkout.',steps:steps}}
+ if(/\baeo\b|faq|answer (box|engine)/.test(t)){step('aeo_answers');var topic=(t.match(/(?:for|about)\s+(.+)$/)||[])[1]||S.name;return{text:'Answer-first FAQ for "'+topic+'" (add these to your FAQ page):\n• What is '+topic+'? '+S.name+' offers '+topic+' with fast delivery and cash on delivery.\n• How long does delivery take? Usually 2–5 working days in Pakistan.\n• Can I pay on delivery? Yes, cash on delivery and VendOm Pay are both available.\n• Can I return it? Unused items can be returned within 7 days.',steps:steps}}
+ if(/\bgeo\b|chatgpt|perplexity|ai overview|generative/.test(t)){step('geo_summary');return{text:'For AI search (ChatGPT, Gemini, Perplexity), describe '+S.name+' in one clear, quotable line on your About page, e.g.:\n“'+S.name+' is an online store in '+(S.country||'Pakistan')+' selling '+((S.products||[]).slice(0,3).map(function(p){return p.name}).join(', ')||'quality products')+', with cash on delivery and VendOm Pay buyer protection.”\nAlso keep product titles specific, add FAQs, and list the store on Google Business Profile.',steps:steps}}
+ if(/sales|revenue|how (am i|are we|is the store) doing|this month|summary|analytics/.test(t)&&X.agg){step('sales_summary');var g=X.agg(30);return{text:'Last 30 days: '+g.n+' order'+(g.n===1?'':'s')+', net sales '+money(g.net)+', average order '+money(g.aov)+', '+g.sess+' session'+(g.sess===1?'':'s')+'.',steps:steps}}
+ if(X.AIBuild&&/build|website|store for|add (a |an )?(product|collection|banner|section)|theme|header|footer|colou?r|dark mode|hero|banner/.test(t)){step('build_website');var r=X.AIBuild.handle(text,'chat');if(r&&r.handled)return{text:r.reply,steps:steps}}
+ return{text:'I can help with:\n• “How are sales this month?”\n• “Show orders to ship” or “order #1004”\n• “What is low on stock?”\n• “Audit my SEO”, then “fix SEO”\n• “AEO FAQ for lawn suits”, “GEO summary”\n• “Create a 10% discount code EID10”\n• “Build a website for a Lahore lawn brand”, “make the header black”',steps:steps};
+}
+
+/* ---------- chat page ---------- */
+var CHIPS=['How are sales this month?','Show orders to ship','What is low on stock?','Audit my SEO','Write AEO FAQs for my best seller','Create a 10% discount code EID10','Build a website for my brand'];
+V['ai-assistant']=function(){var c=chatState(),p=planCode(),prov=TIER[p]||'deepseek',on=!!be();
+ var info='<span class="mu" id="ai16model">Plan: <b>'+h(p.charAt(0).toUpperCase()+p.slice(1))+'</b> · AI model: <b>'+(on?MODEL[prov]:MODEL[prov]+' (once your store is connected to the VendOm server; built-in answers until then)')+'</b></span>';
+ return '<div class="xw ai16">'+head('VendOm AI','<button class="btn" data-x="ai16clear">New chat</button>')+'<div class="xc" style="padding:12px 16px">'+info+'</div>'
+  +'<div class="xc ai16box"><div id="ai16log" class="ai16log">'+(c.log.length?c.log.map(bubble).join(''):'<div class="ai16empty"><b>Ask me anything about your store.</b><br><span class="mu">Sales and orders, stock, SEO / AEO / GEO, content, discounts, and building or editing your website. I make real changes, and ask before big ones.</span></div>')+'</div>'
+  +'<div class="ai16chips">'+CHIPS.map(function(x){return '<button class="btn" data-x="ai16ask:'+h(x)+'">'+h(x)+'</button>'}).join('')+'</div>'
+  +'<form id="ai16f" class="ai16in" onsubmit="return false"><input id="ai16q" class="xin" placeholder="Message VendOm AI…" autocomplete="off" aria-label="Message VendOm AI"><button type="button" class="btn" id="ai16mic" aria-label="Speak">🎤</button><button class="btn pri" id="ai16send" data-x="ai16send">Send</button></form></div></div>'};
+function bubble(m){return '<div class="ai16m '+(m.role==='user'?'u':'a')+'"><div>'+h(m.text).replace(/\n/g,'<br>')+'</div>'+(m.steps&&m.steps.length?'<small class="mu">Used: '+m.steps.map(h).join(', ')+'</small>':'')+(m.model?'<small class="mu"> · '+h(m.model)+'</small>':'')+'</div>'}
+function render(){var l=q('#ai16log');if(!l)return;var c=chatState();l.innerHTML=c.log.map(bubble).join('');l.scrollTop=l.scrollHeight}
+var busy=false;
+function ask(text){text=String(text||'').trim();if(!text||busy)return;var c=chatState();c.log.push({role:'user',text:text,at:Date.now()});c.log=c.log.slice(-60);save();render();var inp=q('#ai16q');if(inp)inp.value='';busy=true;
+ var b=be();var done=function(r){busy=false;c.log.push({role:'assistant',text:r.text||'(no answer)',steps:(r.steps||[]).map(function(s){return typeof s==='string'?s:s.tool}),model:r.model&&r.model!=='built-in'?r.model:'',at:Date.now()});save();render()};
+ if(b){var hist=c.log.slice(-20).map(function(m){return{role:m.role,content:m.text}});while(hist.length&&hist[0].role!=='user')hist.shift();
+  c.log.push({role:'assistant',text:'…',pending:1});render();
+  b.api('POST','/api/stores/'+b.cfg().storeId+'/assistant/chat',{messages:hist}).then(function(r){c.log=c.log.filter(function(m){return !m.pending});done(r)}).catch(function(e){c.log=c.log.filter(function(m){return !m.pending});done({text:/402|credits|limit/i.test(e.message)?'You have used this month’s AI credits. Upgrade or turn on auto-pay overage in Settings › Plan.':'I could not reach the VendOm server ('+e.message+'). Answering from this browser instead:\n\n'+local(text).text})});return}
+ try{done(local(text))}catch(e){done({text:'Something went wrong: '+e.message})}}
+A.ai16send=function(){ask((q('#ai16q')||{}).value)};
+A.ai16ask=function(t){ask(t)};
+A.ai16clear=function(){chatState().log=[];save();route()};
+X.ai16ask=ask;X.ai16local=local;
+X.onRoute(function(r){if(r!=='ai-assistant')return;var i=q('#ai16q');if(i){i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ask(i.value)}};setTimeout(function(){i.focus()},0)}render();
+ var mic=q('#ai16mic'),SR=X.SpeechRecognition||X.webkitSpeechRecognition;if(mic){if(!SR){mic.title='Voice input is not supported in this browser';mic.disabled=true}else mic.onclick=function(){var r=new SR();r.lang=document.documentElement.lang==='ur'?'ur-PK':'en-US';r.onresult=function(e){var t=e.results[0][0].transcript;if(i)i.value=t;ask(t)};try{r.start()}catch(e){}}}});
+/* The old AI builder and SEO pages are no longer in the menu (the assistant does that work); their addresses still open for old links. */
+
+/* ---------- Connect any app ---------- */
+var EVENTS=[['orders/create','New order'],['orders/fulfilled','Order fulfilled'],['orders/refunded','Order refunded'],['orders/cancelled','Order cancelled'],['products/create','New product']];
+var RULES=[[/^hooks\.zapier\.com$/,'webhook','zapier','Zapier'],[/(^|\.)hook\.[a-z0-9]+\.make\.com$|^hook\.integromat\.com$/,'webhook','make','Make'],[/\.m\.pipedream\.net$/,'webhook','pipedream','Pipedream'],[/^maker\.ifttt\.com$/,'webhook','ifttt','IFTTT'],[/^hooks\.slack\.com$/,'webhook','slack','Slack'],[/\.webhook\.office\.com$|^outlook\.office\.com$/,'webhook','teams','Microsoft Teams'],[/^script\.google\.com$/,'webhook','google-apps-script','Google Sheets (Apps Script)'],
+ [/(^|\.)(facebook|instagram)\.com$/,'app','meta','Meta (Facebook & Instagram)'],[/^merchants\.google\.com$|^merchantcenter\.google\.com$/,'app','google-merchant','Google Merchant Center'],[/^ads\.google\.com$/,'app','google-ads','Google Ads'],[/^analytics\.google\.com$/,'app','ga4','Google Analytics 4'],[/^search\.google\.com$/,'app','search-console','Google Search Console'],[/(^|\.)tiktok\.com$/,'app','tiktok','TikTok'],[/(^|\.)pinterest\.com$/,'app','pinterest','Pinterest'],[/(^|\.)snapchat\.com$/,'app','snapchat','Snapchat'],[/(^|\.)(whatsapp\.com|wa\.me)$/,'app','whatsapp','WhatsApp Business'],[/(^|\.)mailchimp\.com$/,'app','mailchimp','Mailchimp'],[/(^|\.)klaviyo\.com$/,'app','klaviyo','Klaviyo'],[/(^|\.)xero\.com$/,'app','xero','Xero'],[/(^|\.)intuit\.com$/,'app','quickbooks','QuickBooks'],[/(^|\.)tcscourier\.com$/,'app','tcs','TCS'],[/(^|\.)leopardscourier\.com$/,'app','leopards','Leopards'],[/(^|\.)postex\.pk$/,'app','postex','PostEx'],[/(^|\.)(trax|sonic)\.pk$/,'app','trax','Trax']];
+function detect(raw){var u;try{u=new URL(String(raw).trim())}catch(e){throw new Error('That is not a valid link. Paste the full address, starting with https://')}
+ if(!/^https?:$/.test(u.protocol))throw new Error('Only http(s) links can be connected.');var host=u.hostname.toLowerCase(),path=u.pathname.toLowerCase();
+ if(/\/(mcp|sse)\/?$/.test(path)||/^mcp\./.test(host))return{kind:'mcp',provider:'mcp',name:host+' (MCP)',note:'An MCP server. Its tools become available to VendOm AI on plans that use Claude.'};
+ if(/(openapi|swagger)[^/]*\.(json|ya?ml)$/.test(path)||/\/(openapi|swagger)(\.json)?$/.test(path))return{kind:'api',provider:'openapi',name:host+' API',needsKey:true,note:'An API description (OpenAPI). VendOm AI can read data from it. Add its key if it needs one.'};
+ if((host==='discord.com'||host==='discordapp.com')&&/\/api\/webhooks\//.test(path))return{kind:'webhook',provider:'discord',name:'Discord',note:'Discord will get a message for each store event.'};
+ if(/\/webhook(-test)?\//.test(path)||/n8n/.test(host))return{kind:'webhook',provider:'n8n',name:'n8n',note:'An n8n webhook. Store events will be sent to it.'};
+ for(var i=0;i<RULES.length;i++)if(RULES[i][0].test(host)){var r=RULES[i];return r[1]==='webhook'?{kind:'webhook',provider:r[2],name:r[3],note:r[3]+' will receive your store events.'}:{kind:'app',provider:r[2],appId:r[2],name:r[3],note:'VendOm has a built-in '+r[3]+' app. Open it to sign in and connect.'}}
+ if(/\/api(\/|$)|^api\./.test(path+'|'+host))return{kind:'api',provider:'custom-api',name:host+' API',needsKey:true,note:'A REST API. Add its key if it needs one.'};
+ return{kind:'webhook',provider:'webhook',name:host,note:'A custom webhook. Store events will be sent to it as JSON.'}}
+X.connDetect=detect;
+function conns(){S.connectors=S.connectors||[];return S.connectors}
+function shape(c,ev,d){var line=(S.name||'Store')+': '+({'orders/create':'New order #'+(d.id||''),'orders/fulfilled':'Order #'+(d.id||'')+' fulfilled','orders/refunded':'Order #'+(d.id||'')+' refunded','orders/cancelled':'Order #'+(d.id||'')+' cancelled','products/create':'New product: '+(d.name||''),test:'Test message from VendOm: your connection works.'}[ev]||ev);
+ return c.provider==='slack'||c.provider==='teams'?{text:line}:c.provider==='discord'?{content:line}:c.provider==='ifttt'?{value1:ev,value2:line}:{event:ev,store:S.name,data:d,at:new Date().toISOString()}}
+function sendLocal(c,ev,d){/* from the browser: no-cors POST (the service gets it; the page cannot read the answer) */try{return fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(shape(c,ev,d))}).then(function(){return true},function(){return false})}catch(e){return Promise.resolve(false)}}
+X.HOOKS=X.HOOKS||[];X.HOOKS.push(function(ev,d){if(be())return;/* the server delivers when connected */var map={order:'orders/create'};var e2=map[ev]||ev;conns().forEach(function(c){if(c.kind==='webhook'&&c.status!=='paused'&&(c.events||[]).indexOf(e2)>-1)sendLocal(c,e2,d||{})})});
+var pend=null;
+V['apps-connectors']=function(){var L=conns(),b=be();
+ return '<div class="xw">'+head('Connect any app')+'<div class="xc"><p style="margin-top:0">Paste the link of any tool and VendOm connects it: <b>Zapier, Make, n8n, Slack, Discord, Teams, Google Sheets</b> (webhooks), <b>MCP servers</b> (tools for VendOm AI), <b>APIs</b> (OpenAPI or REST), or links to <b>Meta, Google, TikTok</b> and other apps VendOm already has.</p>'
+  +'<div class="m12row" style="display:flex;gap:8px"><input class="xin" id="cn16url" placeholder="https://hooks.zapier.com/… or https://…/mcp" style="flex:1"><button class="btn pri" data-x="cn16check">Check link</button></div><p id="cn16err" style="color:#b42318;min-height:18px;margin:6px 0 0"></p><div id="cn16card"></div></div>'
+  +'<div class="xc"><h3 style="margin-top:0">Connected ('+L.length+')</h3>'+(L.length?'<table class="xt"><tr><th>Name</th><th>Type</th><th>Sends</th><th>Status</th><th></th></tr>'+L.map(function(c){return '<tr><td><b>'+h(c.name)+'</b><div class="xk">'+h(String(c.url).replace(/([?&](key|token|secret|sig)=)[^&]+/gi,'$1•••').slice(0,60))+'</div></td><td>'+h(c.kind)+'</td><td>'+(c.kind==='webhook'?h((c.events||[]).length+' events'):'—')+'</td><td>'+(c.status==='paused'?'Paused':c.lastTestOk===false?'Check failed':'Connected')+'</td><td style="white-space:nowrap"><button class="btn" data-x="cn16test:'+c.id+'">Test</button> <button class="btn" data-x="cn16pause:'+c.id+'">'+(c.status==='paused'?'Resume':'Pause')+'</button> <button class="btn" data-x="cn16del:'+c.id+'">Remove</button></td></tr>'}).join('')+'</table>':'<p class="mu">Nothing connected yet.</p>')
+  +(b?'':'<p class="xk">In this browser-only version, events are sent from your browser. Once your store is connected to the VendOm server, the server sends them, checks keys and blocks unsafe links.</p>')+'</div></div>'};
+A.cn16check=function(){var u=(q('#cn16url')||{}).value||'',e=q('#cn16err'),card=q('#cn16card');e.textContent='';card.innerHTML='';var d;try{d=detect(u)}catch(x){e.textContent=x.message;return}pend={url:u.trim(),d:d};
+ card.innerHTML='<div class="xc" style="background:#f6f6f7;margin:8px 0 0"><b>'+h(d.name)+'</b> · '+h(d.kind)+'<p class="mu" style="margin:4px 0 8px">'+h(d.note)+'</p>'
+  +(d.kind==='app'?'<button class="btn pri" data-x="go:app-'+h(d.appId)+'">Open the '+h(d.name)+' app</button>'
+  :(d.kind==='webhook'?'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">'+EVENTS.map(function(x){return '<label class="xchk"><input type="checkbox" data-cn16ev="'+x[0]+'" checked> '+x[1]+'</label>'}).join('')+'</div>':'')
+  +(d.kind!=='webhook'||/webhook|n8n/.test(d.provider)?'<label for="cn16key">'+(d.needsKey?'API key':'Key or token (optional)')+'</label><input class="xin" id="cn16key" type="password" autocomplete="off">':'')
+  +'<button class="btn pri" data-x="cn16add" style="margin-top:8px">Connect</button>')+'</div>'};
+A.cn16add=function(){if(!pend)return;var d=pend.d,ev=qa('[data-cn16ev]').filter(function(x){return x.checked}).map(function(x){return x.dataset.cn16ev}),key=(q('#cn16key')||{}).value||'',b=be();
+ if(b){b.api('POST','/api/stores/'+b.cfg().storeId+'/connectors',{url:pend.url,key:key||undefined,events:d.kind==='webhook'?ev:undefined}).then(function(c){conns().unshift({id:c.id,remote:1,kind:c.kind,provider:c.provider,name:c.name,url:c.url,events:c.events,status:c.status,lastTestOk:c.lastTestOk});save();toast(c.test&&c.test.ok?'Connected: '+c.test.detail:'Saved, but the test failed: '+(c.test&&c.test.detail));pend=null;route()}).catch(function(e){q('#cn16err').textContent=e.message});return}
+ var c={id:'C'+Date.now(),kind:d.kind,provider:d.provider,name:d.name,url:pend.url,events:d.kind==='webhook'?ev:[],hasKey:!!key,status:'connected',at:Date.now()};conns().unshift(c);save();pend=null;
+ if(c.kind==='webhook')sendLocal(c,'test',{}).then(function(ok){c.lastTestOk=ok;save();toast(ok?'Connected. A test message was sent to '+c.name+'.':'Saved, but the test message could not be sent.');route()});else{toast('Connected '+c.name+'.');route()}};
+function find(id){return conns().filter(function(c){return c.id===id})[0]}
+A.cn16test=function(id){var c=find(id),b=be();if(!c)return;if(b&&c.remote){b.api('POST','/api/stores/'+b.cfg().storeId+'/connectors/'+id+'/test').then(function(t){c.lastTestOk=t.ok;save();toast(t.detail);route()});return}if(c.kind==='webhook')sendLocal(c,'test',{}).then(function(ok){c.lastTestOk=ok;save();toast(ok?'Test message sent.':'Could not send the test message.');route()});else toast('Saved. The VendOm server checks this connection once your store is connected to it.')};
+A.cn16pause=function(id){var c=find(id),b=be();if(!c)return;c.status=c.status==='paused'?'connected':'paused';save();if(b&&c.remote)b.api('PATCH','/api/stores/'+b.cfg().storeId+'/connectors/'+id,{status:c.status}).catch(function(){});route()};
+A.cn16del=function(id){var b=be(),c=find(id);S.connectors=conns().filter(function(x){return x.id!==id});save();if(b&&c&&c.remote)b.api('DELETE','/api/stores/'+b.cfg().storeId+'/connectors/'+id).catch(function(){});toast('Removed');route()};
+
+/* ---------- styles ---------- */
+var st=document.createElement('style');st.textContent='.ai16box{display:flex;flex-direction:column;gap:10px}.ai16log{min-height:260px;max-height:58vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px}.ai16m{max-width:80%;padding:10px 14px;border-radius:14px;line-height:1.45;white-space:normal}.ai16m.u{align-self:flex-end;background:var(--ink,#111);color:#fff;border-bottom-right-radius:4px}.ai16m.a{align-self:flex-start;background:#f1f2f4;color:#111;border-bottom-left-radius:4px}.ai16m small{display:block;margin-top:6px;opacity:.75}.ai16empty{margin:auto;text-align:center;max-width:460px;padding:30px 0}.ai16chips{display:flex;flex-wrap:wrap;gap:6px}.ai16chips .btn{font-size:12.5px;padding:5px 10px}.ai16in{display:flex;gap:8px}.ai16in .xin{flex:1;margin:0}@media(max-width:700px){.ai16m{max-width:92%}}';document.head.appendChild(st);
+})();
+
 ;try{route()}catch(e){console.error(e)}
 
 </script>

@@ -946,3 +946,22 @@ model AiLog {
   estUsd       Float    @default(0)
   createdAt    DateTime @default(now())
 }
+
+// ===== Connectors: any outside tool linked by pasting its URL =====
+model Connector {
+  id             String    @id @default(cuid())
+  storeId        String
+  kind           String // webhook | mcp | api | app
+  provider       String // zapier, make, n8n, slack, discord, teams, pipedream, ifttt, google-apps-script, mcp, openapi, custom-api, webhook, or an App Store app id
+  name           String
+  url            String
+  events         Json?
+  credentialsEnc String?
+  meta           Json?
+  status         String    @default("connected")
+  lastTestAt     DateTime?
+  lastTestOk     Boolean?
+  createdAt      DateTime  @default(now())
+
+  @@index([storeId])
+}

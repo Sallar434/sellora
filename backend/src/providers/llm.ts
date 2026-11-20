@@ -1,4 +1,7 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../lib/config';
+import { claude, PRICES } from './ai/agent';
+const agentUsd = (m: string, i: number, o: number) => { const p = PRICES[m]; return p ? +((i * p[0] + o * p[1]) / 1e6).toFixed(6) : 0; };
 /**
  * LLM provider. DeepSeek (OpenAI-compatible, https://api.deepseek.com) is the default when DEEPSEEK_API_KEY is set,
  * any OpenAI-compatible endpoint via LLM_BASE_URL/LLM_API_KEY otherwise, and `null` (→ caller's template/mock) when none is configured
@@ -48,11 +51,13 @@ export function llmAvailability() {
 async function claudeChat(system: string, user: string, opts: { maxTokens?: number } = {}): Promise<{ text: string; usage: LlmUsage } | null> {
   if (!config.anthropicKey) return null;
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': config.anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' }, body: JSON.stringify({ model: config.anthropicModel, max_tokens: opts.maxTokens ?? 4000, system, messages: [{ role: 'user', content: user }] }), signal: AbortSignal.timeout(60000) });
-    if (!r.ok) return null;
-    const j: any = await r.json(); const text = (j.content || []).map((c: any) => c.text || '').join(''); if (!text) return null;
-    const inT = j.usage?.input_tokens || 0, outT = j.usage?.output_tokens || 0;
-    return { text, usage: { provider: 'claude', model: config.anthropicModel, inputTokens: inT, cachedTokens: 0, outputTokens: outT, estUsd: 0 } };
+    const model = config.anthropicModel;
+    const r = await claude().beta.messages.create({ model, max_tokens: opts.maxTokens ?? 16000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default', output_config: { effort: 'low' }, system, messages: [{ role: 'user', content: user }] });
+    if (r.stop_reason === 'refusal') return null;
+    const text = r.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map(b => b.text).join('');
+    if (!text) return null;
+    const inT = r.usage.input_tokens, outT = r.usage.output_tokens;
+    return { text, usage: { provider: 'claude', model, inputTokens: inT, cachedTokens: r.usage.cache_read_input_tokens || 0, outputTokens: outT, estUsd: agentUsd(model, inT, outT) } };
   } catch { return null; }
 }
 /**

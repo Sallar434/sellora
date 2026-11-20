@@ -19,7 +19,12 @@ export const config = {
   llmBaseUrl: e.LLM_BASE_URL || '', llmApiKey: e.LLM_API_KEY || '', llmModel: e.LLM_MODEL || 'gpt-4o-mini',
   llmProvider: e.LLM_PROVIDER || (e.DEEPSEEK_API_KEY ? 'deepseek' : e.LLM_API_KEY ? 'openai' : 'mock'),
   deepseekKey: e.DEEPSEEK_API_KEY || '', deepseekBase: e.DEEPSEEK_BASE_URL || 'https://api.deepseek.com', deepseekModel: e.DEEPSEEK_MODEL || 'deepseek-flash', deepseekThinking: e.DEEPSEEK_THINKING === '1',
-  anthropicKey: e.ANTHROPIC_API_KEY || '', anthropicModel: e.ANTHROPIC_MODEL || 'claude-sonnet-4-5',
+  anthropicKey: e.ANTHROPIC_API_KEY || '', anthropicModel: e.ANTHROPIC_MODEL || 'claude-opus-5-5',
+  kimiKey: e.KIMI_API_KEY || e.MOONSHOT_API_KEY || '', kimiBase: e.KIMI_BASE_URL || 'https://api.moonshot.ai/v1', kimiModel: e.KIMI_MODEL || 'kimi-k2.6',
+  // Which AI model each plan uses (deepseek | kimi | claude). Falls back to the next configured provider, then to built-in replies.
+  aiTier: { free: e.AI_TIER_FREE || 'deepseek', basic: e.AI_TIER_BASIC || 'deepseek', grow: e.AI_TIER_GROW || 'kimi', advanced: e.AI_TIER_ADVANCED || 'claude', enterprise: e.AI_TIER_ENTERPRISE || 'claude' } as Record<string, string>,
+  // AI credits one assistant reply costs on each model (tool actions it runs are metered by their own routes).
+  aiCredits: { deepseek: +(e.AI_CREDITS_DEEPSEEK || 1), kimi: +(e.AI_CREDITS_KIMI || 2), claude: +(e.AI_CREDITS_CLAUDE || 5), local: 0 } as Record<string, number>,
   sttProvider: e.STT_PROVIDER || 'browser', sttUrl: e.STT_URL || '', sttKey: e.STT_API_KEY || '',
   indexNowKey: e.INDEXNOW_KEY || '', rankApiUrl: e.RANK_API_URL || '', rankApiKey: e.RANK_API_KEY || '', competitorFetch: e.COMPETITOR_FETCH === '1', psiKey: e.PAGESPEED_API_KEY || '',
   storage: e.STORAGE_DRIVER || 'local', uploadDir: e.UPLOAD_DIR || 'uploads',

@@ -1,5 +1,12 @@
 # VendOm v36 changelog
 
+## v38: VendOm AI assistant, three AI models by plan, Connect any app (20 Nov 2026)
+- **VendOm AI** chat replaces the AI builder, SEO / AEO / GEO, Off-page SEO, AI tools and Sitemap menu items. It reads and changes real store data through the seller's own API access: sales, orders (find, fulfil), stock, products, SEO audit and fixes, AEO/GEO, keywords, content calendar, social posts, discounts, website build and edits. Voice input; asks before big changes.
+- **Models by plan:** Basic → DeepSeek, Grow → Kimi, Advanced/Enterprise → Claude (official Anthropic SDK, automatic fallback on a declined request). Falls back to cheaper models, never up; built-in answers without keys. Credits per reply 1 / 2 / 5, all configurable. Token use and cost logged per reply. See `docs/AI-models.md`.
+- **Connect any app:** paste a link (Zapier, Make, n8n, Slack, Discord, Teams, Google Sheets, any webhook, MCP servers, OpenAPI/REST APIs, or Meta/Google/TikTok/courier links that open the built-in app). Webhooks get order and product events; MCP tools are given to Claude. Private addresses are refused, keys encrypted.
+- Backend: `/assistant`, `/assistant/chat`, `/connectors` routes; `Connector` model; `orders/cancelled` and `products/create` events. Older Claude store-copy calls moved to the official SDK.
+- Tests: backend 83/83 (12 new), frontend t19 (32 checks) plus all earlier suites.
+
 ## v37: VendOm rename, Shopify parity suite (20 Nov 2026)
 - Renamed Sellora to **VendOm** and Sellora Pay to **VendOm Pay** everywhere (UI, backend, emails, domains, webhook header `VendOm-Signature`, files). Stores saved under the old browser key move over automatically; old `/sellora.html` links redirect.
 - New `frontend/tests/t17.py` Shopify parity suite (118 checks) and `frontend/tests/run_all.sh`. Older suites now sign in through the door and no longer use hard-coded paths.

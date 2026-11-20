@@ -45,7 +45,9 @@ r.post('/:storeId/orders/:id/cancel', storeAccess('orders'), idempotent, ah(asyn
   const o = await get(req); if (o.status === 'cancelled') throw bad('Already cancelled'); if (o.fulfillment === 'fulfilled') throw bad('Fulfilled orders must be refunded');
   const esc = await db.escrow.findUnique({ where: { orderId: o.id } }); if (esc?.status === 'held') await refundEscrow(esc.id, esc.amount);
   for (const l of o.lines) if (l.variantId) await db.variant.update({ where: { id: l.variantId }, data: { inventory: { increment: l.qty - l.refundedQty } } });
-  res.json(await db.order.update({ where: { id: o.id }, data: { status: 'cancelled', financial: esc ? 'refunded' : o.financial, refunded: esc ? o.total : o.refunded, timeline: tl(o, 'Order cancelled' + (esc ? ', buyer refunded from escrow' : '')) } }));
+  const done = await db.order.update({ where: { id: o.id }, data: { status: 'cancelled', financial: esc ? 'refunded' : o.financial, refunded: esc ? o.total : o.refunded, timeline: tl(o, 'Order cancelled' + (esc ? ', buyer refunded from escrow' : '')) } });
+  emit(req.store.id, 'orders/cancelled', done).catch(() => {});
+  res.json(done);
 }));
 r.patch('/:storeId/orders/:id', storeAccess('orders'), ah(async (req, res) => {
   const o = await get(req); const b = parse(z.object({ shipTo: z.any(), email: z.string().email(), note: z.string() }).partial(), req.body);

@@ -12,7 +12,7 @@ with sync_playwright() as p:
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]));pg.on('console',lambda m:m.type=='error' and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
   vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
-  go(pg,'ai-builder');ok('nav AI builder group',all(k in pg.inner_text('#nav') for k in ['SEO / AEO / GEO','Off-page SEO','AI tools']))
+  go(pg,'ai-builder');ok('menu: one VendOm AI item replaces the AI builder group',('VendOm AI' in pg.inner_text('#nav')) and not any(k in pg.inner_text('#nav') for k in ['SEO / AEO / GEO','Off-page SEO','AI tools']))
   ok('builder page','Describe your store' in M(pg) and 'Speak' in M(pg))
   # voice unsupported in headless → graceful
   pg.evaluate("window.webkitSpeechRecognition=undefined;window.SpeechRecognition=undefined");cl(pg,'m12mic:m12prompt');ok('voice fallback message','Voice' in pg.inner_text('#m12vstat') or 'Listening' in pg.inner_text('#m12vstat'),pg.inner_text('#m12vstat'))

@@ -1,5 +1,6 @@
 import { THEME_LIBRARY, DEFAULT_THEME, migrateThemes } from '../lib/themes';
 import { Router } from 'express';
+import { emit } from '../lib/webhooks';
 import { z } from 'zod';
 import multer from 'multer';
 import { db } from '../lib/db';
@@ -61,7 +62,7 @@ r.get('/:storeId/products', storeAccess('products'), ah(async (req, res) => {
 r.post('/:storeId/products', storeAccess('products'), ah(async (req, res) => {
   const { variants, collections, ...d } = parse(productS, req.body);
   const p = await db.product.create({ data: { ...d, handle: slug(d.handle || d.title) + (await db.product.count({ where: { storeId: req.store.id, handle: slug(d.handle || d.title) } }) ? '-' + rand(3).toLowerCase() : ''), storeId: req.store.id, variants: { create: (variants?.length ? variants : [{ title: 'Default', inventory: 0 }]).map(({ id, ...v }) => v) } }, include: { variants: true } });
-  await setCollections(req.store.id, p.id, collections); audit(req, 'product.create', { id: p.id }); res.status(201).json(p);
+  await setCollections(req.store.id, p.id, collections); audit(req, 'product.create', { id: p.id }); emit(req.store.id, 'products/create', p).catch(() => {}); res.status(201).json(p);
 }));
 /** Shopify-style product CSV. Prices in the file are in major units (e.g. 1499.00); stored as minor units. */
 export const CSV_COLS = ['Handle', 'Title', 'Body (HTML)', 'Vendor', 'Type', 'Tags', 'Published', 'Option1 Name', 'Option1 Value', 'Option2 Name', 'Option2 Value', 'Option3 Name', 'Option3 Value', 'Variant SKU', 'Variant Price', 'Variant Compare At Price', 'Variant Inventory Qty', 'Image Src', 'SEO Title', 'SEO Description', 'Status'];
