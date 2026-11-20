@@ -1,11 +1,11 @@
-/* ===== Sellora v35: theme editor drag-and-drop sections + section action menu + preview insert (+) ===== */
+/* ===== VendOm v35: theme editor drag-and-drop sections + section action menu + preview insert (+) ===== */
 (function(){
 var X=window,d=document,drag=null,menuFor=null;
 function $q(s,r){return (r||d).querySelector(s)}function $a(s,r){return [].slice.call((r||d).querySelectorAll(s))}
 function ok(){return typeof E!=='undefined'&&E&&E.t&&$q('#edl')}
 function grpOf(arr){return arr===E.t.hdr?'h':arr===E.t.ftr?'f':'t'}
 function redraw(){try{lp()}catch(e){}try{rp()}catch(e){}}
-function persist(){try{save()}catch(e){}var t=E&&E.t;try{var b=X.SelloraBackend;if(t&&t.bid&&b&&b.on&&b.on())b.api('PATCH','/api/stores/'+b.cfg().storeId+'/themes/'+t.bid,{sections:{hdr:t.hdr,ftr:t.ftr,pg:t.pg}}).catch(function(){})}catch(e){}}
+function persist(){try{save()}catch(e){}var t=E&&E.t;try{var b=X.VendOmBackend;if(t&&t.bid&&b&&b.on&&b.on())b.api('PATCH','/api/stores/'+b.cfg().storeId+'/themes/'+t.bid,{sections:{hdr:t.hdr,ftr:t.ftr,pg:t.pg}}).catch(function(){})}catch(e){}}
 function moveTo(id,ni){var l=loc(id);if(!l)return;var it=l.a.splice(l.i,1)[0];if(ni>l.i)ni--;ni=Math.max(0,Math.min(l.a.length,ni));l.a.splice(ni,0,it);persist();redraw()}
 X.m12move=moveTo;
 X.m12ins=function(id,below){var l=loc(id);if(!l)return;X._insAt={a:l.a,i:l.i+(below?1:0)};closeMenu();addSec(grpOf(l.a))};

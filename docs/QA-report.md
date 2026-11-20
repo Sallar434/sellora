@@ -1,4 +1,4 @@
-# Sellora QA report
+# VendOm QA report
 
 Run on 29 Oct 2026 (Asia/Karachi, UTC+5).
 
@@ -15,7 +15,7 @@ Run on 29 Oct 2026 (Asia/Karachi, UTC+5).
 | t3 | CRUD, save bar, two-column detail pages | 35/35 |
 | t5 | Storefront + checkout | ERR [] |
 | t9 | 15 beyond-Shopify features, RTL Urdu/Arabic, theme library, console-error check | 60/60 |
-| t10 (new) | New apps (TCS, Leopards, PostEx, Trax, Xero, QuickBooks, Google Ads), connection and validation, masked secrets, persistence (`sellora` key), TCS label, product deep link, 1000-product performance, console errors | 28/28 |
+| t10 (new) | New apps (TCS, Leopards, PostEx, Trax, Xero, QuickBooks, Google Ads), connection and validation, masked secrets, persistence (`vendom` key), TCS label, product deep link, 1000-product performance, console errors | 28/28 |
 
 ## Performance (1000 products)
 - Product list render: 207 ms
@@ -44,10 +44,10 @@ Run on 29 Oct 2026 (Asia/Karachi, UTC+5).
 ## Coverage checklist
 - 15 features, each with a backend endpoint (Prisma model) and an admin UI.
 - Two-column detail pages with a save bar.
-- Theme library with Sellora equivalents of all Shopify free themes.
+- Theme library with VendOm equivalents of all Shopify free themes.
 - Real API code for every app, with mock fallback when no keys are saved and credentials encrypted at rest.
 - Urdu/Arabic RTL.
-- Sellora Pay as the only escrow brand.
+- VendOm Pay as the only escrow brand.
 - Currency labels such as "Pakistani Rupee (PKR)".
 
 ## Known issues and limitations

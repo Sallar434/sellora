@@ -3,7 +3,7 @@ import { db } from '../src/lib/db';
 import { createStore } from '../src/routes/auth';
 async function user(email: string, type: string, name: string) { return db.user.upsert({ where: { email }, update: {}, create: { email, type, name, passwordHash: await bcrypt.hash('password123', 10), emailVerified: true } }); }
 async function main() {
-  const admin = await user('admin@sellora.app', 'ADMIN', 'Platform Admin');
+  const admin = await user('admin@vendom.app', 'ADMIN', 'Platform Admin');
   const seller = await user('owner@example.com', 'SELLER', 'Store Owner');
   await user('buyer@example.com', 'BUYER', 'Demo Buyer');
   let store = await db.store.findFirst({ where: { ownerId: seller.id } });
@@ -24,6 +24,6 @@ async function main() {
   await ensurePlans(); await getSub(store.id);
   await db.subscription.update({ where: { storeId: store.id }, data: { planCode: 'grow', status: 'active', trialEndsAt: null, currency: 'PKR', overageMode: 'auto', spendCap: 500000, periodEnd: new Date(Date.now() + 30 * 864e5) } });
   await db.store.update({ where: { id: store.id }, data: { plan: 'grow', feeBps: 375 } });
-  console.log('Seeded. Logins (password123): admin@sellora.app, owner@example.com, buyer@example.com. Store:', store.handle, admin.id ? '' : '');
+  console.log('Seeded. Logins (password123): admin@vendom.app, owner@example.com, buyer@example.com. Store:', store.handle, admin.id ? '' : '');
 }
 main().finally(() => db.$disconnect());

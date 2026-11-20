@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="utf-8">
+<script>/* Sellora -> VendOm rename: keep stores saved under the old storage keys */try{['','_backend'].forEach(function(x){if(localStorage.getItem('vendom'+x)==null){var o=localStorage.getItem('sel'+'lora'+x);if(o!=null)localStorage.setItem('vendom'+x,o)}})}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sellora admin</title>
+<title>VendOm admin</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Figtree:wght@400;500;600&display=swap">
 <style>
 :root{--bg:#EEF2F3;--panel:#fff;--ink:#12262B;--mute:#5E7378;--line:#D9E2E4;--accent:#F2A900;--accentink:#3A2A00;--side:#0F2F35;--sideink:#C9DDE0;--ok:#127A4B;--warn:#9A5B00;--bad:#B3261E;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
@@ -200,7 +202,7 @@ button.ar{background:var(--panel);color:inherit;font:inherit;text-align:left;wid
 <script>
 (function(){
   try{
-    var db=JSON.parse(localStorage.getItem('sellora')||'null');
+    var db=JSON.parse(localStorage.getItem('vendom')||'null');
     if(!db||db.out) return;
     var email=db.session||(db.s&&db.a&&db.a[db.s]?db.s:'');
     if(email&&db.a&&db.a[email]&&db.d&&db.d[email]) document.documentElement.classList.add('has-session');
@@ -208,20 +210,20 @@ button.ar{background:var(--panel);color:inherit;font:inherit;text-align:left;wid
 })();
 </script>
 <aside>
-  <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="11" width="22" height="17" rx="5" fill="#F2A900"/><path d="M11 12V9.5a5 5 0 0 1 10 0V12" fill="none" stroke="#F2A900" stroke-width="2.4" stroke-linecap="round"/><path d="M20 17c-.8-1.2-2.4-1.7-4-1.7-2 0-3.4.9-3.4 2.3 0 3.3 7.6 1.4 7.6 5 0 1.5-1.6 2.5-3.8 2.5-1.7 0-3.2-.6-4.1-1.8" fill="none" stroke="#0F2F35" stroke-width="2" stroke-linecap="round"/></svg>Sellora</div>
+  <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="11" width="22" height="17" rx="5" fill="#F2A900"/><path d="M11 12V9.5a5 5 0 0 1 10 0V12" fill="none" stroke="#F2A900" stroke-width="2.4" stroke-linecap="round"/><path d="M20 17c-.8-1.2-2.4-1.7-4-1.7-2 0-3.4.9-3.4 2.3 0 3.3 7.6 1.4 7.6 5 0 1.5-1.6 2.5-3.8 2.5-1.7 0-3.2-.6-4.1-1.8" fill="none" stroke="#0F2F35" stroke-width="2" stroke-linecap="round"/></svg>VendOm</div>
   <nav id="nav"></nav>
   <div class="store"><b id="sn"></b><span id="sd"></span></div>
 </aside>
 <main id="main"></main>
 <div id="modal"><div class="box" id="box"></div></div>
 <div id="toast"></div>
-<div id="auth"><div class="acard door"><div class="brand" style="color:#111">Sellora</div><h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div></div></div>
+<div id="auth"><div class="acard door"><div class="brand" style="color:#111">VendOm</div><h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div></div></div>
 <script>
 var S={name:'Vellacorsa',email:'owner@example.com',country:'Pakistan',cur:'USD',
 rates:{USD:1,PKR:280,EUR:.92,AED:3.67,GBP:.79},sym:{USD:'$',PKR:'Rs ',EUR:'€',AED:'AED ',GBP:'£'},
 products:[{id:1,name:'Race Day Gloves',price:48,stock:34,status:'Active',desc:'Leather gloves built for grip and airflow.'},{id:2,name:'Carbon Visor Cover',price:22,stock:120,status:'Active',desc:'Lightweight cover that keeps your visor clear.'},{id:3,name:'Track Day Tee',price:19,stock:0,status:'Draft',desc:''}],
 orders:[{id:1001,who:'Ayesha Khan',total:48,st:'Paid',gw:'Stripe'},{id:1002,who:'Daniel Ruiz',total:41,st:'Fulfilled',gw:'PayPal'},{id:1003,who:'Hassan Ali',total:22,st:'Paid',gw:'JazzCash'}],
-gws:[{k:'Stripe',r:'Cards worldwide',on:false},{k:'PayPal',r:'Worldwide',on:false},{k:'JazzCash',r:'Pakistan',on:false},{k:'Easypaisa',r:'Pakistan',on:false},{k:'Razorpay',r:'India',on:false},{k:'Sellora Pay',r:'Our one-tap checkout wallet',on:true}],
+gws:[{k:'Stripe',r:'Cards worldwide',on:false},{k:'PayPal',r:'Worldwide',on:false},{k:'JazzCash',r:'Pakistan',on:false},{k:'Easypaisa',r:'Pakistan',on:false},{k:'Razorpay',r:'India',on:false},{k:'VendOm Pay',r:'Our one-tap checkout wallet',on:true}],
 domains:[],payout:{m:'Bank transfer',c:'Pakistan',a:''},nid:4,oid:1004};
 var $=function(s){return document.querySelector(s)};
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -230,7 +232,7 @@ function toast(t){var e=$('#toast');e.textContent=t;e.classList.add('on');clearT
 function slug(){return S.name.toLowerCase().replace(/[^a-z0-9]+/g,'')||'mystore'}
 var NAV=[['home','Home'],['orders','Orders'],['products','Products'],['customers','Customers'],['--','Settings'],['general','General'],['payments','Payments and payouts'],['domains','Domains']];
 function _old_nav210(cur){$('#nav').innerHTML=NAV.map(function(n){return n[0]==='--'?'<div class="grp">'+n[1]+'</div>':'<a tabindex="0" data-r="'+n[0]+'" class="'+(n[0]===cur?'on':'')+'">'+n[1]+'</a>'}).join('');
-$('#sn').textContent=S.name;$('#sd').textContent=slug()+'.sellora.app'}
+$('#sn').textContent=S.name;$('#sd').textContent=slug()+'.vendom.app'}
 document.addEventListener('click',function(e){var a=e.target.closest('[data-r]');if(a){location.hash=a.dataset.r}});
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.r)location.hash=e.target.dataset.r;if(e.key==='Escape')closeM()});
 function openM(h){$('#box').innerHTML=h;$('#modal').classList.add('on')}function closeM(){$('#modal').classList.remove('on')}
@@ -241,8 +243,8 @@ var V={};
 V.home=function(){var rev=S.orders.reduce(function(a,o){return a+o.total},0);
 return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+(13+S.orders.length*7)+'</b></div><div class="metric"><small>Total sales</small><b>'+money(rev)+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>'+(S.orders.length*7/(13+S.orders.length*7)*100).toFixed(1)+'%</b></div></div>'
 +'<div class="hero"><h2>'+esc(S.name)+' is open for business.<br>What do you want to work on next?</h2></div>'
-+'<div class="ask"><input id="q" aria-label="Ask Sellora AI" placeholder="Ask Sellora AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
-+'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on Sellora Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
++'<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
++'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on VendOm Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
 V.products=function(){var rows=S.products.map(function(p){return '<tr class="row" data-p="'+p.id+'"><td>'+esc(p.name)+'</td><td>'+tag(p.status)+'</td><td>'+p.stock+'</td><td>'+money(p.price)+'</td></tr>'}).join('');
 return head('Products','<button class="btn pri" id="addp">Add product</button>')+'<div class="panel wrap">'+(rows?'<table><tr><th>Product</th><th>Status</th><th>Inventory</th><th>Price</th></tr>'+rows+'</table>':'<div class="empty">No products yet. Add your first one.</div>')+'</div>'};
 V.orders=function(){var rows=S.orders.slice().reverse().map(function(o){return '<tr class="row" data-o="'+o.id+'"><td>#'+o.id+'</td><td>'+esc(o.who)+'</td><td>'+money(o.total)+'</td><td>'+o.gw+'</td><td>'+tag(o.st)+'</td></tr>'}).join('');
@@ -254,7 +256,7 @@ V.general=function(){return head('General')+'<div class="panel"><label for="f1">
 V.payments=function(){var g=S.gws.map(function(x,i){return '<div class="gw"><div><b>'+x.k+'</b><small>'+x.r+(x.on?' · Connected':'')+'</small></div><button class="btn '+(x.on?'':'pri')+'" data-g="'+i+'">'+(x.on?'Disconnect':'Connect')+'</button></div>'}).join('');
 var p=S.payout;return head('Payments and payouts')+'<div class="panel"><h3>Payment gateways</h3>'+g+'</div><div class="panel"><h3>Payouts</h3><div class="two"><div><label for="p1">Pay out to</label><select id="p1">'+['Bank transfer','Digital wallet'].map(function(m){return '<option'+(m===p.m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></div><div><label for="p2">Country</label><input id="p2" value="'+esc(p.c)+'"></div></div><label for="p3">Account or wallet name</label><input id="p3" value="'+esc(p.a)+'" placeholder="Bank name and account title"><div class="acts"><button class="btn pri" id="sp">Save payout details</button></div></div>'};
 V.domains=function(){var d=S.domains.map(function(x){return '<div class="gw"><div><b>'+esc(x.n)+'</b><small>'+x.s+'</small></div>'+tag(x.s==='Active'?'Active':'Draft')+'</div>'}).join('');
-return head('Domains')+'<div class="panel"><div class="gw"><div><b>'+slug()+'.sellora.app</b><small>Free address that comes with your store</small></div><span class="tag ok">Active</span></div>'+d+'</div><div class="panel"><h3>Find a domain</h3><div class="ask" style="margin:12px 0 0;max-width:none"><input id="dq" aria-label="Domain name" placeholder="yourbrand"><button class="btn pri" id="ds">Search</button></div><div id="dr"></div></div>'};
+return head('Domains')+'<div class="panel"><div class="gw"><div><b>'+slug()+'.vendom.app</b><small>Free address that comes with your store</small></div><span class="tag ok">Active</span></div>'+d+'</div><div class="panel"><h3>Find a domain</h3><div class="ask" style="margin:12px 0 0;max-width:none"><input id="dq" aria-label="Domain name" placeholder="yourbrand"><button class="btn pri" id="ds">Search</button></div><div id="dr"></div></div>'};
 /* merged: route superseded by later definition */
 function bind(r){
 var q=$('#go');if(q){var ask=function(){var t=($('#q').value||'').toLowerCase();
@@ -262,7 +264,7 @@ if(/product|item/.test(t)){location.hash='products';setTimeout(prodForm,50)}else
 var a=$('#addp');if(a)a.onclick=function(){prodForm()};
 document.querySelectorAll('[data-p]').forEach(function(e){e.onclick=function(){prodForm(+e.dataset.p)}});
 var o=$('#addo');if(o)o.onclick=function(){var p=S.products[Math.floor(Math.random()*S.products.length)];var n=['Sara Malik','Omar Haddad','Lena Weber','Bilal Ahmed'];var on=S.gws.filter(function(g){return g.on});
-S.orders.push({id:S.oid++,who:n[Math.floor(Math.random()*n.length)],total:p.price,st:'Paid',gw:on.length?on[0].k:'Sellora Pay'});route();toast('Test order created')};
+S.orders.push({id:S.oid++,who:n[Math.floor(Math.random()*n.length)],total:p.price,st:'Paid',gw:on.length?on[0].k:'VendOm Pay'});route();toast('Test order created')};
 document.querySelectorAll('[data-o]').forEach(function(e){e.onclick=function(){var x=S.orders.filter(function(z){return z.id==+e.dataset.o})[0];x.st={Paid:'Fulfilled',Fulfilled:'Refunded',Refunded:'Paid'}[x.st];route()}});
 var sv=$('#sv');if(sv)sv.onclick=function(){S.name=$('#f1').value||S.name;S.email=$('#f2').value;S.country=$('#f3').value;S.cur=$('#f4').value;route();toast('Saved')};
 document.querySelectorAll('[data-g]').forEach(function(e){e.onclick=function(){var g=S.gws[+e.dataset.g];g.on=!g.on;route();toast(g.on?g.k+' connected (demo: add your API key at launch)':g.k+' disconnected')}});
@@ -279,7 +281,7 @@ if(id){Object.assign(p,v)}else{v.id=S.nid++;S.products.push(v)}closeM();route();
 var d=$('#mdl');if(d)d.onclick=function(){S.products=S.products.filter(function(x){return x.id!==id});closeM();route();toast('Product deleted')}}
 /* ---- v2: accounts, settings, themes ---- */
 var TPL=JSON.stringify(S),DB={a:{},s:null,d:{}},U=null;
-try{DB=JSON.parse(localStorage.getItem('sellora'))||DB}catch(e){}
+try{DB=JSON.parse(localStorage.getItem('vendom'))||DB}catch(e){}
 DB.a=DB.a||{};DB.d=DB.d||{};
 if(!document.getElementById('auth'))document.body.insertAdjacentHTML('beforeend','<div id="auth"></div>');
 if(!document.getElementById('ov'))document.body.insertAdjacentHTML('beforeend','<div id="ov"></div>');
@@ -335,13 +337,13 @@ document.querySelectorAll('#main [data-k]').forEach(function(e){e.onchange=funct
 document.querySelectorAll('[data-add]').forEach(function(b){b.onclick=function(){var key=b.dataset.add,r={};document.querySelectorAll('[data-la="'+key+'"] input').forEach(function(i){r[i.dataset.s]=i.type==='number'?+i.value:i.value.trim()});if(!Object.values(r)[0]){toast('Fill in the first field');return}(o[key]=o[key]||[]).push(r);route();toast('Added')}});
 document.querySelectorAll('[data-del]').forEach(function(b){b.onclick=function(){var p=b.dataset.del.split(':');o[p[0]].splice(+p[1],1);route()}});
 document.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){S.plan=b.dataset.pl;route();toast('Plan changed to '+S.plan)}})}
-function chrome(){$('.store').innerHTML='<b>'+esc(S.name)+'</b><span>'+slug()+'.sellora.app</span><br><button class="lnk" id="so">Sign out</button>';$('#so').onclick=function(){endSession()}}
+function chrome(){$('.store').innerHTML='<b>'+esc(S.name)+'</b><span>'+slug()+'.vendom.app</span><br><button class="lnk" id="so">Sign out</button>';$('#so').onclick=function(){endSession()}}
 function nav(cur){$('#nav').innerHTML=[['home','Home'],['orders','Orders'],['products','Products'],['customers','Customers'],['themes','Online Store'],['s-general','Settings']].map(function(n){return '<a tabindex="0" data-r="'+n[0]+'" class="'+(n[0]===cur?'on':'')+'">'+n[1]+'</a>'}).join('');chrome()}
 function nav2(cur){var n=$('#nav');n.innerHTML='<a tabindex="0" data-r="home">‹ Settings</a><input id="ss" placeholder="Search settings" aria-label="Search settings">'+SO.map(function(k){return '<a tabindex="0" data-r="s-'+k+'" class="'+(k===cur?'on':'')+'">'+SEC[k][0]+'</a>'}).join('');chrome();
 $('#ss').oninput=function(){var q=this.value.toLowerCase();n.querySelectorAll('[data-r^="s-"]').forEach(function(a){a.style.display=a.textContent.toLowerCase().indexOf(q)<0?'none':''})}}
 /* home preview and themes */
 var H0=V.home;V.home=function(){var h=H0(),i=h.indexOf('<div class="hero">');return h.slice(0,i)+'<div class="pv"><div class="thumb" id="pv" role="button" tabindex="0" aria-label="Open your online store">'+sf(live())+'<span class="pub">Public</span></div></div>'+h.slice(i)};
-V.themes=function(){var L=live();return head('Online Store','<button class="btn pri" id="ta">Add theme</button>')+'<div class="panel"><h3>Current theme</h3><div class="two" style="align-items:center;margin-top:12px"><div class="thumb">'+sf(L)+'</div><div><h3>'+esc(L.name)+'</h3><p class="mu">Live at '+slug()+'.sellora.app</p><div class="acts" style="justify-content:flex-start"><button class="btn pri" data-te="'+L.id+'">Customize</button><button class="btn" data-tp="'+L.id+'">Preview</button></div></div></div></div><h3 style="margin:8px 0 12px">Theme library</h3><div class="cards">'+S.themes.map(function(t){var lv=t.id===S.live;return '<div class="card"><div class="thumb">'+sf(t)+'</div><b>'+esc(t.name)+'</b><span class="tag">'+(t.free?'Free':'Custom')+(lv?' · Live':'')+'</span><div class="acts"><button class="btn" data-tp="'+t.id+'">Preview</button><button class="btn" data-te="'+t.id+'">Customize</button>'+(lv?'':'<button class="btn pri" data-tl="'+t.id+'">Publish</button>')+(!t.free&&!lv?'<button class="btn bad" data-tx="'+t.id+'">Remove</button>':'')+'</div></div>'}).join('')+'</div>'};
+V.themes=function(){var L=live();return head('Online Store','<button class="btn pri" id="ta">Add theme</button>')+'<div class="panel"><h3>Current theme</h3><div class="two" style="align-items:center;margin-top:12px"><div class="thumb">'+sf(L)+'</div><div><h3>'+esc(L.name)+'</h3><p class="mu">Live at '+slug()+'.vendom.app</p><div class="acts" style="justify-content:flex-start"><button class="btn pri" data-te="'+L.id+'">Customize</button><button class="btn" data-tp="'+L.id+'">Preview</button></div></div></div></div><h3 style="margin:8px 0 12px">Theme library</h3><div class="cards">'+S.themes.map(function(t){var lv=t.id===S.live;return '<div class="card"><div class="thumb">'+sf(t)+'</div><b>'+esc(t.name)+'</b><span class="tag">'+(t.free?'Free':'Custom')+(lv?' · Live':'')+'</span><div class="acts"><button class="btn" data-tp="'+t.id+'">Preview</button><button class="btn" data-te="'+t.id+'">Customize</button>'+(lv?'':'<button class="btn pri" data-tl="'+t.id+'">Publish</button>')+(!t.free&&!lv?'<button class="btn bad" data-tx="'+t.id+'">Remove</button>':'')+'</div></div>'}).join('')+'</div>'};
 function bind3(){var p=$('#pv');if(p){p.onclick=pvMenu;p.onkeydown=function(e){if(e.key==='Enter')pvMenu()}}
 var a=$('#ta');if(a)a.onclick=addTheme;
 document.querySelectorAll('[data-te]').forEach(function(b){b.onclick=function(){edit(b.dataset.te)}});
@@ -367,11 +369,11 @@ $('#nu').onchange=function(){var f=this.files[0];if(!f)return;var r=new FileRead
 /* public door: sign in / create account. A saved store is not a session. */
 function unownedKey(){DB.d=DB.d||{};DB.a=DB.a||{};var prefer=DB.unownedKey,keys=Object.keys(DB.d),i,k;function ok(k){return !!(DB.d[k]&&DB.d[k].name&&!DB.a[k])}if(prefer&&ok(prefer))return prefer;for(i=0;i<keys.length;i++){k=keys[i];if(ok(k))return k}return ''}
 function claimStore(k,email){var store=DB.d[k];if(!store)return false;S=store;S.email=email;try{var staff=S.set&&S.set.users&&S.set.users.staff;if(staff&&staff.forEach)staff.forEach(function(st){if(st&&st.role==='Owner')st.email=email})}catch(err){}if(k!==email){DB.d[email]=S;delete DB.d[k]}DB.unownedKey=null;return true}
-function startSession(email){delete DB.out;delete DB.pending;U=email;DB.session=email;DB.s=email;save();persist();document.body.classList.remove('locked');document.documentElement.classList.add('has-session');if($('#auth'))$('#auth').style.display='none';document.title='Sellora admin';if(location.hash!=='#home')location.hash='home';route()}
-function authShell(inner){var a=$('#auth');if(!a)return null;a.style.display='flex';a.innerHTML='<div class="acard door"><div class="brand" style="color:#111">'+($('.brand')?$('.brand').innerHTML:'Sellora')+'</div>'+inner+'</div>';return a}
+function startSession(email){delete DB.out;delete DB.pending;U=email;DB.session=email;DB.s=email;save();persist();document.body.classList.remove('locked');document.documentElement.classList.add('has-session');if($('#auth'))$('#auth').style.display='none';document.title='VendOm admin';if(location.hash!=='#home')location.hash='home';route()}
+function authShell(inner){var a=$('#auth');if(!a)return null;a.style.display='flex';a.innerHTML='<div class="acard door"><div class="brand" style="color:#111">'+($('.brand')?$('.brand').innerHTML:'VendOm')+'</div>'+inner+'</div>';return a}
 function door(){authShell('<h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div>');
-$('#door-in').onclick=function(){authView('in')};$('#door-up').onclick=function(){authView('up')};document.title='Sellora'}
-function accountForm(up){authShell('<h2>'+(up?'Create account':'Sign in')+'</h2><p class="door-note">'+(up?'Use your email and a password. Next you choose a plan and start a 4-day free trial for your own store.':'Use the email and password for your Sellora account.')+'</p><label for="a2">Email</label><input id="a2" type="email" autocomplete="username"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">'+(up?'Create account':'Sign in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have an account? ':'New to Sellora? ')+'<button type="button" class="lnk" id="asw">'+(up?'Sign in':'Create account')+'</button></p>');
+$('#door-in').onclick=function(){authView('in')};$('#door-up').onclick=function(){authView('up')};document.title='VendOm'}
+function accountForm(up){authShell('<h2>'+(up?'Create account':'Sign in')+'</h2><p class="door-note">'+(up?'Use your email and a password. Next you choose a plan and start a 4-day free trial for your own store.':'Use the email and password for your VendOm account.')+'</p><label for="a2">Email</label><input id="a2" type="email" autocomplete="username"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">'+(up?'Create account':'Sign in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have an account? ':'New to VendOm? ')+'<button type="button" class="lnk" id="asw">'+(up?'Sign in':'Create account')+'</button></p>');
 $('#asw').onclick=function(){authView(up?'in':'up')};
 var busy=false,go=function(){if(busy)return;var e=$('#a2').value.trim().toLowerCase(),p=$('#a3').value,er=function(t){$('#ae').textContent=t};
 if(!/^\S+@\S+\.\S+$/.test(e))return er('Enter a valid email.');if(p.length<8)return er('Password must be at least 8 characters.');
@@ -395,7 +397,7 @@ window.authView=authView;window.afterPlanPick=function(){authView('store')};
 function _old_route352(){save();if(!U){authView();return}$('#auth').style.display='none';var r=location.hash.slice(1);if(/^(payments|domains|general)$/.test(r))r='s-'+r;
 if(r.slice(0,2)==='s-'){var k=r.slice(2);if(!SEC[k])k='general';nav2(k);$('#main').innerHTML=sec(k);bind(r);bind2(k)}else{if(!V[r])r='home';nav(r);$('#main').innerHTML=V[r]();bind(r);bind3()}fit()}
 /* ---- v3: product photos and section blocks ---- */
-function persist(){try{localStorage.setItem('sellora',JSON.stringify(DB))}catch(e){toast('Browser storage is full. Remove some photos.')}}
+function persist(){try{localStorage.setItem('vendom',JSON.stringify(DB))}catch(e){toast('Browser storage is full. Remove some photos.')}}
 function bootSession(){DB.a=DB.a||{};DB.d=DB.d||{};var changed=false;
 if(DB.s&&!DB.a[DB.s]){if(DB.d[DB.s]&&DB.d[DB.s].name&&!DB.unownedKey)DB.unownedKey=DB.s;DB.s=null;if(!DB.a[DB.session])DB.session=null;changed=true}
 if(DB.out){U=null;if(DB.session){DB.session=null;changed=true}if(DB.s){DB.s=null;changed=true}}
@@ -403,7 +405,7 @@ else{var email='';if(DB.session&&DB.a[DB.session]&&DB.d[DB.session])email=DB.ses
 if(email){U=email;if(DB.session!==email){DB.session=email;changed=true}DB.s=email;S=DB.d[email];document.body.classList.remove('locked');document.documentElement.classList.add('has-session')}
 else{U=null;if(DB.session){DB.session=null;changed=true}}}
 if(changed){try{persist()}catch(e){}}}
-function authGate(){U=null;document.body.classList.add('locked');document.body.classList.remove('st','m13dead');document.documentElement.classList.remove('has-session');var pill=document.getElementById('xviewas');if(pill)pill.style.display='none';if($('#sn'))$('#sn').textContent='';if($('#sd'))$('#sd').textContent='';if($('#main'))$('#main').innerHTML='';var mode='gate';if(DB.pending&&DB.a&&DB.a[DB.pending]&&!(DB.d&&DB.d[DB.pending]))mode='plan';if(typeof authView==='function')authView(mode);document.title='Sellora'}
+function authGate(){U=null;document.body.classList.add('locked');document.body.classList.remove('st','m13dead');document.documentElement.classList.remove('has-session');var pill=document.getElementById('xviewas');if(pill)pill.style.display='none';if($('#sn'))$('#sn').textContent='';if($('#sd'))$('#sd').textContent='';if($('#main'))$('#main').innerHTML='';var mode='gate';if(DB.pending&&DB.a&&DB.a[DB.pending]&&!(DB.d&&DB.d[DB.pending]))mode='plan';if(typeof authView==='function')authView(mode);document.title='VendOm'}
 function endSession(){try{if(U)save()}catch(e){}U=null;DB.s=null;DB.session=null;DB.out=1;try{persist()}catch(e){}var ov=$('#ov');if(ov){ov.style.display='none';ov.innerHTML=''}if(location.hash)location.hash='';authGate()}
 bootSession();
 /* merged: rz superseded by later definition */
@@ -457,7 +459,7 @@ return '<div class="top"><h1>General</h1></div>'
 +'<div class="panel" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h3>Transfer store</h3><p class="mu">Move this store into an organization or transfer to an external owner.</p></div><button class="btn" id="tr">Manage</button></div>'}
 function stShell(k){var ini=(S.name.match(/\b\w/g)||['S']).slice(0,3).join('').toUpperCase();
 return '<div class="stb"><div class="brand" style="padding:0">'+$('.brand').innerHTML+'</div><input id="ss" placeholder="Search settings" aria-label="Search settings"><span class="av">'+ini+'</span><b>'+esc(S.name)+'</b><button class="btn" data-r="home" aria-label="Close settings">\u2715</button></div>'
-+'<div class="stw"><div class="stn"><div style="display:flex;gap:10px;align-items:center;padding:8px"><span class="av">'+ini+'</span><div style="min-width:0"><b>'+esc(S.name)+'</b><div class="mu" style="font-size:12px;margin:0">'+slug()+'.sellora.app</div></div></div>'
++'<div class="stw"><div class="stn"><div style="display:flex;gap:10px;align-items:center;padding:8px"><span class="av">'+ini+'</span><div style="min-width:0"><b>'+esc(S.name)+'</b><div class="mu" style="font-size:12px;margin:0">'+slug()+'.vendom.app</div></div></div>'
 +SO.map(function(x){return '<a tabindex="0" data-r="s-'+x+'" class="'+(x===k?'on':'')+'">'+SEC[x][0]+'</a>'}).join('')
 +'<div style="border-top:1px solid var(--line);margin-top:8px;padding:10px 8px;display:flex;gap:10px;align-items:center"><span class="av" style="background:#12B886">MA</span><div style="min-width:0"><b style="font-size:13px">Store admin</b><div class="mu" style="font-size:12px;margin:0;overflow:hidden;text-overflow:ellipsis">'+esc(S.email)+'</div><button class="lnk" id="so2">Sign out</button></div></div></div>'
 +'<div class="stc">'+(k==='general'?secG():sec(k))+'</div></div>'}
@@ -468,14 +470,14 @@ function route(){if(!U){authGate();return}document.body.classList.remove('locked
 if(r.slice(0,2)==='s-'){var k=r.slice(2);if(!SEC[k])k='general';document.body.classList.add('st');$('#main').innerHTML=stShell(k);bind(r);bind2(k);bind4();scrollTo(0,y)}
 else{document.body.classList.remove('st');if(!V[r])r='home';nav(r);$('#main').innerHTML=V[r]();bind(r);bind3()}fit()}
 /* ---- v5: plan details and change plan ---- */
-var PL=[{n:'Starter',who:'For solo entrepreneurs',m:25,y:22,f:['Online store with 12 free themes','Unlimited products','Sellora Pay checkout','AI product descriptions','1 staff account']},{n:'Growth',who:'For small teams',m:65,y:58,f:['Everything in Starter','Up to 5 staff accounts','Abandoned checkout recovery','Multi-language storefront']},{n:'Scale',who:'For global reach',m:199,y:179,f:['Everything in Growth','Up to 15 staff accounts','Lower transaction fees','Advanced reports']},{n:'Enterprise',who:'For complex businesses',m:0,y:0,f:['Everything in Scale','Unlimited staff accounts','24/7 priority support','Custom analytics and API limits']}];
+var PL=[{n:'Starter',who:'For solo entrepreneurs',m:25,y:22,f:['Online store with 12 free themes','Unlimited products','VendOm Pay checkout','AI product descriptions','1 staff account']},{n:'Growth',who:'For small teams',m:65,y:58,f:['Everything in Starter','Up to 5 staff accounts','Abandoned checkout recovery','Multi-language storefront']},{n:'Scale',who:'For global reach',m:199,y:179,f:['Everything in Growth','Up to 15 staff accounts','Lower transaction fees','Advanced reports']},{n:'Enterprise',who:'For complex businesses',m:0,y:0,f:['Everything in Scale','Unlimited staff accounts','24/7 priority support','Custom analytics and API limits']}];
 var CMP=['Pricing',['Pay monthly','$25 USD/mo','$65 USD/mo','$199 USD/mo','Custom'],['Pay yearly','$22 USD/mo','$58 USD/mo','$179 USD/mo','\u2014'],
 'Core features',['Online store','Full-featured','Full-featured','Full-featured','Full-featured'],['Themes and templates',true,true,true,true],['Unlimited products',true,true,true,true],['Staff accounts','1','5','15','Unlimited'],['Inventory locations','3','10','25','Unlimited'],['Reports','Basic','Standard','Advanced','Custom analytics'],['Support','Email','Live chat','Priority chat','24/7 priority'],
 'Hosting',['Unlimited web hosting',true,true,true,true],['Custom domain name',true,true,true,true],['Free SSL certificate',true,true,true,true],
 'AI features',['AI product descriptions',true,true,true,true],['AI store builder',false,true,true,true],['AI store assistant','Basic','Standard','Advanced','Advanced'],
 'Marketing',['Email campaigns',true,true,true,true],['Discount codes',true,true,true,true],['Abandoned checkout recovery',false,true,true,true],['Gift cards',false,true,true,true],
 'Sell globally',['Multi-currency prices',true,true,true,true],['Translated storefront','1 language','3 languages','10 languages','Unlimited'],['Local payment methods',true,true,true,true],['Local domains',false,true,true,true],
-'Payments',['Transaction fee','2.0%','1.8%','1.5%','Custom'],['Sellora Pay checkout',true,true,true,true],['Payouts to local banks and wallets',true,true,true,true],
+'Payments',['Transaction fee','2.0%','1.8%','1.5%','Custom'],['VendOm Pay checkout',true,true,true,true],['Payouts to local banks and wallets',true,true,true,true],
 'Customization',['Custom apps and API','Limited','Full','Full','Full, higher limits'],['Headless storefronts',false,'1','3','25']];
 function fd(ms){return new Date(ms).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
 function stbar(){var ini=(S.name.match(/\b\w/g)||['S']).slice(0,3).join('').toUpperCase();return '<div class="stb"><div class="brand" style="padding:0">'+$('.brand').innerHTML+'</div><span style="flex:1"></span><span class="av">'+ini+'</span><b>'+esc(S.name)+'</b><button class="btn" data-r="home" aria-label="Close">\u2715</button></div>'}
@@ -637,7 +639,7 @@ document.addEventListener('input',ckEv);document.addEventListener('change',ckEv)
 document.addEventListener('click',function(e){var b=e.target.closest('[data-ca]');if(b)ckAct(b.dataset.ca)});
 /* ---- v9: customer accounts ---- */
 function secAcc(){var o=so('accounts'),g=function(k,d){return o[k]===undefined?d:o[k]},tg=function(k,d,l){return '<input type="checkbox" class="tg" role="switch" data-k="'+k+'" aria-label="'+l+'"'+(g(k,d)?' checked':'')+'>'},
-ar=function(t,d,c){return '<div class="ar"><div class="grow"><b>'+t+'</b><small>'+d+'</small></div>'+c+'</div>'},url='https://'+slug()+'.sellora.app/'+g('path','account');
+ar=function(t,d,c){return '<div class="ar"><div class="grow"><b>'+t+'</b><small>'+d+'</small></div>'+c+'</div>'},url='https://'+slug()+'.vendom.app/'+g('path','account');
 return '<div class="top"><h1>Customer accounts</h1></div>'
 +'<div class="panel"><h3>Sign-in links</h3><div class="ab">'+ar('Show sign-in links','Show sign-in links in the header of your online store and at checkout',tg('signin',true,'Show sign-in links'))+'</div></div>'
 +'<div class="panel"><h3>Customer accounts</h3><div class="ab">'+ar('Configurations','Configure branding and features for checkout and customer accounts','<button class="btn" data-aa="cfg">Customize</button>')+'</div><div class="ab">'+ar('Authentication','Manage sign-in methods and account access','<button class="btn" data-aa="auth">Manage</button>')
@@ -654,7 +656,7 @@ else if(a==='auth'){openM('<h2>Authentication</h2><label for="a1">Customer accou
 sv(function(){var m=$('#a1').value;if(m!=='Disabled'&&!$('#a2').checked&&!$('#a3').checked){$('#ae2').textContent='Turn on at least one sign-in method.';return false}o.acct=m;o.authOtp=$('#a2').checked;o.authPw=$('#a3').checked;o.authVer=$('#a4').checked;o.invite=$('#a5').checked})}
 else if(a==='rules'){openM('<h2>Return and cancellation rules</h2><p class="mu">These apply when self-serve returns and cancellations are turned on.</p><label for="a1">Return window (days)</label><input id="a1" type="number" min="0" max="365" value="'+g('retDays',30)+'"><label for="a2">Return fee (% of item price)</label><input id="a2" type="number" min="0" max="100" value="'+g('retFee',0)+'">'+ck('a3','Let customers cancel before the order is fulfilled',g('canc',true))+bt);
 sv(function(){o.retDays=Math.min(365,Math.max(0,+$('#a1').value||0));o.retFee=Math.min(100,Math.max(0,+$('#a2').value||0));o.canc=$('#a3').checked})}
-else if(a==='url'){var base='https://'+slug()+'.sellora.app/';openM('<h2>Account URL</h2><label for="a1">Page address</label><div style="display:flex;gap:6px;align-items:center"><span class="mu" style="margin:0;white-space:nowrap;font-size:13px">'+esc(base)+'</span><input id="a1" value="'+esc(g('path','account'))+'"></div><div class="acts" style="justify-content:flex-start"><button class="btn" id="a9">Copy URL</button></div>'+bt);
+else if(a==='url'){var base='https://'+slug()+'.vendom.app/';openM('<h2>Account URL</h2><label for="a1">Page address</label><div style="display:flex;gap:6px;align-items:center"><span class="mu" style="margin:0;white-space:nowrap;font-size:13px">'+esc(base)+'</span><input id="a1" value="'+esc(g('path','account'))+'"></div><div class="acts" style="justify-content:flex-start"><button class="btn" id="a9">Copy URL</button></div>'+bt);
 $('#a9').onclick=function(){var u=base+($('#a1').value.trim()||'account');try{navigator.clipboard.writeText(u).then(function(){toast('URL copied')},function(){toast(u)})}catch(e){toast(u)}};
 sv(function(){o.path=$('#a1').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'')||'account'})}}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-aa]');if(b)accModal(b.dataset.aa)});
@@ -724,7 +726,7 @@ return '<div class="wrap"><table><tr><th>Region</th><th>Collecting</th><th>Tax s
 function secTax(){var o=so('taxes'),g=function(k){return !!o[k]},txs=S.txs=S.txs||{on:true,def:'M'},dt=S.dut=S.dut||{on:false,terms:'DDP'},cu=S.cus=S.cus||{coo:'',hs:''},n=S.products.length,
 tg=function(k,l){return '<input type="checkbox" class="tg" role="switch" data-k="'+k+'" aria-label="'+l+'"'+(g(k)?' checked':'')+'>'},ar=function(t,d,c){return '<div class="ar"><div class="grow"><b>'+t+'</b><small>'+d+'</small></div>'+c+'</div>'},ii=function(t){return ' <span class="ii" title="'+t+'" aria-label="'+t+'">\u24d8</span>'};
 return '<div class="top"><h1>Taxes and duties</h1></div>'
-+'<div class="panel"><div class="top" style="margin-bottom:10px"><h3>Tax service</h3><button class="btn" data-tx="manage">Manage</button></div><div class="ab"><div class="ar"><b>Sellora tax service</b><span class="tag '+(txs.on?'ok':'warn')+'">'+(txs.on?'Active':'Paused')+'</span></div></div></div>'
++'<div class="panel"><div class="top" style="margin-bottom:10px"><h3>Tax service</h3><button class="btn" data-tx="manage">Manage</button></div><div class="ab"><div class="ar"><b>VendOm tax service</b><span class="tag '+(txs.on?'ok':'warn')+'">'+(txs.on?'Active':'Paused')+'</span></div></div></div>'
 +'<div class="panel"><div class="top" style="margin-bottom:4px"><h3>Tax regions'+ii('The regions where you collect and remit tax')+'</h3><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-tx="all">Add all countries</button><button class="btn pri" data-tx="add">Add region</button></span></div><p class="mu">Where you collect and remit tax from customers. Add or remove regions below, or set up a <button class="lnk" data-r="s-shipping">shipping zone</button>.</p>'
 +'<div class="ab"><div class="tools" style="padding:10px 12px;margin:0"><input id="tq" placeholder="Search regions" aria-label="Search regions" value="'+esc(S.tq||'')+'"><span style="flex:1"></span><button class="btn" data-tx="sort">'+(S.tso==='desc'?'Z\u2013A':'A\u2013Z')+'</button></div><div id="tt">'+txTable()+'</div></div>'
 +'<p class="hlp">Default rates are typical standard rates and can differ by product or state. Check current rates before you start collecting.</p><div class="ab"><button class="ar" data-tx="rep"><span class="grow"><b>Global collected tax report</b></span><span>\u203a</span></button></div></div>'
@@ -732,7 +734,7 @@ return '<div class="top"><h1>Taxes and duties</h1></div>'
 +'<div class="panel"><div class="top" style="margin-bottom:8px"><h3>Customs information</h3><button class="btn" data-tx="cus" aria-label="Edit customs defaults">\u2026</button></div><div class="ab"><button class="ar" data-tx="cus"><span class="grow"><b>Country of origin</b><small>Included in '+(cu.coo?n:0)+' out of '+n+' products \u00b7 '+(cu.coo?'Default: '+esc(cu.coo):'No default set')+'</small></span></button><button class="ar" data-tx="cus"><span class="grow"><b>Harmonized System (HS) codes</b><small>Included in '+(cu.hs?n:0)+' out of '+n+' products'+(cu.hs?' \u00b7 Default: '+esc(cu.hs):'')+'</small></span></button></div></div>'
 +'<div class="panel"><h3>Additional configuration</h3><div class="ab">'+ar('Include sales tax in product price and shipping rate','Prices you enter already include sales tax, which is worked out from each region\u2019s rate.',tg('tIncl','Include sales tax in product price and shipping rate'))+ar('Charge sales tax on shipping','Applies the region\u2019s tax rate to shipping charges.',tg('tShip','Charge sales tax on shipping'))+ar('Charge VAT on digital goods','VAT is charged at checkout for digital products sold to European customers.',tg('tVat','Charge VAT on digital goods'))+'</div></div><p class="cen mu"><button class="lnk" data-tx="learn">Learn more about sales tax</button></p>'}
 var SC6=sec;sec=function(k){return k==='taxes'?secTax():SC6(k)};
-function txManage(){var t=S.txs;openM('<h2>Tax service</h2>'+ckb('x1','Use Sellora tax service',t.on)+'<label for="x2">Default service for new regions</label><select id="x2">'+svo(t.def,'MA')+'</select><p class="hlp">Manual: you set the rate. Basic: the standard national rate. Auto: calculated for you by region.</p>'+mbtn());msv(function(){t.on=$('#x1').checked;t.def=$('#x2').value})}
+function txManage(){var t=S.txs;openM('<h2>Tax service</h2>'+ckb('x1','Use VendOm tax service',t.on)+'<label for="x2">Default service for new regions</label><select id="x2">'+svo(t.def,'MA')+'</select><p class="hlp">Manual: you set the rate. Basic: the standard national rate. Auto: calculated for you by region.</p>'+mbtn());msv(function(){t.on=$('#x1').checked;t.def=$('#x2').value})}
 function txAdd(){var have=txr().map(function(r){return r.n}),op=CAT.filter(function(c){return have.indexOf(c.n)<0});
 openM('<h2>Add tax region</h2><label for="a1">Region</label><select id="a1">'+op.map(function(c){return '<option value="'+esc(c.n)+'">'+flag(c.cc)+' '+esc(c.n)+'</option>'}).join('')+'<option value="__o">Another country\u2026</option></select><div id="ao" style="display:none"><label for="a2">Country name</label><input id="a2" maxlength="40"><label for="a3">Tax rate (%)</label><input id="a3" type="number" min="0" max="100" step="0.1"></div><p class="hlp">Countries on the list start with their usual tax service and rate. You can change both after adding.</p>'+mbtn());
 $('#a1').onchange=function(){$('#ao').style.display=this.value==='__o'?'':'none'};
@@ -951,7 +953,7 @@ var a=(d.ck||d.od).split(':'),c=so('cookie'),od=so('optout');
 if(d.ck){if(a[0]==='view')cbView();else if(a[0]==='more')resetM('cookie','cookie banner settings');else if(a[0]==='text')cbText();else if(a[0]==='tab'){S.cbTab=a[1];route()}else if(a[0]==='pos'){c.cbPos=a[1];route()}else if(a[0]==='regs')pickR('Cookie banner regions',ALLC,c.cbReg||EUR,function(r){c.cbReg=r})}
 else{if(a[0]==='view')optView();else if(a[0]==='more')resetM('optout','opt-out page settings');else if(a[0]==='content')optContent();else if(a[0]==='regs')pickR('Opt-out regions',US50,od.reg||US15,function(r){od.reg=r})}});
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.nt&&e.target.dataset.nt!=='tpl')ntM(e.target.dataset.nt)});
-/* ---- v16: storefront cart and Sellora Pay ---- */
+/* ---- v16: storefront cart and VendOm Pay ---- */
 var CART=[],CS={},spLogo='<svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="11" width="22" height="17" rx="5" fill="#1a1200"/><path d="M11 12V9.5a5 5 0 0 1 10 0V12" fill="none" stroke="#1a1200" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function net(){DB.net=DB.net||{users:{},dev:null};return DB.net}
 function findU(c){var n=net(),e=c.indexOf('@')>-1?c.trim().toLowerCase():'',p=c.replace(/\D/g,'');for(var id in n.users){var u=n.users[id];if((e&&u.email===e)||(!e&&p.length>=7&&u.phone===p))return u}return null}
@@ -962,7 +964,7 @@ function cartSub(){return CART.reduce(function(a,c){var p=prod(c.id);return a+(p
 function cartUI(){var n=CART.reduce(function(a,c){return a+c.q},0);document.querySelectorAll('.cartb').forEach(function(e){e.textContent='Cart ('+n+')'})}
 /* merged: cartAdd superseded by later definition */
 /* merged: shop superseded by later definition */
-function cartM(){var sub=cartSub(),o=so('payments');openM('<h2>Your cart</h2>'+(CART.length?CART.map(function(c){var p=prod(c.id);return '<div class="gw"><div><b>'+esc(p.name)+'</b><small>'+money(p.price)+' each</small></div><span style="display:flex;gap:6px;align-items:center"><button class="btn" data-cq="'+c.id+':-1" aria-label="Fewer">\u2212</button>'+c.q+'<button class="btn" data-cq="'+c.id+':1" aria-label="More">+</button></span></div>'}).join('')+'<div class="gw"><b>Subtotal</b><b>'+money(sub)+'</b></div><p class="hlp">Shipping and taxes are worked out at checkout.</p>'+(spOn()&&o.spCart!==false?'<button class="spb" style="--spc:'+(o.spColor||'#F2A900')+'" data-sp="express">'+spLogo+' Sellora Pay</button>':'')+'<button class="btn pri" data-sp="checkout" style="width:100%;margin-top:8px">Checkout</button>':'<p class="mu">Your cart is empty.</p>')+'<div class="acts"><button class="btn" id="m0">Keep shopping</button></div>');$('#m0').onclick=closeM}
+function cartM(){var sub=cartSub(),o=so('payments');openM('<h2>Your cart</h2>'+(CART.length?CART.map(function(c){var p=prod(c.id);return '<div class="gw"><div><b>'+esc(p.name)+'</b><small>'+money(p.price)+' each</small></div><span style="display:flex;gap:6px;align-items:center"><button class="btn" data-cq="'+c.id+':-1" aria-label="Fewer">\u2212</button>'+c.q+'<button class="btn" data-cq="'+c.id+':1" aria-label="More">+</button></span></div>'}).join('')+'<div class="gw"><b>Subtotal</b><b>'+money(sub)+'</b></div><p class="hlp">Shipping and taxes are worked out at checkout.</p>'+(spOn()&&o.spCart!==false?'<button class="spb" style="--spc:'+(o.spColor||'#F2A900')+'" data-sp="express">'+spLogo+' VendOm Pay</button>':'')+'<button class="btn pri" data-sp="checkout" style="width:100%;margin-top:8px">Checkout</button>':'<p class="mu">Your cart is empty.</p>')+'<div class="acts"><button class="btn" id="m0">Keep shopping</button></div>');$('#m0').onclick=closeM}
 function tplF(c){var T=S.ctpl||{};return T[c]||T.Default||mkT(CT[c]?c:'Default')}
 function ctry(){return CS.country||S.country}
 function shipOpts(){var o=so('shipping'),c=ctry(),sub=cartSub(),L=shipRates().map(function(r){return{n:r.name,p:(o.free&&sub>=+o.free)?0:(+r.price||0)}});if(o.ldOn)L.push({n:'Local delivery',p:+o.ldFee||0});if(o.puOn)L.push({n:'Pickup in store',p:0});
@@ -977,14 +979,14 @@ function chkOpen(ex){if(!CART.length){toast('Your cart is empty');return}closeM(
 function prefill(u){CS.country=ALLC.indexOf(u.country)>-1?u.country:CS.country;CS.vals=Object.assign({},u.vals);CS.card=u.cards.length?u.cards[0].id:'new'}
 function payHtml(u,reqsi){var cs=u?u.cards:[],h='';if(cs.length){h+=cs.map(function(k){return '<label class="ro"><input type="radio" name="pc" data-cs="card" value="'+k.id+'"'+(String(CS.card)===String(k.id)?' checked':'')+'><span class="cb">'+esc(k.brand)+'</span> \u2022\u2022\u2022\u2022 '+k.last4+' \u00b7 Expires '+k.exp+'</label>'}).join('')+'<label class="ro"><input type="radio" name="pc" data-cs="card" value="new"'+(CS.card==='new'?' checked':'')+'>Use a new card</label>'}
 if(CS.card==='new'||!cs.length){h+='<div class="ckg"><div class="pf full"><label>Name on card<input id="pk1" autocomplete="cc-name"></label></div><div class="pf full"><label>Card number<input id="pk2" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456"></label></div><div class="pf"><label>Expiry (MM/YY)<input id="pk3" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY"></label></div><div class="pf"><label>Security code<input id="pk4" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4"></label></div></div><p class="hlp">Demo: 4242 4242 4242 4242 pays. 4000 0000 0000 0002 is declined.</p>';
-if(spOn())h+='<label class="ro" style="align-items:flex-start"><input type="checkbox" data-cs="save"'+((CS.save||reqsi)?' checked':'')+(reqsi?' disabled':'')+'><span><b>Save my information with Sellora Pay</b>'+(reqsi?' (required by this store)':'')+'<small class="mu" style="display:block;margin:0">Next time, confirm with a one-time code and pay in one tap. Only the card type, last 4 digits and expiry are kept, never the full number.</small></span></label>'}
+if(spOn())h+='<label class="ro" style="align-items:flex-start"><input type="checkbox" data-cs="save"'+((CS.save||reqsi)?' checked':'')+(reqsi?' disabled':'')+'><span><b>Save my information with VendOm Pay</b>'+(reqsi?' (required by this store)':'')+'<small class="mu" style="display:block;margin:0">Next time, confirm with a one-time code and pay in one tap. Only the card type, last 4 digits and expiry are kept, never the full number.</small></span></label>'}
 return h}
 function chk(){var c=CS,o=so('checkout'),g=function(k,d){return o[k]===undefined?d:o[k]},ct=o.ckT||{},u=c.user,left='',rules=(o.rules||[]).filter(function(r){return r.on}),age=rules.filter(function(r){return r.t==='Age verification'})[0];
-if(c.stage==='contact')left='<h2>'+(ct.contact||'Contact')+'</h2>'+(spOn()?'<div class="spv">Shop faster with <b>Sellora Pay</b>. If you have saved details, we will recognise you after a one-time code.</div>':'')+'<label>'+(g('cm','Email')==='Email'?'Email address':'Phone number or email')+'<input id="cct" autocomplete="email" value="'+esc(c.contact)+'"></label><p class="err" id="cer" role="alert"></p><button class="btn pri" data-sp="cont" style="width:100%">Continue</button>';
+if(c.stage==='contact')left='<h2>'+(ct.contact||'Contact')+'</h2>'+(spOn()?'<div class="spv">Shop faster with <b>VendOm Pay</b>. If you have saved details, we will recognise you after a one-time code.</div>':'')+'<label>'+(g('cm','Email')==='Email'?'Email address':'Phone number or email')+'<input id="cct" autocomplete="email" value="'+esc(c.contact)+'"></label><p class="err" id="cer" role="alert"></p><button class="btn pri" data-sp="cont" style="width:100%">Continue</button>';
 else if(c.stage==='otp')left='<h2>Enter your code</h2><p class="mu">We sent a 6-digit code to <b>'+esc(mask(c.contact))+'</b>.</p><div class="bn"><span>Demo: your code is <b>'+c.code+'</b>. In a live store it arrives by SMS, WhatsApp or email.</span></div><label>Code<input id="cot" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label><p class="err" id="cer" role="alert"></p><button class="btn pri" data-sp="verify" style="width:100%">Verify</button><p class="hlp"><button class="lnk" data-sp="resend">Resend code</button> \u00b7 <button class="lnk" data-sp="other">Use a different email or phone</button></p>';
-else if(c.stage==='device')left='<h2>Welcome back, '+esc((u.name||'').split(' ')[0]||'shopper')+'</h2><p class="mu">Sellora Pay recognised this device.</p><button class="btn pri" data-sp="dev" style="width:100%">Confirm with this device</button><p class="hlp">In a live store this is a passkey, so you confirm with Face ID or your fingerprint.</p><button class="lnk" data-sp="other">Use a different account</button>';
+else if(c.stage==='device')left='<h2>Welcome back, '+esc((u.name||'').split(' ')[0]||'shopper')+'</h2><p class="mu">VendOm Pay recognised this device.</p><button class="btn pri" data-sp="dev" style="width:100%">Confirm with this device</button><p class="hlp">In a live store this is a passkey, so you confirm with Face ID or your fingerprint.</p><button class="lnk" data-sp="other">Use a different account</button>';
 else{var L=tplF(ctry()),op=shipOpts();if(!op.some(function(x){return x.n===c.ship}))c.ship=op[0]?op[0].n:'';
-left='<h2>Checkout</h2>'+(u?'<div class="spv">\u2713 Signed in with Sellora Pay as <b>'+esc(mask(u.email||u.phone||''))+'</b> \u00b7 <button class="lnk" data-sp="other">Not you?</button></div>':'<div class="spv" style="background:var(--bg)"><b>'+esc(c.contact)+'</b> \u00b7 <button class="lnk" data-sp="other">Change</button></div>')
+left='<h2>Checkout</h2>'+(u?'<div class="spv">\u2713 Signed in with VendOm Pay as <b>'+esc(mask(u.email||u.phone||''))+'</b> \u00b7 <button class="lnk" data-sp="other">Not you?</button></div>':'<div class="spv" style="background:var(--bg)"><b>'+esc(c.contact)+'</b> \u00b7 <button class="lnk" data-sp="other">Change</button></div>')
 +'<h3>'+(ct.delivery||'Delivery')+'</h3><label>Country or region<select id="ckc">'+ALLC.map(function(x){return '<option'+(x===ctry()?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label><div class="ckg">'+L.map(function(f,i){var v=c.vals[f.l]||'',half=i<2&&/name/i.test(f.l),inp=f.t==='textarea'?'<textarea rows="2" data-fi="'+i+'">'+esc(v)+'</textarea>':f.t==='select'?'<select data-fi="'+i+'"><option value="">Select</option>'+(f.o||[]).map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select>':'<input data-fi="'+i+'" type="'+f.t+'" value="'+esc(v)+'">';return '<div class="pf'+(half?'':' full')+'"><label>'+esc(f.l)+(f.r?'':' (optional)')+inp+'</label></div>'}).join('')+'</div>'
 +'<h3>Delivery method</h3>'+(op.length?op.map(function(x){return '<label class="ro"><input type="radio" name="sm" data-cs="ship" value="'+esc(x.n)+'"'+(x.n===c.ship?' checked':'')+'>'+esc(x.n)+' \u00b7 '+(x.p?money(x.p):'Free')+'</label>'}).join(''):'<p class="mu">No delivery methods are available for this country.</p>')
 +(g('cinNt','Show')==='Show'?'<label>Order notes (optional)<textarea rows="2" data-cs="notes"></textarea></label>':'')
@@ -993,7 +995,7 @@ left='<h2>Checkout</h2>'+(u?'<div class="spv">\u2713 Signed in with Sellora Pay 
 +(g('mkE','Checkout and sign-in')!=="Don\u2019t show"?'<label class="ro"><input type="checkbox" data-cs="mk"'+(c.mk?' checked':'')+'>'+esc(g('mkEt','Email me with news and offers'))+'</label>':'')
 +(age?'<label class="ro"><input type="checkbox" data-cs="age">I confirm I am at least '+age.v+' years old</label>':'')
 +'<p class="err" id="cer" role="alert"></p><button class="btn pri" id="cpay" data-sp="pay" style="width:100%;padding:12px">'+payLbl()+'</button>'}
-var sm=sumHtml();ovOpen('<div class="ovt"><button class="btn" data-sp="close">\u2190 Back to store</button><b>Checkout</b><span></span><span class="mu" style="margin:0">Sellora Pay</span></div><div class="ovb"><div class="cko"><div class="ckl">'+left+'</div><div class="ckr" id="cks">'+sm+'</div></div></div>');if(c.stage==='form')sumUpd()}
+var sm=sumHtml();ovOpen('<div class="ovt"><button class="btn" data-sp="close">\u2190 Back to store</button><b>Checkout</b><span></span><span class="mu" style="margin:0">VendOm Pay</span></div><div class="ovb"><div class="cko"><div class="ckl">'+left+'</div><div class="ckr" id="cks">'+sm+'</div></div></div>');if(c.stage==='form')sumUpd()}
 function sendOtp(){CS.code=String(Math.floor(100000+Math.random()*900000));CS.tries=0;CS.stage='otp';chk()}
 function contC(){var v=($('#cct').value||'').trim(),o=so('checkout'),er=function(t){$('#cer').textContent=t},em=v.indexOf('@')>-1,ok=em?/^\S+@\S+\.\S+$/.test(v):(o.cm==='Phone number or email'&&v.replace(/\D/g,'').length>=7);
 if(!ok){er(o.cm==='Phone number or email'?'Enter a valid email or phone number.':'Enter a valid email address.');return}CS.contact=v;var u=spOn()?findU(v):null;if(u){CS.found=u;sendOtp();return}
@@ -1009,12 +1011,12 @@ if(!saved){var nm=$('#pk1').value.trim(),num=$('#pk2').value.replace(/\D/g,''),e
 var save=spOn()&&!!(o.reqsi||CS.save);if(save&&!u&&!phoneVal(L)){er('Add a mobile number so we can send you a code next time.');return}
 var b=$('#cpay');b.disabled=true;b.textContent='Processing\u2026';setTimeout(function(){if(nc&&nc.decline){b.disabled=false;sumUpd();er('Your card was declined. Try another card.');return}finishOrder(nc,save)},900)}
 function finishOrder(nc,save){var L=tplF(ctry()),first='',last='',em='',ph='';L.forEach(function(f){var v=(CS.vals[f.l]||'').trim();if(/first name/i.test(f.l))first=v;else if(/last name/i.test(f.l))last=v;if(f.t==='email'&&!em)em=v;if(f.t==='tel'&&!ph)ph=v.replace(/\D/g,'')});
-var who=(first+' '+last).trim()||em,sp=!!CS.user||save,o={id:S.oid++,who:who,total:CS.total,st:'Paid',gw:sp?'Sellora Pay':'Card',email:em,ship:{country:ctry(),method:CS.ship,vals:Object.assign({},CS.vals),notes:CS.notes||''},items:CART.map(function(c){return{id:c.id,q:c.q}}),at:Date.now()};
+var who=(first+' '+last).trim()||em,sp=!!CS.user||save,o={id:S.oid++,who:who,total:CS.total,st:'Paid',gw:sp?'VendOm Pay':'Card',email:em,ship:{country:ctry(),method:CS.ship,vals:Object.assign({},CS.vals),notes:CS.notes||''},items:CART.map(function(c){return{id:c.id,q:c.q}}),at:Date.now()};
 CART.forEach(function(c){var p=prod(c.id);if(p)p.stock=Math.max(0,p.stock-c.q)});S.orders.push(o);
 if(save){var n=net(),u=CS.user||findU(em)||findU(ph);if(!u){u={id:uid(),created:Date.now(),cards:[]};n.users[u.id]=u}u.email=em?em.toLowerCase():u.email;u.phone=ph||u.phone||(CS.contact.indexOf('@')<0?CS.contact.replace(/\D/g,''):'');u.name=who;u.country=ctry();u.vals=Object.assign({},CS.vals);if(nc&&!u.cards.some(function(k){return k.last4===nc.last4&&k.exp===nc.exp}))u.cards.push({id:uid(),brand:nc.brand,last4:nc.last4,exp:nc.exp,name:nc.name});if(so('payments').spDev!==false)n.dev=u.id}
 else if(CS.user){CS.user.vals=Object.assign({},CS.vals);CS.user.country=ctry()}
 persist();var tot=CS.total;CART=[];
-ovOpen('<div class="ovt"><b>Order confirmed</b><span></span><button class="btn" data-sp="done">Continue shopping</button></div><div class="ovb"><div class="cko" style="grid-template-columns:1fr;max-width:560px;text-align:center"><div class="panel"><h2>Thank you, '+esc(first||who)+'!</h2><p>Order <b>'+esc((S.pre===undefined?'#':S.pre)+o.id+(S.suf||''))+'</b> is confirmed. A receipt goes to '+esc(em)+'.</p><p class="mu">Paid '+money(tot)+' with '+(sp?'Sellora Pay':'your card')+(save?'. Your details are saved with Sellora Pay for next time.':'.')+'</p></div></div></div>');route()}
+ovOpen('<div class="ovt"><b>Order confirmed</b><span></span><button class="btn" data-sp="done">Continue shopping</button></div><div class="ovb"><div class="cko" style="grid-template-columns:1fr;max-width:560px;text-align:center"><div class="panel"><h2>Thank you, '+esc(first||who)+'!</h2><p>Order <b>'+esc((S.pre===undefined?'#':S.pre)+o.id+(S.suf||''))+'</b> is confirmed. A receipt goes to '+esc(em)+'.</p><p class="mu">Paid '+money(tot)+' with '+(sp?'VendOm Pay':'your card')+(save?'. Your details are saved with VendOm Pay for next time.':'.')+'</p></div></div></div>');route()}
 function spAct(a){if(a==='express')chkOpen(true);else if(a==='checkout')chkOpen(false);else if(a==='close'||a==='done')shop();else if(a==='shop')shop();else if(a==='cont')contC();else if(a==='verify')verC();else if(a==='resend'){sendOtp();toast('New code sent')}
 else if(a==='dev'){prefill(CS.user);CS.stage='form';chk()}else if(a==='other'){CS.stage='contact';CS.user=null;CS.found=null;chk()}else if(a==='pay')payNow()}
 document.addEventListener('click',function(e){var t=e.target,sh=t.closest('#shp');if(sh){shopClick(t);return}
@@ -1024,9 +1026,9 @@ document.addEventListener('input',function(e){var t=e.target;if(!t.closest||!t.c
 document.addEventListener('change',function(e){var t=e.target;if(!t.closest||!t.closest('.cko'))return;var k=t.dataset.cs;if(t.id==='ckc'){CS.country=t.value;CS.ship='';chk();return}if(t.dataset.fi!==undefined){var f=tplF(ctry())[+t.dataset.fi];if(f)CS.vals[f.l]=t.value;return}
 if(k==='ship'){CS.ship=t.value;sumUpd()}else if(k==='card'){CS.card=t.value;chk()}else if(k==='save')CS.save=t.checked;else if(k==='tip'){CS.tip=+t.value;sumUpd()}else if(k==='mk')CS.mk=t.checked;else if(k==='age')CS.age=t.checked});
 /* admin side */
-function spPanel(){var o=so('payments'),g=function(k,d){return o[k]===undefined?d:o[k]},n=Object.keys(net().users).length,pc=S.orders.filter(function(x){return x.gw==='Sellora Pay'}).length,
+function spPanel(){var o=so('payments'),g=function(k,d){return o[k]===undefined?d:o[k]},n=Object.keys(net().users).length,pc=S.orders.filter(function(x){return x.gw==='VendOm Pay'}).length,
 tg=function(k,d,l,ds){return '<div class="ar"><div class="grow"><b>'+l+'</b><small>'+ds+'</small></div><input type="checkbox" class="tg" role="switch" data-k="'+k+'" aria-label="'+l+'"'+(g(k,d)?' checked':'')+'></div>'};
-return '<div class="panel"><div class="top" style="margin-bottom:6px"><h3>Sellora Pay <span class="tag '+(g('spOn',true)?'ok':'')+'">'+(g('spOn',true)?'On':'Off')+'</span></h3><button class="btn pri" data-sp="shop">Try it as a customer</button></div><p class="mu">One-tap checkout for returning shoppers: they enter a phone or email, confirm a one-time code, and their address and card load instantly.</p><div class="ab">'+tg('spOn',true,'Offer Sellora Pay at checkout','Shoppers can sign in with Sellora Pay and save their details')+tg('spCart',true,'Show the Sellora Pay button in the cart','The one-tap button above the normal checkout button')+tg('spDev',true,'Remember trusted devices','Returning shoppers confirm with their device instead of a code')+'<div class="ar"><div class="grow"><b>Button color</b></div><input type="color" data-k="spColor" aria-label="Button color" value="'+g('spColor','#F2A900')+'" style="width:60px;padding:2px"></div></div><div class="two" style="margin-top:12px"><div class="card"><b>'+n+'</b><span class="mu">Shoppers in the Sellora Pay network (this browser)</span></div><div class="card"><b>'+pc+'</b><span class="mu">Orders paid with Sellora Pay</span></div></div><p class="hlp">Payments are processed by Sellora Pay, and card numbers are never stored, only the type, last 4 digits and expiry. A live version needs a licensed payment partner and a card vault.</p></div>'}
+return '<div class="panel"><div class="top" style="margin-bottom:6px"><h3>VendOm Pay <span class="tag '+(g('spOn',true)?'ok':'')+'">'+(g('spOn',true)?'On':'Off')+'</span></h3><button class="btn pri" data-sp="shop">Try it as a customer</button></div><p class="mu">One-tap checkout for returning shoppers: they enter a phone or email, confirm a one-time code, and their address and card load instantly.</p><div class="ab">'+tg('spOn',true,'Offer VendOm Pay at checkout','Shoppers can sign in with VendOm Pay and save their details')+tg('spCart',true,'Show the VendOm Pay button in the cart','The one-tap button above the normal checkout button')+tg('spDev',true,'Remember trusted devices','Returning shoppers confirm with their device instead of a code')+'<div class="ar"><div class="grow"><b>Button color</b></div><input type="color" data-k="spColor" aria-label="Button color" value="'+g('spColor','#F2A900')+'" style="width:60px;padding:2px"></div></div><div class="two" style="margin-top:12px"><div class="card"><b>'+n+'</b><span class="mu">Shoppers in the VendOm Pay network (this browser)</span></div><div class="card"><b>'+pc+'</b><span class="mu">Orders paid with VendOm Pay</span></div></div><p class="hlp">Payments are processed by VendOm Pay, and card numbers are never stored, only the type, last 4 digits and expiry. A live version needs a licensed payment partner and a card vault.</p></div>'}
 var P0=V.payments;V.payments=function(){return P0().replace('<div class="panel"><h3>Payment gateways</h3>',spPanel()+'<div class="panel"><h3>Payment gateways</h3>')};
 var CH0=chrome;chrome=function(){CH0();var s=$('#so');if(s){s.insertAdjacentHTML('beforebegin','<button class="lnk" id="vs">View store</button> \u00b7 ');$('#vs').onclick=shop}};
 /* ---- v17: section-based theme editor and storefront pages ---- */
@@ -1048,13 +1050,13 @@ textbox:[['txt','Text','a','Add your text here.'],['ts','Text size','r',16,[11,2
 collection:[['n','Products to show','r',8,[1,24]],['cols','Columns','r',4,[1,6]],RT,['sort','Sort by','s','Newest',['Newest','Price: low to high','Price: high to low','Name A-Z']],['price','Show price','k',true],['atc','Show add to cart','k',true],BG,FG,PD(16)],
 pagecontent:[['txt','Text','a','Visit us or write to us any time. Our team replies within one business day.'],['det','Show contact details','k',true],['ts','Text size','r',16,[11,28]],AL('Center'),['w','Maximum width','r',700,[300,1100]],BG,FG,PD(24)],
 contactform:[['h','Heading','t','Get in touch'],['btn','Button text','t','Send message'],['phone','Ask for a phone number','k',true],['ok','Thank-you message','t','Thanks! We will reply soon.'],['bbg','Button color','c','','ac'],['bfg','Button text color','c','','bg'],BG,FG,PD(40)],
-prodinfo:[['lay','Layout','s','Image left',['Image left','Image right']],['imgw','Image width (%)','r',50,[30,70]],['hs','Title size','r',32,[16,64]],['desc','Show description','k',true],['stock','Show stock','k',true],['qty','Show quantity','k',true],['sp','Show Sellora Pay button','k',true],['btn','Button text','t','Add to cart'],['bbg','Button color','c','','ac'],['bfg','Button text color','c','','bg'],BG,FG,PD(40)],
+prodinfo:[['lay','Layout','s','Image left',['Image left','Image right']],['imgw','Image width (%)','r',50,[30,70]],['hs','Title size','r',32,[16,64]],['desc','Show description','k',true],['stock','Show stock','k',true],['qty','Show quantity','k',true],['sp','Show VendOm Pay button','k',true],['btn','Button text','t','Add to cart'],['bbg','Button color','c','','ac'],['bfg','Button text color','c','','bg'],BG,FG,PD(40)],
 recommended:[['h','Heading','t','You may also like'],['n','Products to show','r',4,[2,8]],['cols','Columns','r',4,[1,6]],RT,['price','Show price','k',true],['hs','Heading size','r',26,[14,60]],AL('Left'),BG,FG,PD(32)],
 footer:[['txt','About text','a','Thanks for visiting. We ship worldwide.'],['menu','Links (one per line)','a','Home\nCatalog\nContact'],['news','Show newsletter box','k',true],['nt','Newsletter heading','t','Join our newsletter'],['copy','Copyright text','t',''],['sz','Text size','r',14,[11,20]],BG,FG,PD(36,100)],
-utilities:[['txt','Bottom text','t','Powered by Sellora'],['cur','Show currency','k',true],['pay','Show payment methods','k',true],['soc','Social links (one name per line)','a',''],BG,FG,PD(18,80)],
-signin:[['title','Heading','t','Sign in or create account'],['btn','Button text','t','Sign in with Sellora Pay'],['bbg','Button color','c','','ac'],['bfg','Button text color','c','','bg'],['email','Show email field','k',true],['chk','Checkbox text','t','Email me with news and offers'],['acts','Show Orders and Profile buttons','k',true],BG,FG]};
+utilities:[['txt','Bottom text','t','Powered by VendOm'],['cur','Show currency','k',true],['pay','Show payment methods','k',true],['soc','Social links (one name per line)','a',''],BG,FG,PD(18,80)],
+signin:[['title','Heading','t','Sign in or create account'],['btn','Button text','t','Sign in with VendOm Pay'],['bbg','Button color','c','','ac'],['bfg','Button text color','c','','bg'],['email','Show email field','k',true],['chk','Checkbox text','t','Email me with news and offers'],['acts','Show Orders and Profile buttons','k',true],BG,FG]};
 var DFL={hdr:[['announce'],['logo'],['header']],ftr:[['footer'],['utilities']],
-home:[['heroM',{al:'Center',ht:480,sub:'Discover our latest products.'}],['text',{h:'Our story',txt:'Tell visitors who you are and what makes your products special.'}],['featured'],['heroB',{h:'New arrivals',sub:'Fresh picks, just in.',ht:380}],['divider'],['multicolumn',{h:'Why shop with us',c1t:'Fast delivery',c1x:'Quick, tracked shipping.',c2t:'Easy returns',c2x:'Simple returns on every order.',c3t:'Secure checkout',c3x:'Pay safely with Sellora Pay.'}],['divider'],['text',{h:'Questions? We are here to help',txt:'Reach out any time and our team will get back to you.',btn:'Contact us',link:'contact'}]],
+home:[['heroM',{al:'Center',ht:480,sub:'Discover our latest products.'}],['text',{h:'Our story',txt:'Tell visitors who you are and what makes your products special.'}],['featured'],['heroB',{h:'New arrivals',sub:'Fresh picks, just in.',ht:380}],['divider'],['multicolumn',{h:'Why shop with us',c1t:'Fast delivery',c1x:'Quick, tracked shipping.',c2t:'Easy returns',c2x:'Simple returns on every order.',c3t:'Secure checkout',c3x:'Pay safely with VendOm Pay.'}],['divider'],['text',{h:'Questions? We are here to help',txt:'Reach out any time and our team will get back to you.',btn:'Contact us',link:'contact'}]],
 catalog:[['heading',{h:'Products',sub:'Browse everything we sell'}],['text',{h:'Find your favorites',txt:'Use the grid below to explore.'}],['collection']],
 collection:[['heading',{h:'Collection',sub:'A hand-picked set'}],['textbox',{txt:'Everything in this collection ships fast.'}],['text',{h:'',txt:''}],['collection',{n:6}]],
 product:[['prodinfo'],['recommended'],['text',{h:'Shipping and returns',txt:'Free returns within 30 days. Ships in 1 to 3 business days.'}]],
@@ -1082,13 +1084,13 @@ collection:function(t,s){var L=acts(v(s,'sort')).slice(0,+v(s,'n'));return wrap(
 pagecontent:function(t,s){return wrap(s,'<div style="max-width:'+v(s,'w')+'px;margin:0 auto"><p style="font-size:'+v(s,'ts')+'px;white-space:pre-line">'+esc(v(s,'txt'))+'</p>'+(v(s,'det')?'<p>'+esc(S.email)+(S.phone?' \u00b7 '+esc(S.phone):'')+(S.addr?'<br>'+esc(S.addr):'')+'</p>':'')+'</div>')},
 contactform:function(t,s){return wrap(s,'<h2 style="margin:0 0 14px">'+esc(v(s,'h'))+'</h2><div class="cf" data-ok="'+esc(v(s,'ok'))+'"><input id="cfn" placeholder="Name" aria-label="Name"><input id="cfe" type="email" placeholder="Email" aria-label="Email">'+(v(s,'phone')?'<input id="cfp" type="tel" placeholder="Phone (optional)" aria-label="Phone">':'')+'<textarea id="cfm" rows="4" placeholder="Message" aria-label="Message"></textarea><button class="sb" type="button" data-act="cform" style="background:'+(v(s,'bbg')||'var(--a)')+';color:'+(v(s,'bfg')||'var(--b)')+';border:0;margin:0">'+esc(v(s,'btn'))+'</button><p class="cfm" role="status"></p></div>')},
 prodinfo:function(t,s,c){var p=(c.pid&&prod(c.pid))||acts()[0];if(!p)return wrap(s,'<p>Add a product to preview this page.</p>');var im=p.imgs||[],w=+v(s,'imgw'),left=v(s,'lay')==='Image left';
-return wrap(s,'<div class="pdp" style="grid-template-columns:'+(left?w+'fr '+(100-w)+'fr':(100-w)+'fr '+w+'fr')+'"><div style="order:'+(left?0:1)+'"><div class="pimg" style="'+(im[0]?'background-image:url('+im[0]+')':'')+'"></div><div class="thr">'+im.slice(1).map(function(u){return '<span style="background-image:url('+u+')"></span>'}).join('')+'</div></div><div style="text-align:left"><h1 style="font-size:'+v(s,'hs')+'px;margin:0 0 6px">'+esc(p.name)+'</h1><p style="font-size:22px;margin:0 0 10px">'+money(p.price)+'</p>'+(v(s,'stock')?'<p style="opacity:.7">'+(p.stock>0?(p.stock<=5?'Only '+p.stock+' left':'In stock'):'Sold out')+'</p>':'')+(v(s,'desc')&&p.desc?'<div class="pdesc">'+(p.dh?clean(p.dh):'<p style="white-space:pre-line">'+esc(p.desc)+'</p>')+'</div>':'')+(v(s,'qty')?'<label style="display:flex;gap:8px;align-items:center">Quantity<input id="pq" type="number" min="1" value="1" style="width:80px"></label>':'')+'<button class="sb" type="button" data-act="padd" data-pid="'+p.id+'" style="background:'+(v(s,'bbg')||'var(--a)')+';color:'+(v(s,'bfg')||'var(--b)')+';border:0;width:100%;margin-top:12px'+(p.stock<1?';opacity:.5':'')+'">'+esc(v(s,'btn'))+'</button>'+(v(s,'sp')&&spOn()?'<button class="spb" type="button" data-act="buy" data-pid="'+p.id+'" style="--spc:'+(so('payments').spColor||'#F2A900')+'">'+spLogo+' Buy with Sellora Pay</button>':'')+'</div></div>')},
+return wrap(s,'<div class="pdp" style="grid-template-columns:'+(left?w+'fr '+(100-w)+'fr':(100-w)+'fr '+w+'fr')+'"><div style="order:'+(left?0:1)+'"><div class="pimg" style="'+(im[0]?'background-image:url('+im[0]+')':'')+'"></div><div class="thr">'+im.slice(1).map(function(u){return '<span style="background-image:url('+u+')"></span>'}).join('')+'</div></div><div style="text-align:left"><h1 style="font-size:'+v(s,'hs')+'px;margin:0 0 6px">'+esc(p.name)+'</h1><p style="font-size:22px;margin:0 0 10px">'+money(p.price)+'</p>'+(v(s,'stock')?'<p style="opacity:.7">'+(p.stock>0?(p.stock<=5?'Only '+p.stock+' left':'In stock'):'Sold out')+'</p>':'')+(v(s,'desc')&&p.desc?'<div class="pdesc">'+(p.dh?clean(p.dh):'<p style="white-space:pre-line">'+esc(p.desc)+'</p>')+'</div>':'')+(v(s,'qty')?'<label style="display:flex;gap:8px;align-items:center">Quantity<input id="pq" type="number" min="1" value="1" style="width:80px"></label>':'')+'<button class="sb" type="button" data-act="padd" data-pid="'+p.id+'" style="background:'+(v(s,'bbg')||'var(--a)')+';color:'+(v(s,'bfg')||'var(--b)')+';border:0;width:100%;margin-top:12px'+(p.stock<1?';opacity:.5':'')+'">'+esc(v(s,'btn'))+'</button>'+(v(s,'sp')&&spOn()?'<button class="spb" type="button" data-act="buy" data-pid="'+p.id+'" style="--spc:'+(so('payments').spColor||'#F2A900')+'">'+spLogo+' Buy with VendOm Pay</button>':'')+'</div></div>')},
 recommended:function(t,s,c){var L=acts().filter(function(p){return p.id!==c.pid}).slice(0,+v(s,'n'));return wrap(s,'<h2 style="font-size:'+v(s,'hs')+'px;margin:0 0 14px">'+esc(v(s,'h'))+'</h2>'+(L.length?'<div class="pg2" style="grid-template-columns:repeat('+v(s,'cols')+',1fr)">'+L.map(function(p){return pcard(p,s)}).join('')+'</div>':'<p>More products will appear here.</p>'))},
 footer:function(t,s){return '<footer class="ft" data-sid="'+s.id+'" style="background:'+(v(s,'bg')||'transparent')+';color:'+(v(s,'fg')||'inherit')+';font-size:'+v(s,'sz')+'px;padding:'+v(s,'pad')+'px 40px"><div class="ftg"><div><b>'+esc(S.name)+'</b><p style="white-space:pre-line">'+esc(v(s,'txt'))+'</p></div><div>'+menu(v(s,'menu')).map(function(x){return '<a data-pg="'+x.pg+'" style="display:block;margin-bottom:6px;cursor:pointer">'+esc(x.n)+'</a>'}).join('')+'</div>'+(v(s,'news')?'<div><b>'+esc(v(s,'nt'))+'</b><div class="nl2"><input id="nle" type="email" placeholder="Email" aria-label="Email"><button class="sb" type="button" data-act="news" style="margin:0">Subscribe</button></div></div>':'')+'</div><p style="margin:18px 0 0;opacity:.7">'+esc(v(s,'copy')||'\u00a9 '+S.name)+'</p></footer>'},
-utilities:function(t,s){var so2=String(v(s,'soc')).split('\n').map(function(l){return l.split('|')[0].trim()}).filter(Boolean);return '<div class="ut" data-sid="'+s.id+'" style="background:'+(v(s,'bg')||'transparent')+';color:'+(v(s,'fg')||'inherit')+';padding:'+v(s,'pad')+'px 40px"><span>'+esc(v(s,'txt'))+'</span><span style="flex:1"></span>'+(v(s,'cur')?'<span>'+esc(S.cur)+'</span>':'')+so2.map(function(n){return '<span>'+esc(n)+'</span>'}).join('')+(v(s,'pay')?'<span class="pills"><i>Visa</i><i>Mastercard</i><i>Sellora Pay</i></span>':'')+'</div>'}};
+utilities:function(t,s){var so2=String(v(s,'soc')).split('\n').map(function(l){return l.split('|')[0].trim()}).filter(Boolean);return '<div class="ut" data-sid="'+s.id+'" style="background:'+(v(s,'bg')||'transparent')+';color:'+(v(s,'fg')||'inherit')+';padding:'+v(s,'pad')+'px 40px"><span>'+esc(v(s,'txt'))+'</span><span style="flex:1"></span>'+(v(s,'cur')?'<span>'+esc(S.cur)+'</span>':'')+so2.map(function(n){return '<span>'+esc(n)+'</span>'}).join('')+(v(s,'pay')?'<span class="pills"><i>Visa</i><i>Mastercard</i><i>VendOm Pay</i></span>':'')+'</div>'}};
 function sf(t,pg,pid){pg=pg||'home';initT(t);var ts=t.ts,ctx={pg:pg,pid:pid||(acts()[0]||{}).id},rd=function(a){return a.filter(function(s){return !s.hide}).map(function(s){var f=RN[s.type];return f?f(t,s,ctx):''}).join('')};
 return '<div class="sf'+(ts.bs==='Outline'?' bo':'')+'" style="--b:'+t.bg+';--t:'+t.tx+';--a:'+t.ac+';--r:'+t.rad+'px;font-size:'+(ts.fs||16)+'px;font-family:'+FN[t.font]+'">'+rd(t.hdr)+rd(t.pg[pg]||t.pg.home)+rd(t.ftr)+'</div>'}
-function popHtml(t){var o=t.so||{},g=function(k,d){return o[k]===undefined?d:o[k]};return '<div class="pop" style="background:'+(g('bg','')||t.bg)+';color:'+(g('fg','')||t.tx)+'"><h3 style="margin:0 0 12px">'+esc(g('title','Sign in or create account'))+'</h3><button class="spb" id="sgb" type="button" style="--spc:'+(g('bbg','')||t.ac)+';color:'+(g('bfg','')||t.bg)+';margin:0">'+esc(g('btn','Sign in with Sellora Pay'))+'</button>'+(g('email',true)?'<div class="pe">or<input id="sge" type="email" placeholder="Email" aria-label="Email"><button class="btn" id="sgg" type="button" aria-label="Continue">\u2192</button></div><label class="ro"><input type="checkbox">'+esc(g('chk','Email me with news and offers'))+'</label>':'')+(g('acts',true)?'<div class="two" style="margin-top:10px"><button class="btn" id="sgo2" type="button">Orders</button><button class="btn" id="sgp" type="button">Profile</button></div>':'')+'<p id="sgm" class="hlp" style="color:inherit;opacity:.8"></p></div>'}
+function popHtml(t){var o=t.so||{},g=function(k,d){return o[k]===undefined?d:o[k]};return '<div class="pop" style="background:'+(g('bg','')||t.bg)+';color:'+(g('fg','')||t.tx)+'"><h3 style="margin:0 0 12px">'+esc(g('title','Sign in or create account'))+'</h3><button class="spb" id="sgb" type="button" style="--spc:'+(g('bbg','')||t.ac)+';color:'+(g('bfg','')||t.bg)+';margin:0">'+esc(g('btn','Sign in with VendOm Pay'))+'</button>'+(g('email',true)?'<div class="pe">or<input id="sge" type="email" placeholder="Email" aria-label="Email"><button class="btn" id="sgg" type="button" aria-label="Continue">\u2192</button></div><label class="ro"><input type="checkbox">'+esc(g('chk','Email me with news and offers'))+'</label>':'')+(g('acts',true)?'<div class="two" style="margin-top:10px"><button class="btn" id="sgo2" type="button">Orders</button><button class="btn" id="sgp" type="button">Profile</button></div>':'')+'<p id="sgm" class="hlp" style="color:inherit;opacity:.8"></p></div>'}
 /* customer view */
 function shop(pg,pid){if(pg&&typeof pg==='object')pg='home';pg=pg||SP.pg||'home';SP.pg=pg;if(pid)SP.pid=pid;var t=live();initT(t);ovOpen('<div class="ovt"><b>'+esc(S.name)+' \u00b7 customer view</b><span>Try the store as a shopper</span><button class="btn" id="oc">Close</button></div><div class="ovb" id="shp">'+sf(t,pg,SP.pid)+'</div>');$('#oc').onclick=ovClose;cartUI();$('#shp').scrollTop=0}
 function shopClick(t){var x=t.closest('[data-act]'),c=t.closest('.cartb'),a=t.closest('.atc'),p=t.closest('.pc'),d=t.closest('[data-pg]');if(c){cartM();return}if(x){shopAct(x.dataset.act,x);return}if(a&&p){cartAdd(+p.dataset.pid);return}if(p){shop('product',+p.dataset.pid);return}if(d)shop(d.dataset.pg)}
@@ -1097,7 +1099,7 @@ if(a==='padd'){var id=+x.dataset.pid,q=Math.max(1,+($('#pq')?$('#pq').value:1)||
 if(a==='buy'){cartAdd(+x.dataset.pid);chkOpen(true);return}
 if(a==='cform'){var f=x.closest('.cf'),m=f.querySelector('.cfm'),n=$('#cfn').value.trim(),e=$('#cfe').value.trim(),b=$('#cfm').value.trim();if(!n||!/^\S+@\S+\.\S+$/.test(e)||!b){m.textContent='Please enter your name, a valid email and a message.';return}(S.msgs=S.msgs||[]).push({n:n,e:e,p:$('#cfp')?$('#cfp').value:'',m:b,at:Date.now()});save();m.textContent=f.dataset.ok;$('#cfn').value=$('#cfe').value=$('#cfm').value='';return}
 if(a==='news'){var ne=$('#nle').value.trim();if(!/^\S+@\S+\.\S+$/.test(ne)){toast('Enter a valid email address');return}toast('Subscribed (demo)');$('#nle').value=''}}
-function signM(){var t=live();initT(t);openM(popHtml(t));var m=$('#sgm'),go=function(){var e=($('#sge')?$('#sge').value:'').trim(),u=findU(e);if(!e){m.textContent='Enter your email, or use the Sellora Pay button.';return}if(!spOn()||!u){m.textContent='No Sellora Pay account found for that email. Check out once and tick "Save my information" to create one.';return}
+function signM(){var t=live();initT(t);openM(popHtml(t));var m=$('#sgm'),go=function(){var e=($('#sge')?$('#sge').value:'').trim(),u=findU(e);if(!e){m.textContent='Enter your email, or use the VendOm Pay button.';return}if(!spOn()||!u){m.textContent='No VendOm Pay account found for that email. Check out once and tick "Save my information" to create one.';return}
 SG={u:u,code:String(Math.floor(100000+Math.random()*900000))};m.innerHTML='Demo code: <b>'+SG.code+'</b><br><input id="sgc" inputmode="numeric" maxlength="6" placeholder="6-digit code" aria-label="Code" style="margin:6px 0"><button class="btn pri" id="sgv" type="button">Verify</button>';$('#sgv').onclick=function(){if($('#sgc').value.trim()===SG.code)acctM(SG.u);else toast('That code is not right')}};
 var sg=$('#sgg'),sb=$('#sgb'),so3=$('#sgo2'),sp3=$('#sgp');if(sg)sg.onclick=go;if(sb)sb.onclick=function(){var n=net(),du=n.dev&&n.users[n.dev];if(du&&spOn()&&so('payments').spDev!==false){toast('Confirmed with this device');acctM(du)}else if($('#sge'))$('#sge').focus();else m.textContent='Sign in with your phone or email.'};if(so3)so3.onclick=sp3&&function(){toast('Sign in to see your orders')};if(sp3)sp3.onclick=function(){toast('Sign in to see your profile')}}
 function acctM(u){var os=S.orders.filter(function(o){return o.email&&o.email.toLowerCase()===u.email});openM('<h2>Hi, '+esc((u.name||'there').split(' ')[0])+'</h2><h3>Orders</h3>'+(os.length?os.map(function(o){return '<div class="gw"><span>'+esc((S.pre===undefined?'#':S.pre)+o.id+(S.suf||''))+'</span><span>'+money(o.total)+' \u00b7 '+o.st+'</span></div>'}).join(''):'<p class="mu">No orders yet.</p>')+'<h3>Profile</h3><p>'+esc(u.name||'')+'<br>'+esc(u.email||'')+(u.phone?'<br>+'+esc(u.phone):'')+'<br>'+esc(u.country||'')+'</p><div class="acts"><button class="btn" id="m0">Sign out</button></div>');$('#m0').onclick=closeM}
@@ -1181,7 +1183,7 @@ var SS3=stShell;stShell=function(k){var h=SS3(k),m={metares:'meta',metaobj:'meta
 function hnd(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 function mkF(name,type,req){return{id:uid(),name:name,type:type,list:false,req:!!req,desc:'',ch:'',max:0}}
 function mfd(){if(!S.mfd){S.mfd={};RES.forEach(function(r){S.mfd[r[0]]=[]});S.mfd.products=[{id:uid(),name:'Material',type:'Single line text',list:false,req:false,desc:'What the product is made of',ch:''},{id:uid(),name:'Care instructions',type:'Multi-line text',list:false,req:false,desc:'How to wash and store it',ch:''}]}return S.mfd}
-function mods(){if(!S.mod){var a=[mkF('Question','Single line text',1),mkF('Answer','Multi-line text',1),mkF('Published','True or false',0)],b=[mkF('Title','Single line text',1),mkF('Chart','Image (File)',0),mkF('Notes','Multi-line text',0)];S.mod=[{id:uid(),name:'FAQ item',handle:'sellora--faq-item',desc:'Questions and answers to show on your store',by:'Sellora',fields:a,o:{},disp:a[0].id,filt:[],entries:[]},{id:uid(),name:'Size guide',handle:'sellora--size-guide',desc:'Sizing charts and notes for your products',by:'Sellora',fields:b,o:{},disp:b[0].id,filt:[],entries:[]}]}return S.mod}
+function mods(){if(!S.mod){var a=[mkF('Question','Single line text',1),mkF('Answer','Multi-line text',1),mkF('Published','True or false',0)],b=[mkF('Title','Single line text',1),mkF('Chart','Image (File)',0),mkF('Notes','Multi-line text',0)];S.mod=[{id:uid(),name:'FAQ item',handle:'vendom--faq-item',desc:'Questions and answers to show on your store',by:'VendOm',fields:a,o:{},disp:a[0].id,filt:[],entries:[]},{id:uid(),name:'Size guide',handle:'vendom--size-guide',desc:'Sizing charts and notes for your products',by:'VendOm',fields:b,o:{},disp:b[0].id,filt:[],entries:[]}]}return S.mod}
 function curM(){var M=mods();return M.filter(function(m){return m.id===S.modI})[0]||M[0]}
 function secMeta(){var D=mfd(),M=mods().slice();M.sort(function(a,b){return(S.mso==='desc'?-1:1)*a.name.localeCompare(b.name)});
 return '<div class="top"><h1>Metafields and metaobjects</h1></div><div class="panel"><h3>Metafield definitions'+ii2('Custom pieces of data attached to parts of your store')+'</h3><p class="mu">Add a custom piece of data to a specific part of your store.</p><div class="ab">'+RES.map(function(r){return '<button class="ar" data-mt="res:'+r[0]+'"><span class="grow"><b>'+r[1]+'</b></span><span class="mu" style="margin:0 8px">'+D[r[0]].length+'</span><span>\u203a</span></button>'}).join('')+'</div></div>'
@@ -1275,7 +1277,7 @@ return '<div class="top"><div style="display:flex;align-items:center;gap:10px"><
 +'<div class="panel"><div class="top" style="margin:0 0 10px"><h3 style="margin:0">Shipping</h3><span class="mu" style="display:flex;align-items:center;gap:8px;margin:0">Physical product '+tg('phys','Physical product')+'</span></div>'+(o.phys?'<label>Package when shipped alone'+sel('pkg',pk)+'</label><div class="two" style="margin-top:10px"><div><label>Packed product size (L \u00d7 W \u00d7 H)</label><div style="display:flex;gap:6px"><input data-pf="L" placeholder="L 0.0" value="'+esc(o.L)+'" aria-label="Length"><input data-pf="W" placeholder="W 0.0" value="'+esc(o.W)+'" aria-label="Width"><input data-pf="H" placeholder="H 0.0" value="'+esc(o.H)+'" aria-label="Height"></div></div><div><label>Size unit'+sel('du',['cm','in'])+'</label></div></div><div class="two" style="margin-top:10px">'+inp('wt','Weight','0.0')+'<label>Weight unit'+sel('wu',['kg','g','lb','oz'])+'</label></div>':'<p class="mu">This product is not shipped, such as a digital item or a service.</p>')+'<div class="chips">'+chip('x:ship','Country of origin',o.coo?esc(o.coo):'')+chip('x:ship','HS Code',o.hs?esc(o.hs):'')+cv('ship')+'</div>'+(x.ship?'<div class="pxp two"><label>Country of origin'+sel('coo',CAT.map(function(c){return c.n}).filter(function(n){return n!=='European Union'}),'Select a country')+'</label>'+inp('hs','Harmonized System (HS) code','e.g. 6109.10')+'</div>':'')+'</div>'
 +'<h3>Variants</h3><div class="panel">'+(o.opts.length?o.opts.map(function(op,i){return '<div class="fdr" style="grid-template-columns:150px 1fr auto"><select data-pn="'+i+':name" aria-label="Option name">'+['Size','Color','Material','Style','Title'].map(function(n){return '<option'+(n===op.name?' selected':'')+'>'+n+'</option>'}).join('')+'</select><input data-pn="'+i+':vals" placeholder="Values, separated by commas" value="'+esc(op.vals)+'" aria-label="Option values"><button class="btn bad" data-pd="rmopt:'+i+'" aria-label="Remove option">\u2715</button></div>'}).join('')+(o.opts.length<3?'<button class="lnk adds" data-pd="addopt">+ Add another option</button>':'')+'<div id="pvt">'+varTable()+'</div>':'<button class="ar" data-pd="addopt" style="border:0;padding:6px 0"><span class="grow"><b>\u2295 Add options like size or color</b></span></button>')+'</div>'
 +'<div class="top" style="margin:18px 0 8px"><h3 style="margin:0">Product metafields</h3><button class="btn" data-pd="mfadd">Add definition</button></div><div class="panel">'+(mf.length?mf.map(mfCtl).join(''):'<p class="mu" style="margin:0">No product metafields yet. Add a definition to collect extra details such as material or care instructions.</p>')+'</div>'
-+'<div class="top" style="margin:18px 0 8px"><h3 style="margin:0">Search engine listing</h3><button class="btn" data-pd="x:seo" aria-label="Edit listing">\u270e</button></div><div class="panel">'+(x.seo?inp('seoT','Page title','')+ta('seoD','Meta description')+inp('seoH','URL handle',''):'')+(o.name?'<div class="seop"><div class="seot">'+esc((st||'').slice(0,70))+'</div><div class="seou">'+esc(slug())+'.sellora.app \u203a products \u203a '+esc(shd)+'</div><div class="seod">'+esc((sd||'').slice(0,160))+'</div></div>':'<p class="mu" style="margin:0">Add a title and description to see how this product might appear in a search engine listing</p>')+'</div>'
++'<div class="top" style="margin:18px 0 8px"><h3 style="margin:0">Search engine listing</h3><button class="btn" data-pd="x:seo" aria-label="Edit listing">\u270e</button></div><div class="panel">'+(x.seo?inp('seoT','Page title','')+ta('seoD','Meta description')+inp('seoH','URL handle',''):'')+(o.name?'<div class="seop"><div class="seot">'+esc((st||'').slice(0,70))+'</div><div class="seou">'+esc(slug())+'.vendom.app \u203a products \u203a '+esc(shd)+'</div><div class="seod">'+esc((sd||'').slice(0,160))+'</div></div>':'<p class="mu" style="margin:0">Add a title and description to see how this product might appear in a search engine listing</p>')+'</div>'
 +(PI?'<p><button class="btn bad" data-pd="del">Delete product</button></p>':'')+'</div>'
 +'<div><div class="panel"><label>Status'+sel('status',['Active','Draft'])+'</label></div><div class="panel"><div class="top" style="margin:0"><b>Publishing</b></div><div class="ar" style="padding:8px 0 0;border:0"><span class="grow">Online Store</span>'+tg('pub','Online Store')+'</div></div>'
 +'<div class="panel"><b>Product organization</b>'+ii2('Helps you group and find products')+'<label style="margin-top:8px">Type<input data-pf="type" list="pty" placeholder="None" value="'+esc(o.type)+'"><datalist id="pty">'+uniq('type').map(function(a){return '<option value="'+esc(a)+'">'}).join('')+'</datalist></label><label>Vendor<input data-pf="vendor" list="pvd" placeholder="None" value="'+esc(o.vendor)+'"><datalist id="pvd">'+uniq('vendor').map(function(a){return '<option value="'+esc(a)+'">'}).join('')+'</datalist></label><label>Collections</label><div>'+o.cols.map(function(c,i){return '<button class="chip on" data-pd="rmcol:'+i+'" aria-label="Remove '+esc(c)+'">'+esc(c)+' \u2715</button>'}).join('')+'<button class="chip" data-pd="addcol">\u2295 Add collections</button></div><label style="margin-top:8px">Tags</label><div>'+o.tags.map(function(c,i){return '<button class="chip on" data-pd="rmtag:'+i+'" aria-label="Remove '+esc(c)+'">'+esc(c)+' \u2715</button>'}).join('')+'</div><input id="ptg" placeholder="Add tags (press Enter)" aria-label="Add tags"></div>'
@@ -1395,15 +1397,19 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       ];
     }
     if (!Array.isArray(S.orders)) S.orders = [];
-    if (S.orders.length === 0) {
+    // Sample orders only for the old demo data; a new store (fresh() sets oid) starts with no orders, like Shopify.
+    if (S.orders.length === 0 && S.oid == null) {
       S.orders = [
         { id: 1001, who: 'Ayesha Khan', total: 48, st: 'Paid', gw: 'Stripe' },
         { id: 1002, who: 'Daniel Ruiz', total: 41, st: 'Fulfilled', gw: 'PayPal' },
         { id: 1003, who: 'Hassan Ali', total: 22, st: 'Paid', gw: 'JazzCash' }
       ];
     }
+    var maxOid = S.orders.reduce(function (m, o) { return Math.max(m, +o.id || 0); }, 1000);
+    if (!(+S.oid > maxOid)) S.oid = maxOid + 1;
+
     if (!S.payout) S.payout = { m: 'Bank transfer', c: S.country || 'Pakistan', a: 'Meezan Bank' };
-    if (!S.gws) S.gws = [{ k: 'Stripe', r: 'Cards worldwide', on: false }, { k: 'Sellora Pay', r: 'One-tap checkout', on: true }];
+    if (!S.gws) S.gws = [{ k: 'Stripe', r: 'Cards worldwide', on: false }, { k: 'VendOm Pay', r: 'One-tap checkout', on: true }];
     if (!S.set || typeof S.set !== 'object') S.set = {};
     if (!S.set.shipping) S.set.shipping = { pkgs: [{ name: 'Box' }] };
     if (!S.set.locations) S.set.locations = { locs: [{ id: 1, name: 'Shop location', country: S.country || 'Pakistan', active: true }] };
@@ -1472,7 +1478,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
           type: 'Manual', 
           handle: 'bestsellers', 
           desc: 'Hand-picked customer favorites and top sellers',
-          metaTitle: 'Bestselling Gear & Accessories | Sellora Store',
+          metaTitle: 'Bestselling Gear & Accessories | VendOm Store',
           metaDesc: 'Shop our top-rated bestsellers and customer favorite racing and driving accessories.'
         },
         { 
@@ -1569,7 +1575,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!Array.isArray(S.filesList)) {
       S.filesList = [
         { name: 'hero-banner-autumn.jpg', size: '240 KB', type: 'Image', uploaded: 'Oct 24, 2026', url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22240%22%3E%3Crect width=%22480%22 height=%22240%22 fill=%22%232E6B4F%22/%3E%3Ccircle cx=%22380%22 cy=%2270%22 r=%2240%22 fill=%22%23F2C14E%22/%3E%3C/svg%3E' },
-        { name: 'sizing-chart-2026.pdf', size: '1.2 MB', type: 'Document', uploaded: 'Oct 12, 2026', url: 'https://cdn.sellora.app/docs/sizing-2026.pdf' }
+        { name: 'sizing-chart-2026.pdf', size: '1.2 MB', type: 'Document', uploaded: 'Oct 12, 2026', url: 'https://cdn.vendom.app/docs/sizing-2026.pdf' }
       ];
     }
     if (!Array.isArray(S.menusList)) {
@@ -1581,7 +1587,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!Array.isArray(S.blogPosts)) {
       S.blogPosts = [
         { id: 1, title: 'How Carbon Fiber is Changing Track Safety in 2026', author: 'Sallar', date: 'Oct 22, 2026', comments: 4, status: 'Published' },
-        { id: 2, title: 'The Ultimate Driver’s Gear Maintenance Guide', author: 'Team Sellora', date: 'Oct 15, 2026', comments: 1, status: 'Published' }
+        { id: 2, title: 'The Ultimate Driver’s Gear Maintenance Guide', author: 'Team VendOm', date: 'Oct 15, 2026', comments: 1, status: 'Published' }
       ];
     }
     if (!Array.isArray(S.marketsList)) {
@@ -1633,7 +1639,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         gtmId: 'GTM-PX94821',
         adsConversionId: 'AW-948271049',
         adsLabel: 'd92kCL9-zPkB',
-        merchantFeedUrl: 'https://' + (typeof slug === 'function' ? slug() : 'store') + '.sellora.app/feeds/google-merchant.xml',
+        merchantFeedUrl: 'https://' + (typeof slug === 'function' ? slug() : 'store') + '.vendom.app/feeds/google-merchant.xml',
         account: {
           connected: true,
           email: S.email || 'marketing@example.com',
@@ -1697,7 +1703,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         { id: 'loox-reviews', name: 'Loox Photo Reviews & Referrals', cat: 'Reviews & Sales', rating: '4.9', reviews: 3100, price: '14-day trial', icon: 'loox', desc: 'Stunning visual customer photo reviews, post-purchase referral rewards, and upsell carousels.', installed: false, route: null },
         { id: 'klaviyo-marketing', name: 'Klaviyo: Email & SMS Automation', cat: 'Reviews & Sales', rating: '4.8', reviews: 2900, price: 'Free plan', icon: 'klaviyo', desc: 'Smart segmentation, automated browse abandonment, and personalized dynamic email campaigns.', installed: false, route: null },
         { id: 'reconvert-upsell', name: 'ReConvert Post Purchase Upsell', cat: 'Reviews & Sales', rating: '4.9', reviews: 1650, price: 'Free plan available', icon: 'upsell', desc: 'Increase Average Order Value (AOV) by 15% with thank-you page cross-sells and 1-click upsells.', installed: false, route: null },
-        { id: 'mobisell-mobile', name: 'MobiSell App Builder (iOS & Android)', cat: 'Mobile Apps', rating: '4.9', reviews: 920, price: 'Included', icon: 'mobile', desc: 'Convert your Sellora store into native mobile apps for Apple App Store & Google Play Store.', installed: true, route: 'apps-installed' },
+        { id: 'mobisell-mobile', name: 'MobiSell App Builder (iOS & Android)', cat: 'Mobile Apps', rating: '4.9', reviews: 920, price: 'Included', icon: 'mobile', desc: 'Convert your VendOm store into native mobile apps for Apple App Store & Google Play Store.', installed: true, route: 'apps-installed' },
         { id: 'shipstation-shipping', name: 'ShipStation Shipping & Labels', cat: 'Shipping', rating: '4.7', reviews: 890, price: 'Free trial', icon: 'shipping', desc: 'Print shipping labels for DHL, FedEx, UPS, TCS, and Leopards with discounted rates.', installed: false, route: null }
       ];
     }
@@ -1709,7 +1715,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
           id: 'ext-1',
           name: 'Shopify Product Customizer App',
           scriptUrl: 'https://cdn.customizer.io/bundle.js',
-          embedUrl: 'https://app.customizer.io/dashboard?shop=store.sellora.app',
+          embedUrl: 'https://app.customizer.io/dashboard?shop=store.vendom.app',
           apiKey: 'pk_live_89a7fbc201',
           status: 'Enabled',
           category: 'Customizer'
@@ -2363,7 +2369,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       '<h3 style="margin:16px 0 6px">Search engine listing (SEO)</h3>' +
       '<div class="seop" style="margin-bottom:12px">' +
         '<div class="seot" id="col-seo-prev-t">' + esc(col.metaTitle || col.title || 'Collection title') + '</div>' +
-        '<div class="seou">' + esc(slug()) + '.sellora.app › collections › <span id="col-seo-prev-h">' + esc(col.handle || 'collection-handle') + '</span></div>' +
+        '<div class="seou">' + esc(slug()) + '.vendom.app › collections › <span id="col-seo-prev-h">' + esc(col.handle || 'collection-handle') + '</span></div>' +
         '<div class="seod" id="col-seo-prev-d">' + esc(col.metaDesc || col.desc || 'Collection description for search engine ranking.') + '</div>' +
       '</div>' +
       '<label>Meta title (SEO Title)</label><input id="col-meta-title" maxlength="70" placeholder="Up to 70 characters" value="' + esc(col.metaTitle || '') + '">' +
@@ -3111,7 +3117,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         who: d.customer,
         total: d.total,
         st: 'Paid',
-        gw: 'Sellora Pay'
+        gw: 'VendOm Pay'
       });
       route();
       toast('Draft completed and converted to active order');
@@ -3390,7 +3396,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
             size: Math.round(f.size / 1024) + ' KB',
             type: f.type.indexOf('image') > -1 ? 'Image' : 'Document',
             uploaded: 'Just now',
-            url: 'https://cdn.sellora.app/uploads/' + encodeURIComponent(f.name)
+            url: 'https://cdn.vendom.app/uploads/' + encodeURIComponent(f.name)
           });
         });
         route();
@@ -3564,11 +3570,11 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
 
 
 
-// Apps Module for Sellora Admin
+// Apps Module for VendOm Admin
 (function(){
   // 1. App Styles
   var st = document.createElement('style');
-  st.id = 'sellora-apps-styles';
+  st.id = 'vendom-apps-styles';
   st.textContent = [
     '.app-tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; }',
     '.app-tab-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--sideink); text-decoration: none; transition: all .15s; }',
@@ -3625,7 +3631,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     '.wa-code-digit { width: 42px; height: 48px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font-size: 20px; font-weight: 700; text-align: center; font-family: monospace; }',
     '.wa-code-digit:focus { border-color: #25D366; outline: none; box-shadow: 0 0 0 2px rgba(37,211,102,0.25); }'
   ].join('\n');
-  if (!document.getElementById('sellora-apps-styles')) {
+  if (!document.getElementById('vendom-apps-styles')) {
     document.head.appendChild(st);
   }
 
@@ -3835,7 +3841,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     } else {
       metaConnHtml = '<div style="background:rgba(24,119,242,0.06);border:1px dashed #1877F2;border-radius:12px;padding:20px;text-align:center;margin-bottom:14px">' +
         '<div style="width:52px;height:52px;border-radius:50%;background:#1877F2;color:#fff;display:grid;place-items:center;margin:0 auto 12px;box-shadow:0 4px 12px rgba(24,119,242,0.3)">' + window.APP_ICONS.meta + '</div>' +
-        '<h3 style="margin:0 0 6px">Connect Facebook & Instagram to Sellora</h3>' +
+        '<h3 style="margin:0 0 6px">Connect Facebook & Instagram to VendOm</h3>' +
         '<p class="mu" style="font-size:13px;max-width:480px;margin:0 auto 16px">Log into your Facebook account with your email and password to connect your Facebook Pages, Instagram Shopping, and Meta Pixel.</p>' +
         '<button class="btn pri" id="btn-meta-connect" style="background:#1877F2;border-color:#1877F2;font-size:14px;padding:10px 22px;font-weight:600">' +
           'Log in with Facebook / Connect Page' +
@@ -3963,7 +3969,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
             '<label>Conversion Label<input id="google-ads-label" placeholder="e.g. d92kCL9-zPkB" value="' + esc(g.adsLabel || '') + '"></label>' +
             '<label style="margin-top:14px">Google Merchant XML Feed URL</label>' +
             '<div style="display:flex;gap:8px">' +
-              '<input id="google-feed-url" readonly value="' + esc(g.merchantFeedUrl || 'https://vellacorsa.sellora.app/feeds/google-merchant.xml') + '" style="background:var(--bg)">' +
+              '<input id="google-feed-url" readonly value="' + esc(g.merchantFeedUrl || 'https://vellacorsa.vendom.app/feeds/google-merchant.xml') + '" style="background:var(--bg)">' +
               '<button class="btn" id="btn-copy-feed" style="flex:none">Copy URL</button>' +
             '</div>' +
             '<p class="hlp">Syncs title, price, inventory stock, images, and category taxonomy automatically.</p>' +
@@ -4092,7 +4098,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         '</div>' +
         '<div style="text-align:center;margin-bottom:18px">' +
           '<h2 style="margin:0 0 6px">Connect Facebook & Meta Assets</h2>' +
-          '<p class="mu" style="font-size:13px;max-width:440px;margin:0 auto">Sellora Commerce requests permission to manage your Facebook Pages, sync product catalogs, and track conversions via Meta Pixel.</p>' +
+          '<p class="mu" style="font-size:13px;max-width:440px;margin:0 auto">VendOm Commerce requests permission to manage your Facebook Pages, sync product catalogs, and track conversions via Meta Pixel.</p>' +
         '</div>' +
         '<div class="meta-login-card">' +
           '<div class="fb-input-wrap">' +
@@ -4311,7 +4317,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         '</div>' +
         '<div style="text-align:center;margin-bottom:18px">' +
           '<h2 style="margin:0 0 6px">Connect Google & GA4 Channel</h2>' +
-          '<p class="mu" style="font-size:13px;max-width:440px;margin:0 auto">Link Google Analytics 4, Tag Manager, and Google Merchant Center directly to Sellora.</p>' +
+          '<p class="mu" style="font-size:13px;max-width:440px;margin:0 auto">Link Google Analytics 4, Tag Manager, and Google Merchant Center directly to VendOm.</p>' +
         '</div>' +
         '<div class="meta-login-card">' +
           '<div class="fb-input-wrap">' +
@@ -4364,7 +4370,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
           '</label>' +
           '<label>Google Tag Manager (GTM) Container' +
             '<select id="sel-gtm-container">' +
-              '<option value="GTM-TRK992X">Sellora Web Container (GTM-TRK992X)</option>' +
+              '<option value="GTM-TRK992X">VendOm Web Container (GTM-TRK992X)</option>' +
               '<option value="GTM-GLOBAL1">Global Tag Manager (GTM-GLOBAL1)</option>' +
             '</select>' +
           '</label>' +
@@ -4520,12 +4526,12 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
   // 10. Modals: Mobile App Builder, Custom App Install, WhatsApp Notification Simulator
   window.mobileBuilderModal = function() {
     openM('<h2>📱 Mobile App Builder (iOS & Android)</h2>' +
-      '<p class="mu">Turn your Sellora storefront into high-converting native mobile apps for Apple App Store and Google Play Store.</p>' +
+      '<p class="mu">Turn your VendOm storefront into high-converting native mobile apps for Apple App Store and Google Play Store.</p>' +
       '<div class="two" style="margin-top:16px">' +
         '<div>' +
           '<label>App Name<input id="mob-name" value="' + esc(S.name) + ' Store"></label>' +
-          '<label>iOS Bundle ID (Apple App Store)<input id="mob-ios-id" value="com.sellora.' + esc(slug()) + '.ios"></label>' +
-          '<label>Android Package Name (Google Play Store)<input id="mob-apk-id" value="com.sellora.' + esc(slug()) + '.android"></label>' +
+          '<label>iOS Bundle ID (Apple App Store)<input id="mob-ios-id" value="com.vendom.' + esc(slug()) + '.ios"></label>' +
+          '<label>Android Package Name (Google Play Store)<input id="mob-apk-id" value="com.vendom.' + esc(slug()) + '.android"></label>' +
           '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">' +
             '<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" checked id="mob-push"> Enable Instant Push Notifications (New arrivals & sales)</label>' +
             '<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" checked id="mob-bio"> Enable FaceID / Biometric 1-Tap Checkout</label>' +
@@ -4569,13 +4575,13 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
 
   window.customAppModal = function() {
     openM('<h2>⚡ Install External / Shopify App</h2>' +
-      '<p class="mu">Embed any Shopify app, review tool, live chat, or custom script into your Sellora storefront.</p>' +
+      '<p class="mu">Embed any Shopify app, review tool, live chat, or custom script into your VendOm storefront.</p>' +
       '<label>Application Name<input id="ca-name" placeholder="e.g. Klaviyo Email & SMS or Judge.me Reviews"></label>' +
       '<label>Category<select id="ca-cat">' +
         '<option>Marketing</option><option>Reviews & Sales</option><option>Chat & Support</option><option>Dropshipping</option><option>Finance & ERP</option><option>Other</option>' +
       '</select></label>' +
       '<label>App Script / CDN URL<input id="ca-script" placeholder="https://cdn.example.com/widget.js"></label>' +
-      '<label>Dashboard / Iframe URL (Optional)<input id="ca-embed" placeholder="https://app.example.com/dashboard?shop=store.sellora.app"></label>' +
+      '<label>Dashboard / Iframe URL (Optional)<input id="ca-embed" placeholder="https://app.example.com/dashboard?shop=store.vendom.app"></label>' +
       '<label>API Client ID / Key (Optional)<input id="ca-key" placeholder="pk_live_..."></label>' +
       '<div class="acts"><button class="btn" id="m0">Cancel</button><button class="btn pri" id="btn-save-custom-app">Install & Enable App</button></div>');
 
@@ -4625,7 +4631,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
           '💰 <b>Total Paid:</b> ' + money(p0.price) + '<br>' +
           '🚚 <b>Estimated Delivery:</b> 2-3 business days<br><br>' +
           'You can track your live shipment here:<br>' +
-          '<a href="#" style="color:#0284c7">https://' + esc(slug()) + '.sellora.app/orders/track/1004</a><br><br>' +
+          '<a href="#" style="color:#0284c7">https://' + esc(slug()) + '.vendom.app/orders/track/1004</a><br><br>' +
           '<small style="color:#666">Reply directly to this WhatsApp message if you have any questions!</small>' +
         '</div>' +
         '<div class="wa-bubble" style="margin-left:auto">' +
@@ -6344,9 +6350,9 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       '<div class="metric"><small>Conversion rate</small><b>' + ((S.orders || []).length * 7 / (13 + (S.orders || []).length * 7 || 1) * 100).toFixed(1) + '%</b></div>' +
     '</div>' +
     '<div class="hero"><h2>' + esc(S.name) + ' is open for business.<br>What do you want to work on next?</h2></div>' +
-    '<div class="ask"><input id="q" aria-label="Ask Sellora AI" placeholder="Ask Sellora AI: add a product, get a domain, set up payments"><button class="btn pri" id="go">Ask</button></div>' +
+    '<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: add a product, get a domain, set up payments"><button class="btn pri" id="go">Ask</button></div>' +
     '<div class="cards">' +
-      '<div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on Sellora Pay.</p><button class="btn" data-r="payments">Set up payments</button></div>' +
+      '<div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on VendOm Pay.</p><button class="btn" data-r="payments">Set up payments</button></div>' +
       '<div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div>' +
       '<div class="card"><h3>Add products</h3><p>Add and manage physical and digital inventory items.</p><button class="btn" data-r="products">View products</button></div>' +
     '</div>';

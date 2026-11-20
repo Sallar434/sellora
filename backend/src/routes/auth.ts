@@ -93,7 +93,7 @@ r.post('/password/reset', ah(async (req, res) => {
 r.post('/2fa/setup', auth, ah(async (req, res) => {
   const secret = authenticator.generateSecret();
   await db.user.update({ where: { id: req.user!.sub }, data: { totpSecret: secret, totpEnabled: false } });
-  res.json({ secret, otpauth: authenticator.keyuri(req.user!.email, 'Sellora', secret) });
+  res.json({ secret, otpauth: authenticator.keyuri(req.user!.email, 'VendOm', secret) });
 }));
 r.post('/2fa/enable', auth, ah(async (req, res) => {
   const u = await db.user.findUniqueOrThrow({ where: { id: req.user!.sub } });

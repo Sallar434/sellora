@@ -1,3 +1,4 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import os,json,re
 from playwright.sync_api import sync_playwright
 P=0;F=0
@@ -11,7 +12,7 @@ BAN=['Dawn','Refresh','Sense','Craft','Crave','Studio','Taste','Colorblock','Rid
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page();errs=[]
     pg.on('pageerror',lambda e:errs.append(str(e)))
-    pg.goto('file://'+os.path.abspath('sellora.html'));pg.wait_for_timeout(800)
+    vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
     th=pg.evaluate("S.themes.map(t=>({id:t.id,name:t.name,tag:t.tag,desc:t.desc,free:t.free,st:[t.font,t.lay,t.rad,t.bg,t.ac].join('|'),home:t.pg.home.map(s=>s.type),hdr:JSON.stringify(t.hdr.map(s=>s.s)),ftr:JSON.stringify(t.ftr.map(s=>s.s)),prod:JSON.stringify((t.pg.product||[]).map(s=>s.s))}))")
     ids=[t['id'] for t in th]
     ok(not any(o in ids for o in OLD),'original themes removed')
@@ -36,7 +37,7 @@ with sync_playwright() as p:
     ok('Layout like' not in body,'no Layout-like label')
     ok('Wholesale' in body and 'Single product' in body,'tags shown in library')
     # migration from removed theme
-    pg.evaluate("(function(){var d=JSON.parse(localStorage.getItem('sellora'));(d.stores||[]).forEach(function(){});})()")
+    pg.evaluate("(function(){var d=JSON.parse(localStorage.getItem('vendom'));(d.stores||[]).forEach(function(){});})()")
     pg.evaluate("S.themes.push({id:'ember',name:'Ember',free:true,pg:{home:[]},hdr:[],ftr:[]});S.live='ember';X=window;window.m14mig()")
     ok(pg.evaluate('S.live')=='s-daybreak' and not pg.evaluate("S.themes.some(t=>t.id==='ember')"),'store on removed theme migrated to Daybreak')
     ok(not errs,'no page errors '+str(errs))

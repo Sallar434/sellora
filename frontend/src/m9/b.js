@@ -1,7 +1,7 @@
 /* ---------- nav ---------- */
 var ITEMS=[['plus-whatsapp','WhatsApp ordering'],['plus-cod','COD verification'],['plus-wholesale','Wholesale & RFQ'],['plus-oem','Custom / OEM builder'],['plus-couriers','Pakistan couriers'],['plus-export','Export documents'],['plus-pricing','Currency pricing'],['plus-protection','Buyer protection'],['plus-live','Video & live selling'],['plus-workshops','Workshops & materials'],['plus-compliance','Compliance & samples'],['plus-affiliates','Resellers & affiliates'],['plus-bank','Bank transfers'],['plus-ai','AI listings'],['plus-language','Language & RTL']];
 X.M9_ITEMS=ITEMS;
-function navAdd(){var n=q('#nav');if(!n||q('#m9nav'))return;var d=document.createElement('div');d.id='m9nav';d.className='m9nav';d.innerHTML='<div class="m9navh">Sellora+</div>'+ITEMS.map(function(a){return '<a href="#'+a[0]+'" data-r="'+a[0]+'" class="m9nl">'+h(a[1])+'</a>'}).join('');n.appendChild(d)}
+function navAdd(){var n=q('#nav');if(!n||q('#m9nav'))return;var d=document.createElement('div');d.id='m9nav';d.className='m9nav';d.innerHTML='<div class="m9navh">VendOm+</div>'+ITEMS.map(function(a){return '<a href="#'+a[0]+'" data-r="'+a[0]+'" class="m9nl">'+h(a[1])+'</a>'}).join('');n.appendChild(d)}
 function navMark(r){qa('#m9nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===r)});var open=/^plus-/.test(r);var d=q('#m9nav');if(d)d.classList.toggle('open',open)}
 X.onRoute(function(r){navAdd();navMark(r)});
 
@@ -20,7 +20,7 @@ A.m9wabtn=function(){P().cfg.waBtn=q('#m9wabtn').checked;sv();tst('Saved')};
 A.m9copy=function(id){var e=q('#'+id);if(!e)return;try{navigator.clipboard.writeText(e.value)}catch(x){}tst('Copied')};
 A.m9wasim=function(){var ps=(S.products||[]).slice(0,2);var t=ps.map(function(p,i){return (i+1)+' x '+p.name}).join('\n')||'1 x Gloves';X.m9waIn('+923001234567','Bilal Ahmed',t);route()};
 X.m9waIn=function(phone,name,text){var r=X.waParse(text),o={id:uid9('wa'),at:Date.now(),phone:phone,name:name,text:text,lines:r.lines,errs:r.errs,status:'New'};P().wa.push(o);sv();return o};
-A.m9waconv=function(id){var o=P().wa.filter(function(x){return x.id===id})[0];if(!o||o.status!=='New')return;var nm=o.name.split(' ');try{X.ORD.place(o.lines,{email:'wa'+o.phone.replace(/\D/g,'')+'@whatsapp.sellora.app',first:nm[0],last:nm.slice(1).join(' '),phone:o.phone,country:'PK',cur:'USD',codes:[],note:'WhatsApp order'},{method:'Cash on delivery (WhatsApp)',id:'wa_'+o.id,escrow:false});var ord=S.orders[S.orders.length-1];ord.pay='Pending';ord.cod=true;ord.src='WhatsApp';o.oid=ord.id;o.status='Converted';ok('Order #'+ord.id+' created')}catch(e){console.error(e);tst('Could not convert: '+e.message)}};
+A.m9waconv=function(id){var o=P().wa.filter(function(x){return x.id===id})[0];if(!o||o.status!=='New')return;var nm=o.name.split(' ');try{X.ORD.place(o.lines,{email:'wa'+o.phone.replace(/\D/g,'')+'@whatsapp.vendom.app',first:nm[0],last:nm.slice(1).join(' '),phone:o.phone,country:'PK',cur:'USD',codes:[],note:'WhatsApp order'},{method:'Cash on delivery (WhatsApp)',id:'wa_'+o.id,escrow:false});var ord=S.orders[S.orders.length-1];ord.pay='Pending';ord.cod=true;ord.src='WhatsApp';o.oid=ord.id;o.status='Converted';ok('Order #'+ord.id+' created')}catch(e){console.error(e);tst('Could not convert: '+e.message)}};
 
 /* ---------- 2. COD verification + risk score ---------- */
 X.codRisk=function(o){var s=0,why=[],v=(o.ship&&o.ship.vals)||{},ph=String(v.Phone||v['Phone number']||o.phone||'').replace(/\D/g,'');

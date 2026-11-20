@@ -1,4 +1,5 @@
 # t12: AI website builder (text+voice), edit-by-command, SEO/AEO/GEO suite, off-page, AI tools, metering
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json
 res=[];errs=[]
@@ -10,14 +11,14 @@ with sync_playwright() as p:
   b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':900})
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]));pg.on('console',lambda m:m.type=='error' and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html');pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
   go(pg,'ai-builder');ok('nav AI builder group',all(k in pg.inner_text('#nav') for k in ['SEO / AEO / GEO','Off-page SEO','AI tools']))
   ok('builder page','Describe your store' in M(pg) and 'Speak' in M(pg))
   # voice unsupported in headless → graceful
   pg.evaluate("window.webkitSpeechRecognition=undefined;window.SpeechRecognition=undefined");cl(pg,'m12mic:m12prompt');ok('voice fallback message','Voice' in pg.inner_text('#m12vstat') or 'Listening' in pg.inner_text('#m12vstat'),pg.inner_text('#m12vstat'))
   # mock Web Speech API and speechSynthesis
   pg.evaluate("""window._spoken=[];window.SpeechSynthesisUtterance=function(t){this.text=t};Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{cancel(){},speak(u){window._spoken.push(u.text)}}});
-  window.webkitSpeechRecognition=function(){this.lang='';var s=this;this.start=function(){setTimeout(function(){s.onresult({results:[[{transcript:'Women lawn clothing brand in Lahore'}]]});s.onend()},50)};this.stop=function(){}}""")
+  window.webkitSpeechRecognition=function(){this.lang='';var s=this;this.start=function(){setTimeout(function(){s.onresult({results:[[{transcript:'Women lawn clothing brand in Lahore'}]]});s.onend&&s.onend()},50)};this.stop=function(){}}""")
   go(pg,'ai-builder');cl(pg,'m12mic:m12prompt');pg.wait_for_timeout(200)
   ok('classic builder kept',pg.evaluate("typeof V['ai-builder-classic']")=='function')
   ok('voice fills prompt',pg.input_value('#m12prompt')=='Women lawn clothing brand in Lahore')

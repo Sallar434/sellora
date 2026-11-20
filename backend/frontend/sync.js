@@ -1,8 +1,8 @@
-/* Sellora backend sync layer. Off by default, so the app behaves exactly like sellora.html (localStorage only).
+/* VendOm backend sync layer. Off by default, so the app behaves exactly like vendom.html (localStorage only).
    When a Backend URL is connected: login via /api/auth, products two-way via REST, full app state snapshot saved to
    store settings (PATCH /api/stores/:id), orders/customers pulled read-only. localStorage stays as offline cache. */
 (function(){
-var K='sellora_backend',C={};try{C=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
+var K='vendom_backend',C={};try{C=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 function sv(){localStorage.setItem(K,JSON.stringify(C))}
 function on(){return !!(C.url&&C.token&&C.storeId)}
 function api(m,p,b,retry){return fetch(C.url.replace(/\/$/,'')+p,{method:m,headers:Object.assign({'Content-Type':'application/json'},C.token?{Authorization:'Bearer '+C.token}:{}),body:b?JSON.stringify(b):undefined}).then(function(r){
@@ -43,11 +43,11 @@ function connect(){var url=document.getElementById('sbk-url').value.trim(),em=do
   .catch(function(e){C={};sv();msg('err',e.message);toast('Connect failed: '+e.message)})}
 function disconnect(){if(C.refresh)api('POST','/api/auth/logout',{refreshToken:C.refresh}).catch(function(){});C={};sv();msg('off');toast('Disconnected. Using browser storage only');try{route()}catch(e){}}
 var h=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
-function card(){return '<div class="xc" id="sbk"><h3>Sellora backend (REST API)</h3><p class="mu">Leave empty to keep everything in this browser. Connect to a running Sellora API to load and save your store on the server.</p>'
+function card(){return '<div class="xc" id="sbk"><h3>VendOm backend (REST API)</h3><p class="mu">Leave empty to keep everything in this browser. Connect to a running VendOm API to load and save your store on the server.</p>'
  +(on()?'<p id="sbk-st">'+h(label())+'</p><p class="xk">Server orders: '+((S.backendOrders||[]).length)+' · customers: '+((S.backendCustomers||[]).length)+'</p><button class="btn" id="sbk-sync">Sync now</button> <button class="btn" id="sbk-off">Disconnect</button>'
  :'<div class="xg"><div><label>Backend URL</label><input id="sbk-url" placeholder="http://localhost:4000" value="'+h(C.url||'')+'"></div><div><label>Email</label><input id="sbk-em" autocomplete="username"></div><div><label>Password</label><input id="sbk-pw" type="password" autocomplete="current-password"></div></div><p id="sbk-st" class="xk">'+h(label())+'</p><button class="btn pri" id="sbk-go" style="margin-top:8px">Connect</button>')+'</div>'}
 var V0=V.integrations;V.integrations=function(){return V0.apply(this,arguments).replace('<div class="xc">',card()+'<div class="xc">')};
 document.addEventListener('click',function(e){var t=e.target&&e.target.id;if(t==='sbk-go')connect();else if(t==='sbk-off')disconnect();else if(t==='sbk-sync')pull().then(push)});
-window.SelloraBackend={pull:pull,push:push,on:on,api:function(m,p,b){return api(m,p,b)},status:function(){return st},cfg:function(){return{url:C.url,storeId:C.storeId}}};
+window.VendOmBackend={pull:pull,push:push,on:on,api:function(m,p,b){return api(m,p,b)},status:function(){return st},cfg:function(){return{url:C.url,storeId:C.storeId}}};
 if(on())pull();
 })();

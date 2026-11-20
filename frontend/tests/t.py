@@ -6,7 +6,7 @@ with sync_playwright() as p:
   pg.on('pageerror',lambda e:errs.append(('PAGEERR',pg.url.split('#')[-1],str(e)[:160])))
   pg.on('console',lambda m:m.type=='error' and errs.append(('CONSOLE',pg.url.split('#')[-1],m.text[:160])))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/s.html'); pg.wait_for_timeout(800)
+  pg.goto('file:///workspace/vendom/s.html'); pg.wait_for_timeout(800)
   print('HASH',pg.url.split('#')[-1]); print(pg.inner_text('body')[:600])
   # try signup
   for sel in ['input[type=email]','input[type=password]','input[type=text]']:
@@ -23,5 +23,5 @@ with sync_playwright() as p:
   print('ROUTES',hrefs)
   json.dump(hrefs,open('routes.json','w'))
   pg.context.storage_state(path='st.json')
-  ls=pg.evaluate("localStorage.getItem('sellora')"); print('LS',(ls or '')[:300])
+  ls=pg.evaluate("localStorage.getItem('vendom')"); print('LS',(ls or '')[:300])
 print(errs)

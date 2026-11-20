@@ -1,11 +1,11 @@
-/* ===== Sellora v36: plan picker at signup, 4-day trial, publish gating, closed store on expiry, Shopify-style product CSV ===== */
+/* ===== VendOm v36: plan picker at signup, 4-day trial, publish gating, closed store on expiry, Shopify-style product CSV ===== */
 (function(){
 var X=window,A=X.ACT=X.ACT||{};
 function q(s){return document.querySelector(s)}function qa(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
 function h(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function sv(){try{save()}catch(e){}}function tst(m){try{toast(m)}catch(e){}}
 var DAY=864e5,TRIAL=4;
-var PL=[{c:'basic',n:'Basic',t:'For new sellers',pkr:300,f:['500 products','150 orders / month','1 staff account','Sellora Pay checkout']},
+var PL=[{c:'basic',n:'Basic',t:'For new sellers',pkr:300,f:['500 products','150 orders / month','1 staff account','VendOm Pay checkout']},
  {c:'grow',n:'Grow',t:'For growing shops',pkr:600,f:['2,000 products','400 orders / month','3 staff accounts','Abandoned-cart WhatsApp'],pop:1},
  {c:'advanced',n:'Advanced',t:'Everything a small/medium seller needs',pkr:1000,f:['Unlimited products','1,000 orders / month','10 staff accounts','Advanced reports']},
  {c:'enterprise',n:'Enterprise',t:'Custom contract',pkr:4999,f:['Custom limits','Dedicated support','Custom contract'],custom:1}];
@@ -17,14 +17,14 @@ function paid(){var s=sub();return !s||s.status==='active'}
 function dead(){var s=sub();return !!s&&s.status==='expired'}
 function left(){var s=sub();return s&&s.trialEnds?Math.max(0,Math.ceil((s.trialEnds-Date.now())/DAY)):0}
 X.m13={sub:sub,paid:paid,dead:dead,left:left};
-function BK(){var b=X.SelloraBackend;return b&&b.on&&b.on()?b:null}
+function BK(){var b=X.VendOmBackend;return b&&b.on&&b.on()?b:null}
 function api(m,p,b){var k=BK();if(!k)return Promise.resolve(null);return k.api(m,'/api/stores/'+k.cfg().storeId+p,b).catch(function(e){return null})}
 /* ---- plan picker (new users, before the signup form) ---- */
 var IV='monthly';
-function picker(){return '<div class="acard m13pick"><div class="brand" style="color:#111">'+((q('.brand')||{}).innerHTML||'Sellora')+'</div><h2>Choose your plan</h2>'
+function picker(){return '<div class="acard m13pick"><div class="brand" style="color:#111">'+((q('.brand')||{}).innerHTML||'VendOm')+'</div><h2>Choose your plan</h2>'
  +'<p class="m13sub">Every plan starts with a <b>4-day free trial</b>. Build your whole store for free — buy the plan when you are ready to publish.</p>'
  +'<div class="m13row"><span class="m13cur">Currency: <b>Pakistani Rupee (PKR)</b></span><div class="seg m13iv" role="group" aria-label="Billing period"><button type="button" class="'+(IV==='monthly'?'on':'')+'" data-iv="monthly">Monthly</button><button type="button" class="'+(IV==='annual'?'on':'')+'" data-iv="annual">Annual · save 20%</button></div></div>'
- +'<div class="m13cards">'+PL.map(function(p){return '<div class="m13card'+(p.pop?' pop':'')+'">'+(p.pop?'<span class="m13badge">Most popular</span>':'')+'<h3>'+p.n+'</h3><div class="m13t">'+h(p.t)+'</div><div class="m13pr">'+(p.custom?'from ':'')+rs(pr(p,p.custom?'monthly':IV))+'<small>/'+(IV==='annual'&&!p.custom?'year':'month')+'</small></div>'+(IV==='annual'&&!p.custom?'<div class="m13t">'+rs(p.pkr*0.8)+' a month, billed yearly</div>':'<div class="m13t">&nbsp;</div>')+'<ul>'+p.f.map(function(f){return '<li>'+h(f)+'</li>'}).join('')+'</ul>'+(p.custom?'<a class="btn" href="mailto:sales@sellora.app">Contact sales</a>':'<button type="button" class="btn pri" data-m13p="'+p.c+'">Start 4-day free trial</button>')+'</div>'}).join('')+'</div>'
+ +'<div class="m13cards">'+PL.map(function(p){return '<div class="m13card'+(p.pop?' pop':'')+'">'+(p.pop?'<span class="m13badge">Most popular</span>':'')+'<h3>'+p.n+'</h3><div class="m13t">'+h(p.t)+'</div><div class="m13pr">'+(p.custom?'from ':'')+rs(pr(p,p.custom?'monthly':IV))+'<small>/'+(IV==='annual'&&!p.custom?'year':'month')+'</small></div>'+(IV==='annual'&&!p.custom?'<div class="m13t">'+rs(p.pkr*0.8)+' a month, billed yearly</div>':'<div class="m13t">&nbsp;</div>')+'<ul>'+p.f.map(function(f){return '<li>'+h(f)+'</li>'}).join('')+'</ul>'+(p.custom?'<a class="btn" href="mailto:sales@vendom.app">Contact sales</a>':'<button type="button" class="btn pri" data-m13p="'+p.c+'">Start 4-day free trial</button>')+'</div>'}).join('')+'</div>'
  +'<p class="m13sub" style="margin-top:14px">No payment needed for the trial. Already have an account? <a href="#" id="m13in">Sign in</a></p></div>'}
 if(X.authView){var AV=X.authView;X.authView=authView=function(m){if(m==='in'||m==='gate'||m==='up'||m==='store')return AV.apply(this,arguments);var a=q('#auth');if(!a)return;a.style.display='flex';a.innerHTML=picker();
  qa('[data-iv]').forEach(function(b){b.onclick=function(){IV=b.dataset.iv;X.authView('plan')}});
@@ -69,7 +69,7 @@ A.pexport=function(){var ns=selIds().length,qv=((q('#main .p8q')||{}).value||'')
  X.xmodal('Export products','<fieldset class="m13fs"><legend>Export</legend><label><input type="radio" name="m13sc" value="page" checked> Current page ('+visIds().length+')</label><label><input type="radio" name="m13sc" value="all"> All products ('+S.products.length+')</label><label><input type="radio" name="m13sc" value="sel"'+(ns?'':' disabled')+'> Selected ('+ns+')</label><label><input type="radio" name="m13sc" value="q"'+(qv?'':' disabled')+'> Search results'+(qv?' for “'+h(qv)+'” ('+srch().length+')':'')+'</label></fieldset><fieldset class="m13fs"><legend>Export as</legend><label><input type="radio" name="m13fm" value="excel" checked> CSV for Excel, Numbers or other spreadsheet programs</label><label><input type="radio" name="m13fm" value="plain"> Plain CSV file</label></fieldset>','Export products',function(){
   var sc=(q('[name=m13sc]:checked')||{}).value,fm=(q('[name=m13fm]:checked')||{}).value,ids=sc==='page'?visIds():sc==='sel'?selIds():null;var ps=sc==='all'?S.products:sc==='q'?srch():S.products.filter(function(p){return ids.indexOf(p.id)>-1});
   var t=X.exportProducts(ps);dl('products_export.csv',(fm==='excel'?'\uFEFF':'')+t);X._m13last={scope:sc,format:fm,count:ps.length,text:t};tst('Exported '+ps.length+' product'+(ps.length===1?'':'s'))})};
-var SAMPLE=toCsv([COLS,['classic-tee','Classic Tee','<p>Soft cotton tee</p>','Sellora','Shirts','cotton, summer','true','Size','S','Color','Black','','','TEE-S-BLK','1499.00','1999.00','25','https://example.com/tee.jpg','Classic Tee','Soft cotton tee','active'],['classic-tee','','','','','','','Size','M','Color','Black','','','TEE-M-BLK','1499.00','','30','','','','']]);
+var SAMPLE=toCsv([COLS,['classic-tee','Classic Tee','<p>Soft cotton tee</p>','VendOm','Shirts','cotton, summer','true','Size','S','Color','Black','','','TEE-S-BLK','1499.00','1999.00','25','https://example.com/tee.jpg','Classic Tee','Soft cotton tee','active'],['classic-tee','','','','','','','Size','M','Color','Black','','','TEE-M-BLK','1499.00','','30','','','','']]);
 X.m13read=function(text){var all=parse(text),hd=(all.shift()||[]).map(function(x){return x.trim().toLowerCase()}),errs=[],items={},order=[],last='',n=0;
  var ix=function(){for(var i=0;i<arguments.length;i++){var k=hd.indexOf(arguments[i]);if(k>-1)return k}return -1};
  if(ix('handle','title')<0)return{rows:0,items:[],errors:[{row:1,message:'The file needs a Handle or Title column. Download the sample template to see the format.'}]};

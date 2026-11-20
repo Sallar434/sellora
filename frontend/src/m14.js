@@ -1,4 +1,4 @@
-/* m14: Sellora theme library — only the Sellora free themes, each with its own specialty. */
+/* m14: VendOm theme library — only the VendOm free themes, each with its own specialty. */
 (function(){var X=window;
 var OLD=['dawn','ember','tide','orchard','noir','bloom','slate','sunset','mint','ink','aurora','sand'];
 // id: [name, bestFor, tag, font, lay, rad, bg, tx, ac, home[], header{}, footer{}, product{}, announce]
@@ -43,7 +43,7 @@ var L={
  [['heroM',{ht:300}],['multicolumn'],['col_grid'],['featured',{ratio:'Square',cols:6,n:16}],['faq'],['contactform']],
  {menu:'Catalog\nQuick order\nAccount\nContact',srch:true,sticky:true,sz:13,pad:8},{sz:12},{lay:'Image left',imgw:35,hs:22,btn:'Add to quote'},'Wholesale pricing on 10+ units']
 };
-// Older Sellora free themes kept, renamed so no names echo other platforms.
+// Older VendOm free themes kept, renamed so no names echo other platforms.
 var RN2={'s-tinkerer':'Workbench','s-atelierra':'Seamline','s-dwelling':'Roomly','s-pitchline':'Sprint'};
 var EXTRA={'s-meridian':['Best for: a flexible modern store.','Modern'],'s-tinkerer':['Best for: gadgets and DIY kits.','Gadgets'],'s-legacy':['Best for: classic heritage brands.','Classic'],'s-atelierra':['Best for: fashion and apparel.','Fashion'],'s-ascend':['Best for: fast-growing lifestyle brands.','Lifestyle'],'s-vase':['Best for: home decor and ceramics.','Decor'],'s-dwelling':['Best for: furniture and interiors.','Interiors'],'s-relish':['Best for: gourmet and speciality food.','Gourmet'],'s-rite':['Best for: candles and self-care.','Self-care'],'s-weave':['Best for: textiles and clothing.','Textiles'],'s-pitchline':['Best for: team and fan merchandise.','Fan merch']};
 var MAP={'s-sensa':'s-serene','s-handmade':'s-hearthwork','s-craving':'s-munchbox','s-press':'s-folio','s-bulk':'s-ledgerline'};

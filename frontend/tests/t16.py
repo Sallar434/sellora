@@ -2,7 +2,7 @@
 import os
 from playwright.sync_api import sync_playwright
 
-F = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sellora.html'))
+F = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'vendom.html'))
 R = []
 
 def ok(n, c, d=''):
@@ -34,7 +34,7 @@ with sync_playwright() as p:
     pg.click('#ab')
     pg.wait_for_timeout(900)
     ok('signed in to own store', pg.evaluate('S.name') == 'Ring Shop' and pg.evaluate('!!U'))
-    ok('voice button next to AI input', pg.locator('#qmic').count() == 1 and pg.locator('#qmic').get_attribute('aria-label') == 'Speak to Sellora AI')
+    ok('voice button next to AI input', pg.locator('#qmic').count() == 1 and pg.locator('#qmic').get_attribute('aria-label') == 'Speak to VendOm AI')
     pg.click('#qmic')
     pg.wait_for_timeout(250)
     voice = pg.locator('#qvstat').inner_text()
@@ -62,7 +62,7 @@ with sync_playwright() as p:
         page: (t.pg.collection||[]).some(s => (s.type === 'col_banner' || /hero/.test(s.type)) && s.s && s.s.img && String(s.s.img).indexOf('data:image') === 0),
         hero: !!(hero && hero.s && hero.s.img && String(hero.s.img).indexOf('data:image/svg') === 0),
         grid: !!(feat && feat.type === 'feat_col_grid' && feat.s.col === 'Boxing'),
-        footer: !!(foot && /Sellora Pay/.test(foot.s.txt || '')),
+        footer: !!(foot && /VendOm Pay/.test(foot.s.txt || '')),
         menu: ((S.menusList||[]).find(m => m.handle === 'main-menu') || {}).items || '',
         price: made[0] && made[0].price > 0 && made[0].desc && (made[0].imgs||[])[0]
       };
@@ -100,7 +100,7 @@ with sync_playwright() as p:
     schemas = pg.evaluate("""(() => { var missing=[]; Object.keys(RN).forEach(function(k){ if(typeof RN[k]!=='function')return; var f=SCH[k]; if(!f||!f.some(x=>x[0]==='bg')) missing.push(k); }); return missing; })()""")
     ok('every section schema has a background color', schemas == [], schemas)
 
-    bg = pg.evaluate("""(() => { var t=live(); initT(t); var s=t.pg.home[0]; s.s.bg='#123456'; var html=sf(t,'home'); save(); var raw=localStorage.getItem('sellora'); return {html: html.indexOf('background-color:#123456')>=0, saved: raw.indexOf('#123456')>=0}; })()""")
+    bg = pg.evaluate("""(() => { var t=live(); initT(t); var s=t.pg.home[0]; s.s.bg='#123456'; var html=sf(t,'home'); save(); var raw=localStorage.getItem('vendom'); return {html: html.indexOf('background-color:#123456')>=0, saved: raw.indexOf('#123456')>=0}; })()""")
     ok('section background paints and persists', bg['html'] and bg['saved'], bg)
 
     pg.evaluate("edit(S.live)")

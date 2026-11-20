@@ -1,10 +1,10 @@
-# Sellora seller plans: pricing, limits, overage and margins
+# VendOm seller plans: pricing, limits, overage and margins
 
 Prices are shown in Pakistani Rupee (PKR) and US Dollar (USD), using about Rs 280 = $1. All times are Asia/Karachi (UTC+5).
 
 **How it works.** A new seller picks a plan first (Basic, Grow or Advanced; Enterprise is "contact sales"). Every plan starts with a **4-day free trial**.
 
-- **During the trial** the seller can build everything: products, CSV import, themes, settings. The store stays behind its password page. Publishing a theme, removing the password and going live all need a paid plan, paid through Sellora Pay.
+- **During the trial** the seller can build everything: products, CSV import, themes, settings. The store stays behind its password page. Publishing a theme, removing the password and going live all need a paid plan, paid through VendOm Pay.
 - **When the 4 days end without a purchase**, the store closes completely. The storefront shows "Store unavailable", and the admin only shows the choose-a-plan page. Nothing is deleted: buying any plan reopens the store with all its data.
 - **Free** is no longer offered to new stores. It is kept only as a hidden legacy plan for old stores.
 - **When a seller goes over a monthly limit**, they choose one of two options in *Settings › Plan*:
@@ -30,8 +30,8 @@ Prices are shown in Pakistani Rupee (PKR) and US Dollar (USD), using about Rs 28
 | File storage | 1 GB | 2 GB | 5 GB | 10 GB | 100 GB |
 | Stores / markets | 1 / 1 | 1 / 1 | 1 / 2 | 2 / 5 | 10 / unlimited |
 | Extra usage | not allowed | auto-pay or stop | auto-pay or stop | auto-pay or stop | auto-pay or stop |
-| Sellora Pay card fee | 4.5% + Rs 30 | 4.0% + Rs 30 | 3.75% + Rs 30 | 3.5% + Rs 30 | from 3.4% + Rs 30 |
-| Sellora Pay wallet fee (JazzCash, Easypaisa) | 3% | 2.5% | 2.5% | 2.5% | 2.25% |
+| VendOm Pay card fee | 4.5% + Rs 30 | 4.0% + Rs 30 | 3.75% + Rs 30 | 3.5% + Rs 30 | from 3.4% + Rs 30 |
+| VendOm Pay wallet fee (JazzCash, Easypaisa) | 3% | 2.5% | 2.5% | 2.5% | 2.25% |
 | Bank transfer / COD | 0% | 0% | 0% | 0% | 0% |
 
 The fixed card fee in US Dollar (USD) is $0.11.
@@ -73,7 +73,7 @@ The hosting and support share per store is Rs 20 on Free, Rs 30 on Basic, Rs 35 
 
 WhatsApp is the biggest cost: about one-third of the worst-case cost on each plan. That's why the WhatsApp limits are small and its overage price is set about 1.9× our cost.
 
-### Sellora Pay fee: the main revenue
+### VendOm Pay fee: the main revenue
 
 This estimate assumes an average order of Rs 3,000, paid 30% by card, 20% by wallet and 50% by COD or bank transfer. Our costs are:
 
@@ -116,7 +116,7 @@ That fits well inside Advanced. The tightest limit is WhatsApp at 50 messages. M
 - **Upgrades** take effect now, prorated for the rest of the period.
 - **Downgrades** take effect at period end. They're blocked if the store's products, staff or markets don't fit the smaller plan.
 - **Monthly billing job** (`billing-run`, also `POST /api/admin/billing/run`) builds the bill: overage lines, a spending-cap credit, then the next plan fee.
-- **Payment:** charged to the Sellora Pay wallet first, then the card on file. If both fail, the bill is marked past due.
+- **Payment:** charged to the VendOm Pay wallet first, then the card on file. If both fail, the bill is marked past due.
 - **Platform admin:** prices, limits and fees can be edited at `/api/admin/plans` and on the *Platform admin · Plans* page.
 
 ## AI costs with DeepSeek (updated 29 Oct 2026, Asia/Karachi, UTC+5)
@@ -125,7 +125,7 @@ DeepSeek is **not free**. It is pay-as-you-go with no free tier; you top up a ba
 
 | Model (`DEEPSEEK_MODEL`) | Input, cache hit | Input, cache miss | Output |
 |---|---|---|---|
-| `deepseek-flash` (V4.1 Flash, **Sellora default**) | $0.006 / $0.003 | $0.30 / $0.15 | $1.20 / $0.60 |
+| `deepseek-flash` (V4.1 Flash, **VendOm default**) | $0.006 / $0.003 | $0.30 / $0.15 | $1.20 / $0.60 |
 | `deepseek-v4-pro` | $0.044 / $0.022 | $1.32 / $0.66 | $3.96 / $1.98 |
 
 Off-peak (half price) is any time outside 06:00–09:00 and 11:00–15:00 Asia/Karachi (UTC+5), Monday–Friday; weekends are off-peak all day.
@@ -138,4 +138,4 @@ Off-peak (half price) is any time outside 06:00–09:00 and 11:00–15:00 Asia/K
 | Description in EN + UR + AR | 3 | 3 × 1.5k | Rs 1.3 | Rs 0.6 |
 | SEO keyword research / AEO FAQ / GEO / calendar | 2 each | 1–3k | Rs 0.4–0.8 | Rs 0.2–0.4 |
 
-A 25-credit build is worth Rs 20 at the overage price (25 × Rs 0.80) against a cost of about Rs 7, so we stay above cost even at peak. Changes from the previous plan: AI credits Free 20→30, Grow 250→200, Advanced 500→400, and AI overage Rs 40→80 ($0.15→$0.29) per 100 credits. Worst-case margins remain positive on every paid plan (Basic 43%, Grow 35%, Advanced 29%); Sellora Pay fees stay the main profit.
+A 25-credit build is worth Rs 20 at the overage price (25 × Rs 0.80) against a cost of about Rs 7, so we stay above cost even at peak. Changes from the previous plan: AI credits Free 20→30, Grow 250→200, Advanced 500→400, and AI overage Rs 40→80 ($0.15→$0.29) per 100 credits. Worst-case margins remain positive on every paid plan (Basic 43%, Grow 35%, Advanced 29%); VendOm Pay fees stay the main profit.

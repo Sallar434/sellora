@@ -8,7 +8,7 @@ const H = (t: string) => ({ Authorization: 'Bearer ' + t });
 let s: any; const S = (p: string) => `/api/stores/${s.store.id}${p}`;
 beforeAll(async () => { s = (await A().post('/api/auth/signup').send({ email: 'themes@t.io', password: 'password123', storeName: 'Theme Shop' }).expect(201)).body; });
 describe('theme library', () => {
-  it('only Sellora themes, each distinct, no retired or trademarked names', () => {
+  it('only VendOm themes, each distinct, no retired or trademarked names', () => {
     const banned = ['Dawn', 'Refresh', 'Sense', 'Craft', 'Crave', 'Studio', 'Taste', 'Colorblock', 'Ride', 'Origin', 'Publisher', 'Spotlight', 'Trade', 'Shopify'];
     expect(THEME_LIBRARY.length).toBe(13);
     for (const t of THEME_LIBRARY) { expect(banned).not.toContain(t.name); expect(t.bestFor.startsWith('Best for')).toBe(true); expect(t.tag).toBeTruthy(); }

@@ -551,7 +551,7 @@ model Preference {
   data    Json
 }
 
-// ===== Sellora+ (beyond-Shopify) =====
+// ===== VendOm+ (beyond-Shopify) =====
 model WhatsappOrder {
   id          String   @id @default(cuid())
   storeId     String

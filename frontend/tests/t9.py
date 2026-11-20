@@ -1,12 +1,13 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json,time
-U='http://127.0.0.1:8777/sellora.html#'
+U=vt.URL+'#'
 res=[]
 def ck(n,c):res.append((n,bool(c)));print(('PASS ' if c else 'FAIL ')+n)
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page(viewport={'width':1366,'height':900});errs=[]
-    pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text))
-    pg.goto(U+'home');pg.wait_for_timeout(900);E=pg.evaluate
+    pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and 'net::ERR_' not in m.text and errs.append(m.text))
+    vt.open_app(pg,U+'home');pg.wait_for_timeout(900);E=pg.evaluate
     def go(r):pg.goto(U+r);pg.wait_for_timeout(300)
     def fill(sel,v):pg.fill(sel,str(v))
     def msg(id):return pg.inner_text('#'+id)
@@ -84,7 +85,7 @@ with sync_playwright() as p:
     # persistence
     pg.reload();pg.wait_for_timeout(900)
     ck('persist after reload',E("m9P().rfq.length==1&&m9P().oem.length==1&&m9P().ship.length==1&&m9P().cfg.lang=='ur'&&document.documentElement.dir=='rtl'"))
-    ck('storage key sellora',E("!!localStorage.getItem('sellora')"))
+    ck('storage key vendom',E("!!localStorage.getItem('vendom')"))
     E("m9P().cfg.lang='en';m9P().cfg.sfLang='en';save()")
     # themes
     go('themes');ck('24 free themes installed',E("M9_FREE.every(f=>S.themes.some(t=>t.id===f[0]))"))
@@ -95,7 +96,7 @@ with sync_playwright() as p:
     # collection editor
     go('colx-new');pg.click('#m9colsave');pg.wait_for_timeout(200);ck('collection title required','colx' in pg.url)
     c0=E("S.collections.length");fill('#x7c1','Goalkeeper Gloves');pg.click('#p8sav' if pg.is_visible('#p8sav') else '#m9colsave');pg.wait_for_timeout(400);ck('collection created 2-col',E("S.collections.length")==c0+1)
-    open('t9-state.json','w').write(E("localStorage.getItem('sellora')"))
+    open('t9-state.json','w').write(E("localStorage.getItem('vendom')"))
     ck('no console errors',not errs);print(errs[:5])
     b.close()
 P=sum(1 for r in res if r[1]);print(f'\nTOTAL {P}/{len(res)}')

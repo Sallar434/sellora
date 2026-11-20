@@ -29,3 +29,10 @@ dist/
 ehthumbs.db
 Thumbs.db
 desktop.ini
+
+# Test run output
+__pycache__/
+frontend/shots*/
+frontend/shot_*.png
+frontend/t*-results.json
+frontend/t9-state.json

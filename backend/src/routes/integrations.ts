@@ -62,7 +62,7 @@ oauthPublic.get('/oauth/callback', ah(async (req, res) => {
   try { tokens = a.oauth!.map((await call(rq)).data); } catch (e) { if (e instanceof IntegrationError) throw new HttpError(502, 'Token exchange failed', { upstreamStatus: e.status }); throw e; }
   const extra: Record<string, string> = {}; if (a.id === 'quickbooks' && req.query.realmId) extra.realmId = String(req.query.realmId);
   await saveCreds(st.storeId, a.id, { ...tokens, ...extra }); await log(st.storeId, a.id, 'in', 'oauth', 200, true, 'connected');
-  res.type('html').send(`<p>${a.name} connected to Sellora. You can close this window.</p>`);
+  res.type('html').send(`<p>${a.name} connected to VendOm. You can close this window.</p>`);
 }));
 // ---- Inbound webhooks (signature verified per provider)
 export const hooks = Router();

@@ -1,4 +1,4 @@
-/* Sellora store builder: typed and spoken commands write real products, collections, and theme sections.
+/* VendOm store builder: typed and spoken commands write real products, collections, and theme sections.
    DeepSeek is the default model when a key is configured. Claude is used first only if an Anthropic key is set.
    With no key, the same intents run locally so the static storefront still builds. */
 (function(){
@@ -127,7 +127,7 @@ function addProduct(spec,colTitle){
   var existing=(S.products||[]).filter(function(p){return String(p.name).toLowerCase()===spec.name.toLowerCase()})[0];
   if(existing){if(colTitle){existing.cols=existing.cols||[];if(existing.cols.indexOf(colTitle)<0)existing.cols.push(colTitle)}if(spec.img&&!(existing.imgs&&existing.imgs.length))existing.imgs=[spec.img];existing.status='Active';existing.pub=existing.pub!==false;return {p:existing,made:false}}
   var id=S.nid=(S.nid||10)+1;
-  var p={id:id,name:spec.name,price:spec.price,cmp:0,stock:spec.stock||24,status:'Active',pub:true,desc:'<p>'+esc(spec.blurb)+'</p><p>Ships with tracked delivery. Payments are protected by Sellora Pay.</p>',cols:colTitle?[colTitle]:[],tags:spec.tags||[],imgs:[spec.img],opts:[],vars:[],handle:sluggy(spec.name),sku:'SL-'+id,type:spec.type||'',vendor:S.name||'',seo:{t:(spec.name+' | '+(S.name||'')).slice(0,60),d:(spec.blurb+' Pay with Sellora Pay.').slice(0,155)}};
+  var p={id:id,name:spec.name,price:spec.price,cmp:0,stock:spec.stock||24,status:'Active',pub:true,desc:'<p>'+esc(spec.blurb)+'</p><p>Ships with tracked delivery. Payments are protected by VendOm Pay.</p>',cols:colTitle?[colTitle]:[],tags:spec.tags||[],imgs:[spec.img],opts:[],vars:[],handle:sluggy(spec.name),sku:'SL-'+id,type:spec.type||'',vendor:S.name||'',seo:{t:(spec.name+' | '+(S.name||'')).slice(0,60),d:(spec.blurb+' Pay with VendOm Pay.').slice(0,155)}};
   S.products.push(p);return {p:p,made:true};
 }
 function makeProducts(subject,mode){
@@ -166,7 +166,7 @@ function ensureBody(t,o){
   text.hide=false;
   var mc=home.filter(function(s){return s.type==='multicolumn'})[0];
   if(!mc){mc=mk('multicolumn',{});home.push(mc)}
-  Object.assign(mc.s,{h:mc.s.h||'Why shop with us',n:mc.s.n||'3',c1t:'Fast delivery',c1x:'Tracked shipping on every order.',c2t:'Easy returns',c2x:'Send unused items back within 30 days.',c3t:'Sellora Pay',c3x:'Your payment stays protected until the order arrives.'});
+  Object.assign(mc.s,{h:mc.s.h||'Why shop with us',n:mc.s.n||'3',c1t:'Fast delivery',c1x:'Tracked shipping on every order.',c2t:'Easy returns',c2x:'Send unused items back within 30 days.',c3t:'VendOm Pay',c3x:'Your payment stays protected until the order arrives.'});
   mc.hide=false;
   var an=(t.hdr||[]).filter(function(s){return s.type==='announce'})[0];
   if(!an){an=mk('announce',{});t.hdr.unshift(an)}
@@ -175,11 +175,11 @@ function ensureBody(t,o){
   if(!ft){ft=mk('footer',{});t.ftr.unshift(ft)}
   Object.assign(ft.s,{txt:o.footer,menu:ft.s.menu||'Home\nCatalog\nContact',news:ft.s.news!==false,nt:ft.s.nt||'Join our newsletter'});
   var util=(t.ftr||[]).filter(function(s){return s.type==='utilities'})[0];
-  if(util){util.s.pay=true;if(!util.s.txt)util.s.txt='Payments by Sellora Pay'}
+  if(util){util.s.pay=true;if(!util.s.txt)util.s.txt='Payments by VendOm Pay'}
 }
 function pagesFor(subject,blurb){
   var name=S.name||'Our store';
-  upsertPage('about','About us','<p>'+esc(name)+' sells '+esc(subject)+'. '+esc(blurb)+'</p><p>Every order is paid with Sellora Pay, so the payment stays protected until you have the goods.</p>');
+  upsertPage('about','About us','<p>'+esc(name)+' sells '+esc(subject)+'. '+esc(blurb)+'</p><p>Every order is paid with VendOm Pay, so the payment stays protected until you have the goods.</p>');
   upsertPage('contact','Contact','<p>Questions about '+esc(subject)+'? Email '+esc(S.email||'us')+' or use the form. We reply within one business day.</p>');
 }
 function buildSite(subject,scope,layout){
@@ -193,7 +193,7 @@ function buildSite(subject,scope,layout){
   var heading=scope==='category'?titleCase(subject):names[0];
   setHero(t,{heading:heading,sub:made.blurb,img:banner(heading,made.blurb,made.accent),btn:col?('Shop '+col.title):'Shop now',link:col?'collection':'catalog',eyb:S.name||''});
   setFeatured(t,layout,col?col.title:'All');
-  ensureBody(t,{storyTitle:'About '+heading,story:made.blurb+' '+((S.name||'We')+' checks every order before it ships.'),img:made.items[0].p.imgs[0],announce:'New: '+heading+' · Pay with Sellora Pay',footer:(S.name||'This store')+' · '+made.blurb+' Returns within 30 days. Payments by Sellora Pay.'});
+  ensureBody(t,{storyTitle:'About '+heading,story:made.blurb+' '+((S.name||'We')+' checks every order before it ships.'),img:made.items[0].p.imgs[0],announce:'New: '+heading+' · Pay with VendOm Pay',footer:(S.name||'This store')+' · '+made.blurb+' Returns within 30 days. Payments by VendOm Pay.'});
   pagesFor(subject,made.blurb);
   linkMenu(col?col.title:null);
   state().focusCol=col?col.title:state().focusCol;
@@ -279,7 +279,7 @@ function parse(text){
   if(/\bbanners?\b/.test(t)){var style=/promo|sale/.test(t)?'sale':/collection/.test(t)?'collection':'hero';var sm=t.match(/\b(?:for|about|saying)\s+(.+)$/);return {kind:'banner',style:style,subject:subjectOf((sm&&sm[1])||g.focusCol||'New arrivals')}}
   if(/featured/.test(t)&&/(carousel|slider|slideshow|grid)/.test(t))return {kind:'featured',layout:f.layout,subject:subjectOf(t.replace(/.*featured(?:\s+products?)?/,''))||g.focusCol||''};
   if((m=/^(?:please\s+)?(?:add|create|make)\s+(?:a\s+)?featured(?:\s+products?)?(?:\s+(?:section|row))?(?:\s+(?:for|of))?\s*(.*)$/.exec(t)))return {kind:'featured',layout:f.layout,subject:subjectOf(m[1])||g.focusCol||''};
-  if((m=/^(?:please\s+)?(?:add|create)\s+(?:an\s+)?announcement(?:\s+bar)?(?:\s+(?:that says|saying|with|:))?\s*(.*)$/.exec(t)))return {kind:'announce',text:m[1]?raw.replace(/^.*?announcement(?:\s+bar)?(?:\s+(?:that says|saying|with|:))?\s*/i,''):'Free shipping on your first order · Pay with Sellora Pay'};
+  if((m=/^(?:please\s+)?(?:add|create)\s+(?:an\s+)?announcement(?:\s+bar)?(?:\s+(?:that says|saying|with|:))?\s*(.*)$/.exec(t)))return {kind:'announce',text:m[1]?raw.replace(/^.*?announcement(?:\s+bar)?(?:\s+(?:that says|saying|with|:))?\s*/i,''):'Free shipping on your first order · Pay with VendOm Pay'};
   if((m=/^(?:please\s+)?(?:add|create|make)\s+(?:an?\s+)?(about|contact)(?:\s+us)?\s+page\b/.exec(t)))return {kind:'page',which:m[1]};
   if((m=/^(?:please\s+)?(?:add|put)\s+(.+?)\s+(?:to|in|on)\s+(?:the\s+)?(?:main\s+)?menu$/.exec(t)))return {kind:'menu',subject:subjectOf(m[1])};
   if((m=/^(?:please\s+)?(?:add|create)\s+(?:a\s+)?product\s+(?:called|named)?\s*(.+?)(?:\s+(?:for|at|priced at|price)\s+\$?(\d+(?:\.\d+)?))?$/.exec(t)))return {kind:'product',subject:subjectOf(m[1]),price:m[2]?+m[2]:39};
@@ -326,7 +326,7 @@ function runCollection(subject){
 }
 function runBanner(style,subject){
   var t=theme();if(!t)return {handled:true,reply:'Open your store first.'};
-  var accent=t.ac||'#1F2937',heading=titleCase(subject||'New arrivals'),sub='Shop '+heading+' · Pay with Sellora Pay';
+  var accent=t.ac||'#1F2937',heading=titleCase(subject||'New arrivals'),sub='Shop '+heading+' · Pay with VendOm Pay';
   var img=banner(heading,sub,accent);
   if(style==='promo'||style==='sale')putSection('promo',{h:heading,sub:sub,btn:'Shop now',link:state().focusCol?'collection':'catalog',bg:accent,fg:'#ffffff'});
   else if(style==='collection'){var c=ensureCollection(heading,sub,cover(heading,sub,accent));putSection('col_banner',{h:c.title,sub:c.desc,img:c.pic,ht:420,btn:'Shop '+c.title,link:'catalog',fg:'#ffffff'})}
@@ -350,7 +350,7 @@ function suggestions(){
   if(hasGrid&&!hasCar)out.push({text:'Featured products are only a grid. A carousel puts one row in motion.',cmd:'add a featured products carousel'});
   if(!home.some(function(s){return !s.hide&&(s.type==='promo'||s.type==='imgbanner'||s.type==='col_banner')}))out.push({text:'Add a sale banner'+(focus?' for '+focus:'')+' so the homepage is not only the hero.',cmd:'add a sale banner for '+(focus||'this week')});
   var ft=t&&(t.ftr||[]).filter(function(s){return s.type==='footer'})[0];
-  if(ft&&!/sellora pay|returns/i.test(ft.s.txt||''))out.push({text:'The footer does not mention returns or Sellora Pay.',cmd:'add trust details to the footer'});
+  if(ft&&!/vendom pay|returns/i.test(ft.s.txt||''))out.push({text:'The footer does not mention returns or VendOm Pay.',cmd:'add trust details to the footer'});
   if(!(t&&(t.hdr||[]).some(function(s){return s.type==='announce'&&s.s&&s.s.msg&&!s.hide})))out.push({text:'Add an announcement bar for shipping or a current offer.',cmd:'add an announcement bar'});
   var seen={},uniq=[];out.forEach(function(s){if(!seen[s.cmd]){seen[s.cmd]=1;uniq.push(s)}});return uniq.slice(0,3);
 }
@@ -391,8 +391,8 @@ function execute(cmd){
   if(cmd.kind==='product')return runProduct(cmd.subject,cmd.price);
   if(cmd.kind==='speed')return optimize();
   if(cmd.kind==='ideas'){var s=suggestions();state().suggestions=s;return {handled:true,reply:s.length?s.map(function(x,i){return (i+1)+'. '+x.text}).join(' '):'The store already has a collection, pages, a banner, and featured products.',suggestions:s}}
-  if(cmd.kind==='trust'){var t=theme();var ft=t&&(t.ftr||[]).filter(function(s){return s.type==='footer'})[0];if(ft)ft.s.txt=(S.name||'This store')+' · Easy returns within 30 days. Payments by Sellora Pay.';return {handled:true,built:true,reply:'Updated the footer with returns and Sellora Pay.'}}
-  if(cmd.kind==='section'){var map={faq:['faq',{h:'Questions',items:'How long is delivery? | Most orders arrive in 2 to 5 days.\nCan I return it? | Yes, within 30 days.\nHow do I pay? | Sellora Pay protects the payment until delivery.'}],newsletter:['newsletter',{h:'Stay in the loop',sub:'New products and the occasional offer.',btn:'Subscribe'}],text:['text',{h:'Our story',txt:catalogFor(cmd.subject).blurb}],story:['imgtext',{h:'Our story',txt:catalogFor(cmd.subject).blurb}]};var pair=map[cmd.which]||map.text;putSection(pair[0],pair[1]);return {handled:true,built:true,reply:'Added a '+cmd.which+' section.'}}
+  if(cmd.kind==='trust'){var t=theme();var ft=t&&(t.ftr||[]).filter(function(s){return s.type==='footer'})[0];if(ft)ft.s.txt=(S.name||'This store')+' · Easy returns within 30 days. Payments by VendOm Pay.';return {handled:true,built:true,reply:'Updated the footer with returns and VendOm Pay.'}}
+  if(cmd.kind==='section'){var map={faq:['faq',{h:'Questions',items:'How long is delivery? | Most orders arrive in 2 to 5 days.\nCan I return it? | Yes, within 30 days.\nHow do I pay? | VendOm Pay protects the payment until delivery.'}],newsletter:['newsletter',{h:'Stay in the loop',sub:'New products and the occasional offer.',btn:'Subscribe'}],text:['text',{h:'Our story',txt:catalogFor(cmd.subject).blurb}],story:['imgtext',{h:'Our story',txt:catalogFor(cmd.subject).blurb}]};var pair=map[cmd.which]||map.text;putSection(pair[0],pair[1]);return {handled:true,built:true,reply:'Added a '+cmd.which+' section.'}}
   if(cmd.kind==='need')return {handled:true,reply:cmd.reply};
   return {handled:false,reply:''};
 }
@@ -413,7 +413,7 @@ function providerState(){
 function enrich(subject){
   var st=providerState();if(st.active==='local')return;
   var names=(S.products||[]).slice(-8).map(function(p){return p.name});
-  var sys='Write one-sentence product descriptions as JSON {"blurbs":[{"name":"","description":""}]}. Mention Sellora Pay. Do not mention other payment brands.';
+  var sys='Write one-sentence product descriptions as JSON {"blurbs":[{"name":"","description":""}]}. Mention VendOm Pay. Do not mention other payment brands.';
   var user='Store '+(S.name||'')+' selling '+subject+'. Products: '+names.join(', ');
   function apply(text){var j;try{j=JSON.parse(String(text).replace(/^```(?:json)?|```$/g,''))}catch(e){return}(j.blurbs||[]).forEach(function(b){var p=(S.products||[]).filter(function(x){return x.name===b.name})[0];if(p&&b.description)p.desc='<p>'+esc(b.description)+'</p>'});persist()}
   function deepseek(){if(!st.deepseek||!X.API||!X.API.llm)return Promise.resolve();return X.API.llm(user,sys).then(function(t){if(t)apply(t)}).catch(function(){})}
@@ -457,8 +457,8 @@ function runAsk(text){
 }
 function speak(t){try{if(X.speechSynthesis&&X.SpeechSynthesisUtterance){var u=new SpeechSynthesisUtterance(String(t).slice(0,280));X.speechSynthesis.cancel();X.speechSynthesis.speak(u)}}catch(e){}}
 function mountAsk(){
-  var ask=document.querySelector('#main .ask'),q=document.getElementById('q');if(!ask||!q||q.getAttribute('aria-label')!=='Ask Sellora AI')return;
-  if(!document.getElementById('qmic')){var mic=document.createElement('button');mic.type='button';mic.id='qmic';mic.className='btn';mic.setAttribute('aria-label','Speak to Sellora AI');mic.title='Speak';mic.textContent='🎤';q.insertAdjacentElement('afterend',mic);mic.addEventListener('click',function(){voiceInto(q,runAsk,document.getElementById('qvstat'))})}
+  var ask=document.querySelector('#main .ask'),q=document.getElementById('q');if(!ask||!q||q.getAttribute('aria-label')!=='Ask VendOm AI')return;
+  if(!document.getElementById('qmic')){var mic=document.createElement('button');mic.type='button';mic.id='qmic';mic.className='btn';mic.setAttribute('aria-label','Speak to VendOm AI');mic.title='Speak';mic.textContent='🎤';q.insertAdjacentElement('afterend',mic);mic.addEventListener('click',function(){voiceInto(q,runAsk,document.getElementById('qvstat'))})}
   if(!document.getElementById('qvstat')){var st=document.createElement('p');st.id='qvstat';st.className='mu';st.setAttribute('role','status');ask.insertAdjacentElement('afterend',st)}
   if(!document.getElementById('aichat')){var box=document.createElement('div');box.id='aichat';document.getElementById('qvstat').insertAdjacentElement('afterend',box)}
   paintChat();
@@ -535,7 +535,7 @@ function ensureSchemas(){
   RN.aiblock=function(t,s){var pr=s.s.prompt||'',ask=s.s.ask||'';return '<section class="sx" data-sid="'+s.id+'" data-aiblock="1" style="padding:28px 40px;background:'+(s.s.bg||'#f4f4f4')+';color:#111"><div style="font-size:12px;letter-spacing:.04em;text-transform:uppercase">AI block</div><h2 style="margin:8px 0">'+esc(pr||'Describe this block')+'</h2><p style="margin:0">'+(ask?esc(ask):'Use the prompt in the section options. Generate turns this into a normal section you can keep editing.')+'</p></section>'};
   Object.keys(RN).forEach(function(k){if(typeof RN[k]!=='function')return;if(!SCH[k])SCH[k]=[['bg','Background','c','','bg']];else if(!SCH[k].some(function(f){return f[0]==='bg'}))SCH[k].unshift(['bg','Background','c','','bg']);if(typeof LBL!=='undefined'&&!LBL[k])LBL[k]=k.replace(/_/g,' ')});
   ['featured','feat_col_carousel','feat_col_grid'].forEach(function(k){if(!SCH[k]||SCH[k].some(function(f){return f[0]==='layout'}))return;SCH[k].unshift(['layout','Layout','s',k==='feat_col_grid'?'Grid':'Carousel',['Carousel','Grid']])});
-  var cat=X.SECTIONS_CATALOG;if(cat&&!cat.some(function(g){return (g.items||[]).some(function(i){return i.id==='aiblock'})}))cat.unshift({category:'AI',items:[{id:'aiblock',name:'AI block',icon:'bars',desc:'Describe a banner, collection, or product row. Sellora builds a real section you can keep editing.'}]});
+  var cat=X.SECTIONS_CATALOG;if(cat&&!cat.some(function(g){return (g.items||[]).some(function(i){return i.id==='aiblock'})}))cat.unshift({category:'AI',items:[{id:'aiblock',name:'AI block',icon:'bars',desc:'Describe a banner, collection, or product row. VendOm builds a real section you can keep editing.'}]});
 }
 function installRenderers(){
   if(typeof RN==='undefined')return;

@@ -13,7 +13,7 @@ export const config = {
   platformFeeBps: +(e.PLATFORM_FEE_BPS || 250),
   escrowAutoReleaseDays: +(e.ESCROW_AUTO_RELEASE_DAYS || 7),
   redisUrl: e.REDIS_URL || '',
-  smtpUrl: e.SMTP_URL || '', mailFrom: e.MAIL_FROM || 'Sellora <no-reply@sellora.app>',
+  smtpUrl: e.SMTP_URL || '', mailFrom: e.MAIL_FROM || 'VendOm <no-reply@vendom.app>',
   smsProvider: e.SMS_PROVIDER || 'mock', twilioSid: e.TWILIO_ACCOUNT_SID || '', twilioToken: e.TWILIO_AUTH_TOKEN || '', twilioFrom: e.TWILIO_FROM || '',
   paymentProvider: e.PAYMENT_PROVIDER || 'mock', stripeKey: e.STRIPE_SECRET_KEY || '', stripeWebhookSecret: e.STRIPE_WEBHOOK_SECRET || '',
   llmBaseUrl: e.LLM_BASE_URL || '', llmApiKey: e.LLM_API_KEY || '', llmModel: e.LLM_MODEL || 'gpt-4o-mini',

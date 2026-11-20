@@ -1,6 +1,7 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json,sys
-R=json.load(open('routes.json'))+['settings','s-integrations','sellora-pay','pay-onboarding','pay-buyer','pay-embed','pay-admin','ai-builder','ai-seo','ai-files','app-store','app-installed','app-meta','app-reviews','app-chat','shipping-zones','notifications-outbox','integrations','staff-access','orders-abandoned','products-gift-cards','report-sales','report-inventory','nonexistent-xyz']
+R=json.load(open('routes.json'))+['settings','s-integrations','vendom-pay','pay-onboarding','pay-buyer','pay-embed','pay-admin','ai-builder','ai-seo','ai-files','app-store','app-installed','app-meta','app-reviews','app-chat','shipping-zones','notifications-outbox','integrations','staff-access','orders-abandoned','products-gift-cards','report-sales','report-inventory','nonexistent-xyz']
 errs=[];clk='click' in sys.argv
 with sync_playwright() as p:
   b=p.chromium.launch(); pg=b.new_page(viewport={'width':1400,'height':900})
@@ -8,7 +9,7 @@ with sync_playwright() as p:
   pg.on('pageerror',lambda e:errs.append((cur['r'],'PE',str(e)[:200])))
   pg.on('console',lambda m:m.type=='error' and errs.append((cur['r'],'CE',m.text[:200])))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html'); pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.URL); pg.wait_for_timeout(800)
   for r in R:
     cur['r']=r
     pg.evaluate(f"location.hash='{r}'"); pg.wait_for_timeout(150)

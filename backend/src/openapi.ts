@@ -1,7 +1,7 @@
 /** OpenAPI 3 document built from the mounted routers (every endpoint listed, grouped by tag). */
 export const openapi: any = {
   openapi: '3.0.3',
-  info: { title: 'Sellora API', version: '1.0.0', description: 'Multi-tenant commerce + Sellora Pay escrow. Money is integer minor units + ISO currency. Auth: Bearer access token from /api/auth/login. Money endpoints accept Idempotency-Key.' },
+  info: { title: 'VendOm API', version: '1.0.0', description: 'Multi-tenant commerce + VendOm Pay escrow. Money is integer minor units + ISO currency. Auth: Bearer access token from /api/auth/login. Money endpoints accept Idempotency-Key.' },
   servers: [{ url: '/' }],
   components: { securitySchemes: { bearer: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
   paths: {},

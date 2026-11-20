@@ -13,15 +13,17 @@ b=b.replace("var SECTIONS_CATALOG = [","var SECTIONS_CATALOG = window.SECTIONS_C
 b=b.replace('\u00f0\u0178\u201c\x81','\U0001F4C1').replace('\u00f0\u0178\u0152\x8d','\U0001F30D')
 js='\n'.join(open('src/'+f,encoding='utf-8').read() for f in ['m1.js','m2.js','m3.js','m4.js','m5.js','m6a.js','m6b.js','m7.js','m8.js','m9.js','m10.js','m11.js','m12.js','m13.js','m14.js','m15.js'])
 js+="\n;try{route()}catch(e){console.error(e)}\n"
-i=b.rfind('</body>');open('sellora.html','w',encoding='utf-8').write(b[:i]+'<script>\n/* Sellora v30 modules */\n'+js+'\n</script>\n'+b[i:])
+i=b.rfind('</body>');open('vendom.html','w',encoding='utf-8').write(b[:i]+'<script>\n/* VendOm v30 modules */\n'+js+'\n</script>\n'+b[i:])
 print('built',len(b)+len(js))
 # Show a store name only when this browser already has a real signed-in session.
-h=open('sellora.html',encoding='utf-8').read()
+h=open('vendom.html',encoding='utf-8').read()
 old='<div class="store"><b id="sn"></b><span id="sd"></span></div>'
-new='<div class="store"><b id="sn"></b><span id="sd"></span></div><script>(function(){var n="",host="";try{var db=JSON.parse(localStorage.getItem("sellora")||"null");if(db&&!db.out){var email=db.session||(db.s&&db.a&&db.a[db.s]?db.s:"");var st=email&&db.d&&db.d[email];if(st&&st.name){n=st.name;host=(String(n).toLowerCase().replace(/[^a-z0-9]+/g,"")||"mystore")+".sellora.app"}}}catch(e){}var sn=document.getElementById("sn"),sd=document.getElementById("sd");if(sn)sn.textContent=n;if(sd)sd.textContent=host})()</script>'
+new='<div class="store"><b id="sn"></b><span id="sd"></span></div><script>(function(){var n="",host="";try{var db=JSON.parse(localStorage.getItem("vendom")||"null");if(db&&!db.out){var email=db.session||(db.s&&db.a&&db.a[db.s]?db.s:"");var st=email&&db.d&&db.d[email];if(st&&st.name){n=st.name;host=(String(n).toLowerCase().replace(/[^a-z0-9]+/g,"")||"mystore")+".vendom.app"}}}catch(e){}var sn=document.getElementById("sn"),sd=document.getElementById("sd");if(sn)sn.textContent=n;if(sd)sd.textContent=host})()</script>'
 assert old in h; h=h.replace(old,new,1)
-open('sellora.html','w',encoding='utf-8').write(h)
+open('vendom.html','w',encoding='utf-8').write(h)
 
 # connected build: same app + backend sync layer
-h=open('sellora.html',encoding='utf-8').read();sj=open('connected/sync.js',encoding='utf-8').read();i=h.rfind('</body>')
-open('sellora-connected.html','w',encoding='utf-8').write(h[:i]+'<script>\n'+sj+'\n</script>\n'+h[i:]);print('built connected')
+h=open('vendom.html',encoding='utf-8').read();sj=open('connected/sync.js',encoding='utf-8').read();i=h.rfind('</body>')
+open('vendom-connected.html','w',encoding='utf-8').write(h[:i]+'<script>\n'+sj+'\n</script>\n'+h[i:]);print('built connected')
+# keep the backend's copy in step with this build
+import shutil;shutil.copyfile('vendom-connected.html','../backend/frontend/vendom-connected.html');shutil.copyfile('connected/sync.js','../backend/frontend/sync.js')

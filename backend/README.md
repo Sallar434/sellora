@@ -1,6 +1,6 @@
-# Sellora Backend
+# VendOm Backend
 
-The REST API behind the Sellora dashboard and storefront. It covers multi-tenant stores, the catalog, checkout and orders, and **Sellora Pay**, which handles escrow, a double-entry ledger, disputes, KYC and payouts. It also covers AI/SEO, apps, notifications and admin.
+The REST API behind the VendOm dashboard and storefront. It covers multi-tenant stores, the catalog, checkout and orders, and **VendOm Pay**, which handles escrow, a double-entry ledger, disputes, KYC and payouts. It also covers AI/SEO, apps, notifications and admin.
 
 **Stack:** Node 20, TypeScript, Express 4, Prisma 6 (SQLite in dev, PostgreSQL in prod), Zod, JWT access + refresh tokens, bcrypt, TOTP 2FA, BullMQ (optional), Swagger, Vitest + Supertest.
 
@@ -15,7 +15,7 @@ docker compose up --build          # api + postgres + redis
 ```
 To run Postgres without Docker, run `npm run db:pg` once (it switches the Prisma provider), set `DATABASE_URL=postgresql://...`, then run `npx prisma db push`.
 
-**Seed logins** (password `password123`): `admin@sellora.app` (platform admin), `owner@example.com` (seller, store `active-reality-gear`) and `buyer@example.com`.
+**Seed logins** (password `password123`): `admin@vendom.app` (platform admin), `owner@example.com` (seller, store `active-reality-gear`) and `buyer@example.com`.
 
 ## Layout
 ```
@@ -39,7 +39,7 @@ tests/api.test.ts      end-to-end flows
   - Customers, segments, discounts, gift cards, taxes, shipping zones, markets, FX.
   - Apps, pixels, reviews, webhooks, payment links, audit log.
   - Orders: fulfil, refund, cancel, plus draft orders and abandoned checkouts.
-  - Sellora Pay: `pay/*`, `kyc/*`, `payouts`.
+  - VendOm Pay: `pay/*`, `kyc/*`, `payouts`.
   - AI: `ai/*`, `voice`, `analytics`.
   - AI website builder (DeepSeek, JSON mode): `GET ai/provider`, `POST ai/site/build` (25 credits), `POST ai/site/edit` (rules first, then LLM; 422 if not understood), `POST ai/stt` (501 `useBrowser` unless `STT_PROVIDER=http`).
   - Extra AI tools: `POST ai/describe` (en/ur/ar), `ai/alt-text`, `ai/campaign` (email/WhatsApp), `ai/review-reply`, `ai/social`, `ai/competitor`.
@@ -50,7 +50,7 @@ tests/api.test.ts      end-to-end flows
 - `/api/admin` (ADMIN only): users, stores and fees, KYC review, dispute resolution, payout approve/reject, wallets, ledger integrity check, jobs, outbox, audit.
 - Public: `/s/:shop/sitemap.xml|robots.txt|llms.txt|json-ld`, `/feeds/:shop/google.xml|meta.xml`, `/embed.js`.
 
-## Money and Sellora Pay
+## Money and VendOm Pay
 - All amounts are integer **minor units** plus an ISO currency (`34900` = 349.00).
 - Every movement is a balanced ledger post: the entries sum to 0, and no internal wallet can go negative.
 - Escrow flow:
@@ -59,7 +59,7 @@ tests/api.test.ts      end-to-end flows
   3. An open dispute freezes auto-release. An admin then resolves it with `refund_buyer`, `release_seller` or `partial`.
 - Payouts require approved KYC and a bank account verified by micro-deposits. A request reserves the funds, and an admin approves or rejects it.
 - Checkout, refunds and payouts accept an `Idempotency-Key` header.
-- Outgoing webhooks are signed with `Sellora-Signature: t=..,v1=HMAC-SHA256`.
+- Outgoing webhooks are signed with `VendOm-Signature: t=..,v1=HMAC-SHA256`.
 
 ## Real vs mock: going live
 | Area | Default (no config) | Go live with |
@@ -78,7 +78,7 @@ tests/api.test.ts      end-to-end flows
 In dev and test, OTP codes and micro-deposit amounts come back in responses as `devCode` / `devAmounts`. That never happens in production.
 
 ## Frontend
-`sellora-connected.html` is a copy of the single-file dashboard. Go to **Integrations → Sellora backend**, enter the URL, email and password, then click Connect.
+`vendom-connected.html` is a copy of the single-file dashboard. Go to **Integrations → VendOm backend**, enter the URL, email and password, then click Connect.
 - Products sync both ways over REST.
 - The full app state is saved to store settings.
 - Server orders and customers are pulled in.

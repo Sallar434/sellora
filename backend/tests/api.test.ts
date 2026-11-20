@@ -109,7 +109,7 @@ describe('storefront + checkout', () => {
     await A().post(`/api/storefront/${store.handle}/checkout`).send({ ...body, lines: [{ variantId: product.variants[0].id, qty: 99 }] }).expect(400);
   });
 });
-describe('Sellora Pay', () => {
+describe('VendOm Pay', () => {
   it('escrow hold → buyer confirm → release with platform fee', async () => {
     await A().post(`/api/storefront/${store.handle}/orders/${order.id}/confirm`).send({}).expect(403);
     const e = (await A().post(`/api/storefront/${store.handle}/orders/${order.id}/confirm`).set(H(buyer.accessToken)).expect(200)).body;
@@ -166,10 +166,10 @@ describe('Sellora Pay', () => {
     const l = (await A().post(S('/payment-links')).set(H(seller.accessToken)).send({ title: 'Custom suit deposit', amount: 5000, currency: 'USD' }).expect(201)).body;
     expect((await A().get(S('/pay/embed')).set(H(seller.accessToken))).body.snippet).toContain('pk_');
     await A().post(`/api/pay/links/${l.id}/pay`).send({ email: 'link@t.io' }).expect(201);
-    expect((await A().get('/embed.js').expect(200)).text).toContain('Sellora Pay');
+    expect((await A().get('/embed.js').expect(200)).text).toContain('VendOm Pay');
     const { sign } = await import('../src/lib/crypto'); const body = JSON.stringify({ type: 'charge.succeeded' });
-    await A().post('/api/pay/webhooks/mock').set('Content-Type', 'application/json').set('Sellora-Signature', sign(body, 'whsec_dev')).send(body).expect(200);
-    await A().post('/api/pay/webhooks/mock').set('Content-Type', 'application/json').set('Sellora-Signature', 't=1,v1=00').send(body).expect(400);
+    await A().post('/api/pay/webhooks/mock').set('Content-Type', 'application/json').set('VendOm-Signature', sign(body, 'whsec_dev')).send(body).expect(200);
+    await A().post('/api/pay/webhooks/mock').set('Content-Type', 'application/json').set('VendOm-Signature', 't=1,v1=00').send(body).expect(400);
   });
 });
 describe('ops', () => {

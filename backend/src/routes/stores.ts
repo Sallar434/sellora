@@ -35,7 +35,7 @@ r.post('/:storeId/staff', storeAccess('*'), ah(async (req, res) => {
 }));
 r.delete('/:storeId/staff/:userId', storeAccess('*'), ah(async (req, res) => { await db.membership.deleteMany({ where: { storeId: req.store.id, userId: req.params.userId, role: { not: 'owner' } } }); res.status(204).end(); }));
 // ---- domains (stub verification via TXT token)
-crud(r, ':storeId/domains', 'domain', z.object({ host: z.string() }), 'settings', { before: d => (d.host ? { ...d, token: 'sellora-verify=' + rand(10) } : d) });
+crud(r, ':storeId/domains', 'domain', z.object({ host: z.string() }), 'settings', { before: d => (d.host ? { ...d, token: 'vendom-verify=' + rand(10) } : d) });
 r.post('/:storeId/domains/:id/verify', storeAccess('settings'), ah(async (req, res) => res.json(await db.domain.update({ where: { id: req.params.id }, data: { verified: true } })))); // TODO real DNS TXT lookup
 // ---- uploads
 const up = multer({ limits: { fileSize: 10 * 1024 * 1024 } });
@@ -89,7 +89,7 @@ r.get('/:storeId/products/export.csv', storeAccess('products'), ah(async (req, r
   res.type('text/csv').set('Content-Disposition', 'attachment; filename="products_export.csv"').send(excel ? '\uFEFF' + body : body);
 }));
 function parseCsv(t: string) { t = t.replace(/^\uFEFF/, ''); const out: string[][] = []; let row: string[] = [], f = '', q = false; for (let i = 0; i < t.length; i++) { const c = t[i]; if (q) { if (c === '"' && t[i + 1] === '"') { f += '"'; i++; } else if (c === '"') q = false; else f += c; } else if (c === '"') q = true; else if (c === ',') { row.push(f); f = ''; } else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(f); out.push(row); row = []; f = ''; } else f += c; } if (f || row.length) { row.push(f); out.push(row); } return out; }
-/** Groups CSV rows by handle into products, validating as it goes. Accepts Shopify columns and the older Sellora columns. */
+/** Groups CSV rows by handle into products, validating as it goes. Accepts Shopify columns and the older VendOm columns. */
 export function readProductCsv(text: string) {
   const [head, ...rows] = parseCsv(text); if (!head || !head.some(Boolean)) throw bad('Empty CSV');
   const H = head.map(h => h.trim().toLowerCase()); const ix = (...n: string[]) => { for (const x of n) { const i = H.indexOf(x.toLowerCase()); if (i >= 0) return i; } return -1; };
@@ -142,7 +142,7 @@ r.post('/:storeId/products/import', storeAccess('products'), ah(async (req, res)
   audit(req, 'product.import', { created, updated, skipped }); res.json({ created, updated, skipped, errors: [] });
 }));
 r.get('/:storeId/products/import/template.csv', storeAccess('products'), (_req, res) => {
-  res.type('text/csv').set('Content-Disposition', 'attachment; filename="product_template.csv"').send(CSV_COLS.join(',') + '\r\nclassic-tee,Classic Tee,<p>Soft cotton tee</p>,Sellora,Shirts,"cotton, summer",true,Size,S,Color,Black,,,TEE-S-BLK,1499.00,1999.00,25,https://example.com/tee.jpg,Classic Tee,Soft cotton tee,active\r\nclassic-tee,,,,,,,Size,M,Color,Black,,,TEE-M-BLK,1499.00,,30,,,,\r\n');
+  res.type('text/csv').set('Content-Disposition', 'attachment; filename="product_template.csv"').send(CSV_COLS.join(',') + '\r\nclassic-tee,Classic Tee,<p>Soft cotton tee</p>,VendOm,Shirts,"cotton, summer",true,Size,S,Color,Black,,,TEE-S-BLK,1499.00,1999.00,25,https://example.com/tee.jpg,Classic Tee,Soft cotton tee,active\r\nclassic-tee,,,,,,,Size,M,Color,Black,,,TEE-M-BLK,1499.00,,30,,,,\r\n');
 });
 r.post('/:storeId/products/bulk', storeAccess('products'), ah(async (req, res) => {
   const b = parse(z.object({ ids: z.array(z.string()), action: z.enum(['update', 'delete', 'addTags', 'removeTags', 'adjustPrice']), data: J.optional() }), req.body);
@@ -236,7 +236,7 @@ r.get('/:storeId/fx', storeAccess(), ah(async (req, res) => res.json({ base: req
 // ---- apps & reviews
 export const APPS = [
   { id: 'google-merchant', name: 'Google & YouTube', kind: 'feed' }, { id: 'meta', name: 'Facebook & Instagram', kind: 'feed+pixel' }, { id: 'tiktok', name: 'TikTok', kind: 'pixel' },
-  { id: 'ga4', name: 'Google Analytics 4', kind: 'pixel' }, { id: 'zapier', name: 'Zapier', kind: 'webhook' }, { id: 'reviews', name: 'Sellora Reviews', kind: 'reviews' }, { id: 'mailchimp', name: 'Mailchimp', kind: 'oauth' },
+  { id: 'ga4', name: 'Google Analytics 4', kind: 'pixel' }, { id: 'zapier', name: 'Zapier', kind: 'webhook' }, { id: 'reviews', name: 'VendOm Reviews', kind: 'reviews' }, { id: 'mailchimp', name: 'Mailchimp', kind: 'oauth' },
 ];
 r.get('/:storeId/apps', storeAccess('apps'), ah(async (req, res) => { const ins = await db.appInstall.findMany({ where: { storeId: req.store.id } }); res.json(APPS.map(a => { const i = ins.find(x => x.appId === a.id); return { ...a, installed: !!i, config: i?.config, connected: !!i?.credentialsEnc }; })); }));
 r.post('/:storeId/apps/:appId/install', storeAccess('apps'), ah(async (req, res) => {

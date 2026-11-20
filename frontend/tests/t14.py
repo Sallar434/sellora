@@ -1,6 +1,6 @@
 import os,sys,json
 from playwright.sync_api import sync_playwright
-F=sys.argv[1] if len(sys.argv)>1 else 'sellora.html';R=[];SH=os.environ.get('SHOTS')
+F=sys.argv[1] if len(sys.argv)>1 else 'vendom.html';R=[];SH=os.environ.get('SHOTS')
 def ok(n,c,d=''):R.append(bool(c));print(('PASS ' if c else 'FAIL ')+n+(' :: '+str(d) if d else ''),flush=True)
 BAD='Handle,Title,Variant Price,Variant Inventory Qty,Status,Option1 Name,Option1 Value\ncsv-cap,CSV Cap,1200,5,active,Size,S\ncsv-cap,,1300,4,,Size,M\nbad-price,Bad Price,abc,2,active,,\nbad-stat,Bad Status,10,1,maybe,,\n'
 with sync_playwright() as p:
@@ -58,7 +58,7 @@ with sync_playwright() as p:
     raw=open(d.value.path(),'rb').read();ok('export selected, plain CSV',raw[:3]!=b'\xef\xbb\xbf' and E("window._m13last.count")==1)
     # buy -> unlock
     E("location.hash='home'");pg.wait_for_timeout(300);pg.click('#m13ban [data-x=m13buy]');pg.wait_for_timeout(300)
-    ok('Sellora Pay checkout','Sellora Pay' in pg.inner_text('body') and 'simulated' not in pg.inner_text('body').lower())
+    ok('VendOm Pay checkout','VendOm Pay' in pg.inner_text('body') and 'simulated' not in pg.inner_text('body').lower())
     pg.click('#xok');pg.wait_for_timeout(600)
     ok('plan active after buying',E("S.sub9.status")=='active' and E("S.sub9.plan")=='advanced')
     ok('banner gone',pg.locator('#m13ban').count()==0)

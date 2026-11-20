@@ -1,4 +1,4 @@
-/* ===== Sellora v32: Sellora+ (beyond-Shopify features), free-theme library, two-column collection editor, RTL ===== */
+/* ===== VendOm v32: VendOm+ (beyond-Shopify features), free-theme library, two-column collection editor, RTL ===== */
 (function(){
 var X=window,A=X.ACT=X.ACT||{};
 function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return [].slice.call((r||document).querySelectorAll(s))}

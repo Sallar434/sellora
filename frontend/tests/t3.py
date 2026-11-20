@@ -1,11 +1,12 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import os,sys
 from playwright.sync_api import sync_playwright
-URL='file://'+os.path.abspath('sellora.html');R=[]
+URL=vt.URL;R=[]
 def ok(n,c,d=''):R.append((n,bool(c)));print(('PASS ' if c else 'FAIL ')+n+(' :: '+str(d) if d else ''),flush=True)
 with sync_playwright() as p:
     b=p.chromium.launch();ctx=b.new_context(viewport={'width':1280,'height':800});pg=ctx.new_page();errs=[]
     pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
-    pg.goto(URL);pg.wait_for_timeout(900)
+    vt.open_app(pg,URL);pg.wait_for_timeout(900)
     E=pg.evaluate;go=lambda r:(E("location.hash='%s'"%r),pg.wait_for_timeout(350))
     # data: products into a manual collection + tag rule automated collection
     E("S.products.forEach((p,i)=>{p.status='Active';p.tags=i%2?['gloves']:['suit'];p.cols=[]});save()")
@@ -43,7 +44,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(200);ok('marquee edit reaches preview','Race ready. Every day.' in E("document.querySelector('#ep').textContent"))
     pg.click('[data-ed="theme"]');pg.wait_for_timeout(200)
     ok('palette slots present',E("document.querySelectorAll('#edl [data-x7pal]').length")>=9)
-    ok('default theme is Daybreak with Sellora green',E("live().name")=='Daybreak' and E("live().ac").lower()=='#2e6b4f')
+    ok('default theme is Daybreak with VendOm green',E("live().name")=='Daybreak' and E("live().ac").lower()=='#2e6b4f')
     ok('color hex inputs',E("document.querySelectorAll('#edl .x7hex').length")>=12)
     E("document.querySelector('#os').click()")
     # --- pages CRUD
@@ -72,12 +73,12 @@ with sync_playwright() as p:
     ok('save and add another button',E("!!document.querySelector('#x7saveadd')"))
     # --- sign out / sign up
     E("document.querySelector('#so').click()");pg.wait_for_timeout(400)
-    ok('sign out shows login',E("getComputedStyle(document.querySelector('#auth')).display")!='none' and 'Log in' in E("document.querySelector('#auth').textContent"))
+    ok('sign out shows login',E("getComputedStyle(document.querySelector('#auth')).display")!='none' and 'Sign in' in E("document.querySelector('#auth').textContent"))
     pg.reload();pg.wait_for_timeout(900);ok('stays signed out after reload',E("getComputedStyle(document.querySelector('#auth')).display")!='none')
-    pg.click('#asw');pg.wait_for_timeout(300);pg.click('[data-m13p=grow]');pg.wait_for_timeout(300);pg.fill('#a1','Second Shop');pg.fill('#a2','two@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(900)
+    pg.click('#door-up');pg.wait_for_timeout(200);pg.fill('#a2','two@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(400);pg.click('[data-m13p=grow]');pg.wait_for_timeout(300);pg.fill('#a1','Second Shop');pg.click('#ab');pg.wait_for_timeout(900)
     ok('new store created',E("S.name")=='Second Shop' and E("U")=='two@example.com',E("S.name"))
     E("document.querySelector('#so').click()");pg.wait_for_timeout(300)
-    first=E("Object.keys(DB.d).find(k=>k!=='two@example.com')");pg.click('[data-x7st="%s"]'%first);pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(900)
+    first=E("Object.keys(DB.d).find(k=>k!=='two@example.com')");pg.click('#door-in');pg.wait_for_timeout(200);pg.fill('#a2',first);pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(900)
     ok('log back into first store',E("U")==first and E("S.addr")=='12 Gulberg III, Lahore',E("S.name"))
     ok('no page errors',not errs,errs)
     b.close()

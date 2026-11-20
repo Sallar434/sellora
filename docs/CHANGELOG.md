@@ -1,14 +1,20 @@
-# Sellora v36 changelog
+# VendOm v36 changelog
+
+## v37: VendOm rename, Shopify parity suite (20 Nov 2026)
+- Renamed Sellora to **VendOm** and Sellora Pay to **VendOm Pay** everywhere (UI, backend, emails, domains, webhook header `VendOm-Signature`, files). Stores saved under the old browser key move over automatically; old `/sellora.html` links redirect.
+- New `frontend/tests/t17.py` Shopify parity suite (118 checks) and `frontend/tests/run_all.sh`. Older suites now sign in through the door and no longer use hard-coded paths.
+- Fixed: a new store's first real order reused #1001 (a sample order's number). New stores start with no orders.
+- Added testing and engineering agents from agency-agents in `.claude/agents/`.
 
 ## v36: plan picker, 4-day trial, closed store on expiry, product CSV, theme library
 - **Signup:** the seller picks a plan first (Basic Rs 300, Grow Rs 600, Advanced Rs 1,000 a month, prices in Pakistani Rupee (PKR), monthly or annual with 20% off; Enterprise is contact sales). Free is hidden for new stores.
-- **4-day trial** (replaces the 14-day trial): build everything, but the store stays behind the password page. Publish theme, remove password and go live open a "Buy a plan to publish" box. A banner shows the days left with a Buy plan button. Buying is done through Sellora Pay.
+- **4-day trial** (replaces the 14-day trial): build everything, but the store stays behind the password page. Publish theme, remove password and go live open a "Buy a plan to publish" box. A banner shows the days left with a Buy plan button. Buying is done through VendOm Pay.
 - **Trial ended:** the store is closed. Storefront shows "Store unavailable" (backend 503). Admin shows only the choose-a-plan page; every store API except billing and sign-in returns 402. Buying any plan reopens the store with all data.
 - **Product CSV:** import with file picker or drag and drop, preview with row errors, overwrite-by-handle option and a sample template; export the current page, all, selected or search results, as Excel CSV or plain CSV. Columns follow the common Shopify-style product CSV. Backend: `GET /products/export.csv`, `POST /products/import` (with `dryRun` and `overwrite`), `GET /products/import/template.csv`.
-- **Themes:** the old Sellora themes (Dawn, Ember, Tide, Orchard, Noir, Bloom, Slate, Sunset, Mint, Ink, Aurora, Sand) are removed. The library now holds only Sellora free themes with original names, each with its own homepage sections, header, footer, product page, typography, colours, card style, a "Best for" line and a tag. Stores on a removed theme move to Daybreak. Backend: new stores get Daybreak; `GET /themes/library` lists the library and migrates old themes. See `Themes.md`.
+- **Themes:** the old VendOm themes (Dawn, Ember, Tide, Orchard, Noir, Bloom, Slate, Sunset, Mint, Ink, Aurora, Sand) are removed. The library now holds only VendOm free themes with original names, each with its own homepage sections, header, footer, product page, typography, colours, card style, a "Best for" line and a tag. Stores on a removed theme move to Daybreak. Backend: new stores get Daybreak; `GET /themes/library` lists the library and migrates old themes. See `Themes.md`.
 
 ## Earlier versions
-Built from the original attachment, which was not changed. Output: `sellora.html`, one self-contained file that saves to localStorage under the key `sellora`. Source is in `src/m1–m6*.js`, `patch.py` turns the original into `base.html`, and `build.py` produces `sellora.html`.
+Built from the original attachment, which was not changed. Output: `vendom.html`, one self-contained file that saves to localStorage under the key `vendom`. Source is in `src/m1–m6*.js`, `patch.py` turns the original into `base.html`, and `build.py` produces `vendom.html`.
 
 ## Phase 1: fixes and core commerce
 - Fixed the actPO and pickM crashes, merged the duplicate functions, fixed the mojibake, and hooked up the dead buttons. Also fixed the clipboard fallback and added a 404 page. The country list is now complete. The hero marquee text repeats 4 times instead of 8.
@@ -21,7 +27,7 @@ Built from the original attachment, which was not changed. Output: `sellora.html
 - Shipping zones and rates, local pickup, and taxes. Confirmation, shipping and abandoned-cart emails go to the outbox through the API stub.
 - Staff roles really restrict access. Use the "Viewing as" switch to test them.
 
-## Phase 2: Sellora Pay escrow
+## Phase 2: VendOm Pay escrow
 - A double-entry ledger with Admin, Escrow, Seller and Buyer wallets. Each wallet shows pending, held and available amounts, plus history.
 - Buyer onboarding with email and phone codes (OTP).
 - Seller KYC: business details, ID and proof-of-address uploads, a liveness check and a tax ID. Payout options are IBAN/SWIFT, local bank, PayPal, Payoneer and Wise, with micro-deposit checks. Status goes Pending → Under review → Approved or Rejected, and admins work from a queue.
@@ -64,9 +70,9 @@ Built from the original attachment, which was not changed. Output: `sellora.html
 ## Currency display: full names (follow-up)
 - New helpers in m1.js: curName/curL (Intl.DisplayNames + fallback map of ~36 currencies), mF (amount — Name (CODE)), mC (compact amount + code, full name in tooltip).
 - A MutationObserver relabels every currency <option> as "Name (CODE)" and keeps the code as its value. This covers markets, store defaults, checkout/storefront, embed and FX selectors.
-- Sellora Pay wallets (admin/seller/buyer balances, held/available, ledger, escrow), payouts (incl. FX cell), and FX rate list now show full names.
+- VendOm Pay wallets (admin/seller/buyer balances, held/available, ledger, escrow), payouts (incl. FX cell), and FX rate list now show full names.
 - Embed checkout: new buyer-currency selector; button, data-currency and the payment link follow it.
-- Order detail total uses the full form. Order lists and customer history use the compact form. Checkout total, "Charged in…" and the cart subtotal show Name (CODE). The pay button names the code and Sellora Pay escrow.
+- Order detail total uses the full form. Order lists and customer history use the compact form. Checkout total, "Charged in…" and the cart subtotal show Name (CODE). The pay button names the code and VendOm Pay escrow.
 
 ## Visual QA pass
 - Home preview hero: marquee replaced in thumbnails/mobile with a wrapped, balanced headline (no clipping).
@@ -88,9 +94,9 @@ Built from the original attachment, which was not changed. Output: `sellora.html
 
 ## v33 — Seller plans & usage billing (2026-10-29)
 - Plans: Free (after 14-day trial), Basic Rs 300, Grow Rs 600, Advanced Rs 1,000, Enterprise custom; USD equivalents; 20% annual discount.
-- Monthly limits, 80/100% alerts, auto-pay overage or stop-at-limit, spending cap, prorated upgrades, end-of-period downgrades, monthly billing job paid via Sellora Pay wallet/card.
+- Monthly limits, 80/100% alerts, auto-pay overage or stop-at-limit, spending cap, prorated upgrades, end-of-period downgrades, monthly billing job paid via VendOm Pay wallet/card.
 - Settings › Plan, Finance › Billing (overage lines), Platform admin › Plans. Backend: Plan/PlanQuota/Subscription/UsageCounter/UsageRecord/OverageCharge/Invoice models, /billing/* and /api/admin/plans endpoints.
-- Docs: Pricing-plans.md/.pdf, Sellora-plans.pdf.
+- Docs: Pricing-plans.md/.pdf, VendOm-plans.pdf.
 
 ## v34: DeepSeek AI, AI website builder (text + voice), SEO / AEO / GEO suite (29 Oct 2026, Asia/Karachi UTC+5)
 - **DeepSeek is the default LLM** (`deepseek-flash`, OpenAI-compatible API, JSON mode, thinking off). Falls back to built-in templates with no key. Token usage and estimated USD cost are logged per call (`AiLog`). DeepSeek is paid (no free tier) but cheap: ≈ Rs 0.42 per AI credit worst case.

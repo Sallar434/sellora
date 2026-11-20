@@ -10,7 +10,7 @@ export const twilioSms: SmsProvider = { async send(to, body) {
 const sms = () => (config.smsProvider === 'twilio' ? twilioSms : mockSms);
 const mailer = config.smtpUrl ? nodemailer.createTransport(config.smtpUrl) : nodemailer.createTransport({ jsonTransport: true });
 export const TEMPLATES: Record<string, (p: any) => { subject: string; text: string }> = {
-  otp: p => ({ subject: 'Your Sellora code', text: `Your verification code is ${p.code}. It expires in 10 minutes.` }),
+  otp: p => ({ subject: 'Your VendOm code', text: `Your verification code is ${p.code}. It expires in 10 minutes.` }),
   password_reset: p => ({ subject: 'Reset your password', text: `Use code ${p.code} to reset your password.` }),
   order_confirmation: p => ({ subject: `Order #${p.number} confirmed`, text: `Thanks for your order #${p.number}. Total: ${(p.total / 100).toFixed(2)} ${p.currency}.` }),
   abandoned_cart: p => ({ subject: 'You left something in your cart', text: `Complete your purchase: ${p.url}` }),

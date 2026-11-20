@@ -23,7 +23,7 @@ const ov = (m: Metric, inc: number): Q => ({
 } as Record<Metric, Q>)[m];
 const q = (o: number, p: number, s: number, w: number, e: number, a: number, g: number, st: number, mk: number) =>
   ([['orders', o], ['products', p], ['staff', s], ['whatsapp', w], ['email', e], ['ai', a], ['storage_gb', g], ['stores', st], ['markets', mk]] as [Metric, number][]).map(([m, i]) => ov(m, i));
-// Low-price plans: Rs 300 / 600 / 1,000 a month. Profit comes mostly from Sellora Pay fees; subscriptions cover worst-case usage cost with >=35% margin.
+// Low-price plans: Rs 300 / 600 / 1,000 a month. Profit comes mostly from VendOm Pay fees; subscriptions cover worst-case usage cost with >=35% margin.
 export const DEFAULT_PLANS = [
   { code: 'starter', name: 'Free', tagline: 'Legacy free plan (not offered to new stores)', active: false, pricePkr: 0, priceUsd: 0, trialDays: 0, cardFeeBps: 450, cardFixedPkr: 3000, cardFixedUsd: 11, walletFeeBps: 300, bankFeeBps: 0, overageAllowed: false, sort: 0, quotas: q(20, 15, 1, 5, 300, 30, 1, 1, 1) },
   { code: 'basic', name: 'Basic', tagline: 'For new sellers', pricePkr: 30000, priceUsd: 109, trialDays: 0, cardFeeBps: 400, cardFixedPkr: 3000, cardFixedUsd: 11, walletFeeBps: 250, bankFeeBps: 0, overageAllowed: true, sort: 1, quotas: q(150, 500, 1, 15, 1500, 100, 2, 1, 1) },
@@ -108,7 +108,7 @@ async function alerts(storeId: string, planName: string, m: Metric, used: number
   await db.usageCounter.update({ where: { id: c.id }, data: lvl === 100 ? { alerted100: true, alerted80: true } : { alerted80: true } });
   const store = await db.store.findUnique({ where: { id: storeId } }); const owner = store && await db.user.findUnique({ where: { id: store.ownerId } });
   const text = `You have used ${lvl}% of your ${LABEL[m]} on the ${planName} plan (${Math.round(used * 100) / 100} of ${included}). ${lvl === 100 ? 'Further usage is billed as overage or blocked, depending on your settings.' : 'Consider upgrading to avoid interruptions.'}`;
-  if (owner) await notify('email', owner.email, 'generic', { subject: `Sellora usage alert: ${LABEL[m]} at ${lvl}%`, text }).catch(() => {});
+  if (owner) await notify('email', owner.email, 'generic', { subject: `VendOm usage alert: ${LABEL[m]} at ${lvl}%`, text }).catch(() => {});
   await emit(storeId, 'billing/usage_alert', { metric: m, level: lvl, used, included }).catch(() => {});
 }
 export async function consume(storeId: string, m: Metric, qty = 1, ref?: string) { await check(storeId, m, qty); await record(storeId, m, qty, ref); }
@@ -134,7 +134,7 @@ async function createInvoice(storeId: string, currency: string, period: string, 
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   return db.invoice.create({ data: { storeId, number: invNo(new Date()), period, currency, subtotal, total: Math.max(0, subtotal), dueAt: new Date(Date.now() + 7 * 864e5), lines: { create: lines } }, include: { lines: true } });
 }
-/** Pays from the seller's Sellora Pay wallet when it has funds, otherwise charges the card on file. Revenue → ADMIN/billing wallet. */
+/** Pays from the seller's VendOm Pay wallet when it has funds, otherwise charges the card on file. Revenue → ADMIN/billing wallet. */
 export async function payInvoice(id: string, method?: 'wallet' | 'card', source = 'tok_visa') {
   const inv = await db.invoice.findUniqueOrThrow({ where: { id } }); if (inv.status === 'paid' || inv.status === 'void') return inv;
   const sub = await getSub(inv.storeId); const how = method || sub.payMethod; const rev = await wallet('ADMIN', 'billing', inv.currency);

@@ -1,8 +1,8 @@
-# Sellora vs Shopify admin: gap analysis (Oct 29, 2026)
+# VendOm vs Shopify admin: gap analysis (Oct 29, 2026)
 
 Sources: help.shopify.com "Navigating the Shopify admin" and the Shopify admin section docs. This is research only; no real store was touched.
 
-| Feature | Shopify | Sellora before | Status after |
+| Feature | Shopify | VendOm before | Status after |
 |---|---|---|---|
 | Left nav order (Home, Orders, Products, Customers, Marketing, Discounts, Content, Markets, Finance, Analytics, Apps, Sales channels, Settings) | Yes | "Growth" in place of Marketing, placed after Customers | Renamed to **Marketing** and moved before Discounts; order now matches Shopify |
 | Orders › Drafts, Abandoned checkouts | Yes | Yes | Unchanged |
@@ -27,6 +27,6 @@ Sources: help.shopify.com "Navigating the Shopify admin" and the Shopify admin s
 | Staff roles | Yes | Frontend roles | Added StaffRole backend model; backend manager role now includes `marketing` |
 | Metaobjects backend | Yes | Frontend only | Added Metaobject model + endpoints |
 | Online store preferences backend | Yes | No | Added Preference model + endpoints |
-| Payment provider | Shopify Payments | Sellora Pay escrow | Kept (Sellora Pay, escrow) |
+| Payment provider | Shopify Payments | VendOm Pay escrow | Kept (VendOm Pay, escrow) |
 
 Placeholders that are still only external integrations: email/SMS/WhatsApp sending, ad platforms (Meta/Google), payment rails (card network, JazzCash, Easypaisa, bank, PayPal etc.), courier tracking, OAuth sign-in.

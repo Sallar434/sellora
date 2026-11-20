@@ -1,6 +1,6 @@
-# Sellora theme library
+# VendOm theme library
 
-Sellora only ships its own free themes. Each one has an original name and a clear specialty. Every theme has its own homepage sections, header, footer, product page, typography, colours and card style. The default theme for new stores is **Daybreak**. Any store still on a removed theme is moved to Daybreak automatically, and its products and settings are kept.
+VendOm only ships its own free themes. Each one has an original name and a clear specialty. Every theme has its own homepage sections, header, footer, product page, typography, colours and card style. The default theme for new stores is **Daybreak**. Any store still on a removed theme is moved to Daybreak automatically, and its products and settings are kept.
 
 | Theme | Tag | Best for | Homepage sections |
 |---|---|---|---|
@@ -21,7 +21,7 @@ Sellora only ships its own free themes. Each one has an original name and a clea
 Also kept, as extra library themes: Meridian, Workbench, Legacy, Seamline, Ascend, Vase, Roomly, Relish, Rite, Weave, Sprint.
 
 ## Name changes
-| Removed (old Sellora themes) | Now |
+| Removed (old VendOm themes) | Now |
 |---|---|
 | Dawn, Ember, Tide, Orchard, Noir, Bloom, Slate, Sunset, Mint, Ink, Aurora, Sand | removed; stores move to Daybreak |
 | Sensa | Serene |

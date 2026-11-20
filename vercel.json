@@ -5,6 +5,21 @@
   "buildCommand": "",
   "outputDirectory": "frontend",
   "rewrites": [
-    { "source": "/", "destination": "/sellora.html" }
+    {
+      "source": "/",
+      "destination": "/vendom.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/sellora.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/sellora-connected.html",
+      "destination": "/vendom-connected.html",
+      "permanent": true
+    }
   ]
 }

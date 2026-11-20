@@ -21,7 +21,7 @@ beforeAll(async () => {
   const st = (await A().post('/api/auth/signup').send({ email: 'plus-ful@t.io', password: 'password123', type: 'BUYER' })).body; staff = st;
   await A().post(S('/staff')).set(H(s.accessToken)).send({ email: 'plus-ful@t.io', role: 'fulfillment' }).expect(201);
 });
-describe('Sellora+ features', () => {
+describe('VendOm+ features', () => {
   it('WhatsApp: parse, save, convert to COD order (idempotent, no double convert)', async () => {
     const p = (await A().post(S('/plus/whatsapp/parse')).set(H(s.accessToken)).send({ text: '2 x Pro Goalkeeper Glove\nFB-5 3\nunknown thing', phone: '+923001234567' }).expect(200)).body;
     expect(p.lines).toHaveLength(2); expect(p.lines[1].qty).toBe(3); expect(p.unmatched).toEqual(['unknown thing']);
@@ -142,7 +142,7 @@ describe('Sellora+ features', () => {
     await A().post(S('/plus/live')).set(H(s.accessToken)).send({ title: 'Eid sale', startsAt: '2026-11-01T15:00:00+05:00', platform: 'tiktok', productIds: [prod.id] }).expect(201);
     await A().post(S('/plus/live')).set(H(s.accessToken)).send({ title: 'x', startsAt: 'nope', platform: 'myspace' }).expect(422);
   });
-  it('store isolation + roles on Sellora+ endpoints', async () => {
+  it('store isolation + roles on VendOm+ endpoints', async () => {
     await A().get(S('/plus/shipments')).set(H(other.accessToken)).expect(403);
     await A().get(S('/integrations')).set(H(other.accessToken)).expect(403);
     await A().get(`/api/stores/${other.store.id}/plus/rfqs`).set(H(s.accessToken)).expect(403);

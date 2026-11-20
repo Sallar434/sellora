@@ -1,3 +1,4 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 errs=[];res=[]
 def ok(n,c):res.append(('PASS' if c else 'FAIL')+' '+n);print(res[-1],flush=True)
@@ -6,7 +7,7 @@ with sync_playwright() as p:
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
   pg.on('console',lambda m:m.type=='error' and 'ERR_CONNECTION' not in m.text and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html'); pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.URL); pg.wait_for_timeout(800)
   E=pg.evaluate; W=pg.wait_for_timeout
   def go(r): E(f"location.hash='{r}'"); W(200)
   def cx(dx): pg.click(f'[data-x="{dx}"]'); W(250)
@@ -27,7 +28,7 @@ with sync_playwright() as p:
   E(f"SF.open('product:{pid}')"); W(400)
   ok('reviews on product page', pg.query_selector('#xsf #reviews') is not None)
   ok('chat widget', pg.query_selector('#xchat') is not None and pg.query_selector('#xwa') is not None)
-  ok('pixel in head', E("!!document.head.querySelector('[data-sellora-app=\"meta-pixel\"]')"))
+  ok('pixel in head', E("!!document.head.querySelector('[data-vendom-app=\"meta-pixel\"]')"))
   pg.click('#xsf [data-sfbuy]'); W(400)
   n0=E("S.orders.length")
   for f in pg.query_selector_all('#xsf [data-ckf]'):

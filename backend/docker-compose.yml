@@ -1,9 +1,9 @@
 services:
   postgres:
     image: postgres:16-alpine
-    environment: { POSTGRES_USER: sellora, POSTGRES_PASSWORD: sellora, POSTGRES_DB: sellora }
+    environment: { POSTGRES_USER: vendom, POSTGRES_PASSWORD: vendom, POSTGRES_DB: vendom }
     volumes: [pgdata:/var/lib/postgresql/data]
-    healthcheck: { test: ["CMD-SHELL", "pg_isready -U sellora"], interval: 5s, retries: 10 }
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U vendom"], interval: 5s, retries: 10 }
   redis:
     image: redis:7-alpine
   api:
@@ -11,7 +11,7 @@ services:
     ports: ["4000:4000"]
     env_file: [.env]
     environment:
-      DATABASE_URL: postgresql://sellora:sellora@postgres:5432/sellora
+      DATABASE_URL: postgresql://vendom:vendom@postgres:5432/vendom
       REDIS_URL: redis://redis:6379
     depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
     volumes: [uploads:/app/uploads]

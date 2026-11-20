@@ -2,7 +2,7 @@
 import json, os, time
 from playwright.sync_api import sync_playwright
 
-F = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sellora.html'))
+F = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'vendom.html'))
 R = []
 def ok(n, c, d=''):
     R.append(bool(c))
@@ -14,7 +14,7 @@ STORE = {
     'rates': {'USD': 1, 'PKR': 280, 'EUR': .92, 'AED': 3.67, 'GBP': .79},
     'sym': {'USD': '$', 'PKR': 'Rs ', 'EUR': '€', 'AED': 'AED ', 'GBP': '£'},
     'products': [{'id': 9, 'name': 'Heritage Glove', 'price': 48, 'stock': 4, 'status': 'Active', 'desc': 'Kept from this browser.'}],
-    'orders': [{'id': 1001, 'who': 'Ayesha Khan', 'total': 48, 'st': 'Paid', 'gw': 'Sellora Pay'}],
+    'orders': [{'id': 1001, 'who': 'Ayesha Khan', 'total': 48, 'st': 'Paid', 'gw': 'VendOm Pay'}],
     'nid': 10, 'oid': 1004,
     'sub9': {'plan': 'grow', 'status': 'trialing', 'trialEnds': NOW + 4 * 86400000, 'start': NOW, 'interval': 'monthly', 'cur': 'PKR'},
     'online': {'password': True, 'live': False},
@@ -26,7 +26,7 @@ def body(pg):
 
 def seed(pg, db):
     pg.goto(F); pg.wait_for_timeout(400)
-    pg.evaluate("db=>localStorage.setItem('sellora', db)", json.dumps(db))
+    pg.evaluate("db=>localStorage.setItem('vendom', db)", json.dumps(db))
     pg.reload(); pg.wait_for_timeout(800)
 
 with sync_playwright() as p:
@@ -42,7 +42,7 @@ with sync_playwright() as p:
     ok('admin shell hidden', not pg.locator('aside').is_visible())
     ok('no store name on the door', 'Vellacorsa' not in t and 'Heritage Glove' not in t)
     ok('no trial banner or view-as pill', 'Free trial' not in t and 'Viewing as' not in t and 'Grow' not in t)
-    ok('empty browser does not write a store', pg.evaluate("localStorage.getItem('sellora')") in (None, 'null'))
+    ok('empty browser does not write a store', pg.evaluate("localStorage.getItem('vendom')") in (None, 'null'))
     # short password
     pg.click('#door-up'); pg.wait_for_timeout(200)
     pg.fill('#a2', 'new@example.com'); pg.fill('#a3', 'short'); pg.click('#ab'); pg.wait_for_timeout(200)
@@ -66,7 +66,7 @@ with sync_playwright() as p:
     ok('sign out returns to the door', pg.locator('#door-in').is_visible() and 'Fresh Shop' not in body(pg))
     pg.reload(); pg.wait_for_timeout(800)
     ok('stays signed out after refresh', pg.locator('#door-in').is_visible() and 'Fresh Shop' not in body(pg) and not pg.evaluate('!!U'))
-    ok('fresh shop kept for its account', pg.evaluate("(JSON.parse(localStorage.getItem('sellora')).d['new@example.com']||{}).name")=='Fresh Shop')
+    ok('fresh shop kept for its account', pg.evaluate("(JSON.parse(localStorage.getItem('vendom')).d['new@example.com']||{}).name")=='Fresh Shop')
     pg.close()
 
     # --- browser that already has an unowned Vellacorsa store ---
@@ -76,7 +76,7 @@ with sync_playwright() as p:
     seed(pg, DB)
     t = body(pg)
     ok('unowned store stays behind the door', 'Sign in' in t and 'Create account' in t and 'Vellacorsa' not in t and 'Heritage Glove' not in t and 'Viewing as' not in t)
-    ok('store data still in localStorage', pg.evaluate("JSON.parse(localStorage.getItem('sellora')).d['owner@example.com'].products[0].name")=='Heritage Glove')
+    ok('store data still in localStorage', pg.evaluate("JSON.parse(localStorage.getItem('vendom')).d['owner@example.com'].products[0].name")=='Heritage Glove')
     pg.click('#door-in'); pg.wait_for_timeout(200)
     pg.fill('#a2', 'owner@real.test'); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(300)
     ok('sign in without an account fails', 'incorrect' in pg.locator('#ae').inner_text().lower() and 'Vellacorsa' not in body(pg))
@@ -84,7 +84,7 @@ with sync_playwright() as p:
     pg.fill('#a2', 'owner@real.test'); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(1000)
     ok('first account claims the local store', pg.evaluate('S.name')=='Vellacorsa' and pg.evaluate("S.products.some(p=>p.name==='Heritage Glove')") and 'Vellacorsa' in body(pg))
     ok('claimed trial still Grow', pg.evaluate("S.sub9&&S.sub9.plan==='grow'&&S.sub9.status==='trialing'") and 'Grow' in body(pg))
-    ok('session stored on that email', pg.evaluate("JSON.parse(localStorage.getItem('sellora')).session")=='owner@real.test')
+    ok('session stored on that email', pg.evaluate("JSON.parse(localStorage.getItem('vendom')).session")=='owner@real.test')
     pg.click('#so'); pg.wait_for_timeout(400)
     pg.reload(); pg.wait_for_timeout(800)
     ok('signed-out refresh hides Vellacorsa', pg.locator('#door-in').is_visible() and 'Vellacorsa' not in body(pg) and 'Heritage Glove' not in body(pg))
@@ -99,7 +99,7 @@ with sync_playwright() as p:
     pg.click('[data-m13p=basic]'); pg.wait_for_timeout(250)
     pg.fill('#a1', 'Other Shop'); pg.click('#ab'); pg.wait_for_timeout(900)
     ok('second store is its own', pg.evaluate('S.name')=='Other Shop' and not pg.evaluate("S.products.some(p=>p.name==='Heritage Glove')"))
-    ok('vellacorsa still saved for the first account', pg.evaluate("(JSON.parse(localStorage.getItem('sellora')).d['owner@real.test'].products||[]).some(p=>p.name==='Heritage Glove')"))
+    ok('vellacorsa still saved for the first account', pg.evaluate("(JSON.parse(localStorage.getItem('vendom')).d['owner@real.test'].products||[]).some(p=>p.name==='Heritage Glove')"))
     pg.click('#so'); pg.wait_for_timeout(300)
     pg.click('#door-in'); pg.fill('#a2', 'owner@real.test'); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(900)
     ok('first account still has Vellacorsa', pg.evaluate('S.name')=='Vellacorsa' and pg.evaluate("S.products.some(p=>p.name==='Heritage Glove')"))

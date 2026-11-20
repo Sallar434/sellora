@@ -13,8 +13,8 @@ export function startQueue() {
   try {
     const { Queue, Worker } = require('bullmq'); const IORedis = require('ioredis');
     const connection = new IORedis(config.redisUrl, { maxRetriesPerRequest: null });
-    bull = { queue: new Queue('sellora', { connection }) };
-    new Worker('sellora', async (j: any) => handlers[j.name]?.(j.data), { connection });
+    bull = { queue: new Queue('vendom', { connection }) };
+    new Worker('vendom', async (j: any) => handlers[j.name]?.(j.data), { connection });
     console.log('BullMQ queue active');
   } catch (e) { console.warn('bullmq unavailable, using in-process queue'); }
 }

@@ -13,7 +13,7 @@ import { nextOrderNumber, tl } from '../lib/commerce';
 import { verifySig } from '../lib/crypto';
 import { config } from '../lib/config';
 import { audit } from '../lib/audit';
-/** Seller-side Sellora Pay, mounted under /api/stores */
+/** Seller-side VendOm Pay, mounted under /api/stores */
 export const seller = Router();
 seller.get('/:storeId/pay/wallets', storeAccess('orders'), ah(async (req, res) => res.json(await db.wallet.findMany({ where: { ownerType: 'SELLER', ownerId: req.store.id } }))));
 seller.get('/:storeId/pay/ledger', storeAccess('orders'), ah(async (req, res) => { const ws = await db.wallet.findMany({ where: { ownerType: 'SELLER', ownerId: req.store.id } }); res.json(await db.ledgerEntry.findMany({ where: { walletId: { in: ws.map(w => w.id) } }, orderBy: { createdAt: 'desc' }, take: 500 })); }));
@@ -56,7 +56,7 @@ seller.post('/:storeId/payouts', storeAccess('*'), idempotent, ah(async (req, re
   const p = await db.payout.create({ data: { storeId: req.store.id, walletId: w.id, amount: b.amount, currency: b.currency, destination: b.destination || k.bank } });
   audit(req, 'payout.request', { id: p.id }); res.status(201).json(p);
 }));
-seller.get('/:storeId/pay/embed', storeAccess(), ah(async (req, res) => res.json({ publishableKey: req.store.publishableKey, snippet: `<div id="sellora-checkout"></div>\n<script src="${config.publicUrl}/embed.js" data-key="${req.store.publishableKey}" data-link="LINK_ID"></script>` })));
+seller.get('/:storeId/pay/embed', storeAccess(), ah(async (req, res) => res.json({ publishableKey: req.store.publishableKey, snippet: `<div id="vendom-checkout"></div>\n<script src="${config.publicUrl}/embed.js" data-key="${req.store.publishableKey}" data-link="LINK_ID"></script>` })));
 
 /** Buyer wallet & disputes, mounted under /api/pay */
 export const buyer = Router();
@@ -80,7 +80,7 @@ buyer.post('/links/:linkId/pay', idempotent, ah(async (req, res) => {
 buyer.post('/webhooks/:provider', ah(async (req, res) => {
   const raw = (req as any).rawBody || JSON.stringify(req.body);
   const secret = req.params.provider === 'stripe' ? config.stripeWebhookSecret : config.outWebhookSecret;
-  const hdr = req.header('Sellora-Signature') || '';
+  const hdr = req.header('VendOm-Signature') || '';
   if (req.params.provider === 'stripe') { /* Stripe-Signature uses t=,v1= with same HMAC scheme */ if (!verifySig(raw, (req.header('Stripe-Signature') || '').replace(/,v0=.*/, ''), secret)) throw bad('Bad signature'); }
   else if (!verifySig(raw, hdr, secret)) throw bad('Bad signature');
   await db.auditLog.create({ data: { action: `webhook.${req.params.provider}.${req.body?.type || req.body?.event || 'event'}`, meta: req.body } });

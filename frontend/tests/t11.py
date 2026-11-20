@@ -1,4 +1,5 @@
 # t11: subscription plans, usage meters, overage settings, upgrade/downgrade, billing invoices, platform admin
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json
 res=[];errs=[]
@@ -9,10 +10,10 @@ with sync_playwright() as p:
   b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':900})
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]));pg.on('console',lambda m:m.type=='error' and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html');pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
   go(pg,'s-plan');t=pg.inner_text('#main')
   ok('plan page loads with trial','Free trial' in t and 'Grow' in t,t[:120])
-  for w in ['Usage this month','Compare plans','Grow','Basic','Advanced','Enterprise','Pakistani Rupee (PKR)','Sellora Pay card fee','Auto-pay overage','Stop at limit']: ok('plan page shows '+w,w in t)
+  for w in ['Usage this month','Compare plans','Grow','Basic','Advanced','Enterprise','Pakistani Rupee (PKR)','VendOm Pay card fee','Auto-pay overage','Stop at limit']: ok('plan page shows '+w,w in t)
   ok('9 usage meters',len(pg.query_selector_all('.m10bar'))==9)
   pg.click('[data-x="p10cur:PKR"]');pg.wait_for_timeout(300);ok('Rs 2,999 basic monthly','Rs 300' in pg.inner_text('#main'))
   pg.click('[data-x="p10int:annual"]');pg.wait_for_timeout(300);ok('annual price 20% off','Rs 2,880' in pg.inner_text('#main'))
@@ -56,7 +57,7 @@ with sync_playwright() as p:
   ok('admin price saved',pg.evaluate("S.plans9[1].pkr===349&&S.plans9[1].q.orders===350"))
   go(pg,'s-plan');ok('plan table reflects admin change','Rs 349' in pg.inner_text('#main'))
   pg.reload();pg.wait_for_timeout(800);ok('persists after reload',pg.evaluate("S.sub9.plan==='grow'&&S.plans9[1].pkr===349&&S.inv9.length>=2"))
-  ok('localStorage key sellora',pg.evaluate("!!localStorage.getItem('sellora')"))
+  ok('localStorage key vendom',pg.evaluate("!!localStorage.getItem('vendom')"))
   pg.evaluate("S.plans9=null;S.sub9=null;S.inv9=[];save()")
   ok('no console errors',not errs,errs[:3])
   b.close()

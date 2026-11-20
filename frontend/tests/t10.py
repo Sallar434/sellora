@@ -1,4 +1,5 @@
 # t10: new app-store apps (couriers/accounting/ads), credentials persistence, 1000-product performance, console errors
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json,time
 res=[];errs=[]
@@ -7,7 +8,7 @@ with sync_playwright() as p:
   b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':900})
   pg.on('pageerror',lambda e:errs.append(str(e)[:200]));pg.on('console',lambda m:m.type=='error' and errs.append(m.text[:200]))
   pg.on('dialog',lambda d:d.accept())
-  pg.goto('file:///workspace/sellora/sellora.html');pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
   ids=pg.evaluate("X=window;X.APPS.map(a=>a.id)")
   for i in ['tcs','leopards','postex','trax','xero','quickbooks','google-ads','meta','tiktok','whatsapp','dhl']: ok('app listed '+i,i in ids)
   pg.evaluate("location.hash='app-store'");pg.wait_for_timeout(300)
@@ -27,7 +28,7 @@ with sync_playwright() as p:
   ok('postex empty token not connected',pg.evaluate("!(S.apps2.postex||{}).connected"))
   pg.reload();pg.wait_for_timeout(800)
   ok('credentials persist after reload',pg.evaluate("S.apps2.tcs.cfg['Client ID']==='CL-1'&&S.apps2.xero.connected"))
-  ok('localStorage key is sellora','sellora' in pg.evaluate("Object.keys(localStorage)"))
+  ok('localStorage key is vendom','vendom' in pg.evaluate("Object.keys(localStorage)"))
   # courier label
   pg.evaluate("location.hash='app-tcs'");pg.wait_for_timeout(300)
   if pg.query_selector('[data-x="applabel:tcs"]'):
@@ -43,7 +44,7 @@ with sync_playwright() as p:
   ok('re-navigation <1500ms',t2<1500,'%dms'%t2)
   ms=pg.evaluate("(()=>{var t=performance.now();save();return performance.now()-t})()");ok('save() with 1000 products <300ms',ms<300,'%dms'%ms)
   ms=pg.evaluate("(()=>{var t=performance.now();S.products.filter(p=>/perf item 99/i.test(p.name));return performance.now()-t})()");ok('search filter <50ms',ms<50,'%.1fms'%ms)
-  kb=pg.evaluate("localStorage.getItem('sellora').length/1024");ok('storage size under 5MB',kb<5000,'%dKB'%kb)
+  kb=pg.evaluate("localStorage.getItem('vendom').length/1024");ok('storage size under 5MB',kb<5000,'%dKB'%kb)
   ok('no console/page errors',not errs,str(errs[:3]))
   json.dump({'results':res,'perf':{'list_ms':t1,'renav_ms':t2,'storage_kb':kb}},open('t10-results.json','w'))
   print('TOTAL %d/%d'%(sum(r[1] for r in res),len(res)))

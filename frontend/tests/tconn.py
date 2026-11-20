@@ -1,3 +1,4 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 import json,urllib.request
 errs=[]
@@ -7,11 +8,11 @@ with sync_playwright() as p:
   b=p.chromium.launch(); pg=b.new_page(viewport={'width':1400,'height':900})
   pg.on('pageerror',lambda e:errs.append(('PE',str(e)[:200])))
   pg.on('console',lambda m:m.type=='error' and 'net::ERR' not in m.text and errs.append(('CE',m.text[:200])))
-  pg.goto('file:///workspace/sellora/sellora-connected.html'); pg.wait_for_timeout(800)
+  vt.open_app(pg,vt.path_url('vendom-connected.html')); pg.wait_for_timeout(800)
   pg.evaluate("location.hash='integrations'"); pg.wait_for_timeout(300)
   print('offline label:',pg.inner_text('#sbk-st'))
   pg.fill('#sbk-url','http://localhost:4000');pg.fill('#sbk-em','owner@example.com');pg.fill('#sbk-pw','password123');pg.click('#sbk-go');pg.wait_for_timeout(2500)
-  print('status:',pg.evaluate('SelloraBackend.status()'))
+  print('status:',pg.evaluate('VendOmBackend.status()'))
   names=pg.evaluate("S.products.filter(p=>p._rid).map(p=>p.name)");print('pulled from server:',names)
   pg.evaluate("S.products.push({id:S.nid++,name:'Headless Neck Brace',price:49.99,stock:7,status:'Active',desc:'x'});save()"); pg.wait_for_timeout(3000)
   pg.screenshot(path='shots2/connected-integrations.png')

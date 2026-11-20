@@ -1,4 +1,4 @@
-/** Sellora+ — features beyond Shopify (WhatsApp, COD risk, wholesale, OEM, PK couriers, export docs, fixed FX prices, live, workshops, compliance, affiliates, bank transfers, AI listings). */
+/** VendOm+ — features beyond Shopify (WhatsApp, COD risk, wholesale, OEM, PK couriers, export docs, fixed FX prices, live, workshops, compliance, affiliates, bank transfers, AI listings). */
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../lib/db';
@@ -57,7 +57,7 @@ r.post(`${B}/whatsapp/orders/:id/convert`, storeAccess('orders'), idempotent, ah
   const lines = (w.lines as any[]) || []; if (!lines.length) throw bad('No matched products');
   const city = parse(z.object({ city: z.string().max(80).optional(), address: z.string().max(300).optional() }), req.body || {});
   const subtotal = lines.reduce((a, l) => a + l.price * l.qty, 0);
-  const o = await db.order.create({ data: { storeId: req.store.id, number: await nextOrderNumber(req.store.id), email: `${w.phone.replace(/\D/g, '')}@whatsapp.sellora`, currency: req.store.currency, subtotal, total: subtotal, financial: 'pending', shipTo: { name: w.name, phone: w.phone, ...city }, timeline: tl(null, 'Created from WhatsApp (Cash on delivery)'), lines: { create: lines.map(l => ({ productId: l.productId, variantId: l.variantId, title: l.title, price: l.price, qty: l.qty })) } } });
+  const o = await db.order.create({ data: { storeId: req.store.id, number: await nextOrderNumber(req.store.id), email: `${w.phone.replace(/\D/g, '')}@whatsapp.vendom`, currency: req.store.currency, subtotal, total: subtotal, financial: 'pending', shipTo: { name: w.name, phone: w.phone, ...city }, timeline: tl(null, 'Created from WhatsApp (Cash on delivery)'), lines: { create: lines.map(l => ({ productId: l.productId, variantId: l.variantId, title: l.title, price: l.price, qty: l.qty })) } } });
   await db.whatsappOrder.update({ where: { id: w.id }, data: { status: 'converted', orderId: o.id } }); await emit(req.store.id, 'orders/create', { id: o.id, source: 'whatsapp' });
   res.status(201).json(o);
 }));
@@ -72,7 +72,7 @@ export function codScore(o: any, history: { returned: number; delivered: number 
   if (!st.phone || !/^\+?92\d{10}$|^03\d{9}$/.test(String(st.phone).replace(/[\s-]/g, ''))) { s += 20; why.push('Phone is not a valid Pakistani mobile'); }
   if (history.returned > 0) { s += Math.min(40, history.returned * 20); why.push(`${history.returned} previous COD return(s)`); }
   if (history.delivered >= 2) { s -= 15; why.push('Repeat buyer with deliveries'); }
-  if (/whatsapp\.sellora$/.test(o.email)) { s += 5; why.push('No email (WhatsApp order)'); }
+  if (/whatsapp\.vendom$/.test(o.email)) { s += 5; why.push('No email (WhatsApp order)'); }
   s = Math.max(0, Math.min(100, s)); return { score: s, level: s >= 60 ? 'high' : s >= 30 ? 'medium' : 'low', reasons: why };
 }
 r.post(`${B}/cod/:orderId/score`, storeAccess('orders'), ah(async (req, res) => {
@@ -227,7 +227,7 @@ r.post(`${B}/bank/match`, storeAccess('orders'), ah(async (req, res) => {
   }
   res.json(out);
 }));
-r.post(`${B}/bank/remind/:orderId`, storeAccess('orders'), ah(async (req, res) => { const o = await own('order', req.store.id, req.params.orderId); if (o.financial !== 'pending') throw conflict('Order is not awaiting payment'); const msg = `Reminder: please transfer ${(o.total / 100).toFixed(2)} ${o.currency} with reference SLR${o.number}.`; if (!/whatsapp\.sellora$/.test(o.email)) await notify('email', o.email, 'generic', { subject: `Payment reminder for order #${o.number}`, text: msg }).catch(() => {}); const ph = (o.shipTo as any)?.phone; const wa = ph ? await run(req.store.id, 'whatsapp', 'sendText', { to: ph, text: msg }) : null; await db.order.update({ where: { id: o.id }, data: { timeline: tl(o, 'Bank transfer reminder sent') } }); res.json({ sent: true, message: msg, whatsapp: wa ? { live: wa.live } : null }); }));
+r.post(`${B}/bank/remind/:orderId`, storeAccess('orders'), ah(async (req, res) => { const o = await own('order', req.store.id, req.params.orderId); if (o.financial !== 'pending') throw conflict('Order is not awaiting payment'); const msg = `Reminder: please transfer ${(o.total / 100).toFixed(2)} ${o.currency} with reference SLR${o.number}.`; if (!/whatsapp\.vendom$/.test(o.email)) await notify('email', o.email, 'generic', { subject: `Payment reminder for order #${o.number}`, text: msg }).catch(() => {}); const ph = (o.shipTo as any)?.phone; const wa = ph ? await run(req.store.id, 'whatsapp', 'sendText', { to: ph, text: msg }) : null; await db.order.update({ where: { id: o.id }, data: { timeline: tl(o, 'Bank transfer reminder sent') } }); res.json({ sent: true, message: msg, whatsapp: wa ? { live: wa.live } : null }); }));
 
 // ---------- 15. AI listings EN/UR/AR (LLM when configured, template otherwise)
 const T = { en: (t: string, m: string, u: string) => ({ title: t, description: `${t} made from ${m}. Built for ${u}. Hand-finished in Sialkot, Pakistan.` }), ur: (t: string, m: string, u: string) => ({ title: t, description: `${t} — ${m} سے تیار کردہ۔ ${u} کے لیے بہترین۔ سیالکوٹ، پاکستان میں ہاتھ سے تیار۔` }), ar: (t: string, m: string, u: string) => ({ title: t, description: `${t} مصنوع من ${m}. مثالي لـ ${u}. صُنع يدويًا في سيالكوت، باكستان.` }) };

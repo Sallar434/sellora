@@ -1,4 +1,4 @@
-# Sellora audit (headless Chromium test, 2026-10-28)
+# VendOm audit (headless Chromium test, 2026-10-28)
 Method: loaded file in Playwright, visited 60 routes, clicked up to 25 buttons per screen, ran a full storefront to cart to checkout to order flow (8 countries), and read the code for duplicate or dead handlers.
 
 ## A) Broken

@@ -1,5 +1,5 @@
 import { db } from './db';
-// Sellora free theme library. Only these themes are offered; each has its own specialty.
+// VendOm free theme library. Only these themes are offered; each has its own specialty.
 export const THEME_LIBRARY = [
   { id: 's-daybreak', name: 'Daybreak', tag: 'Minimal', bestFor: 'Best for: a clean, image-first general store.', font: 'Inter', home: ['hero', 'featured', 'imgtext', 'multicolumn', 'email_signup'] },
   { id: 's-renew', name: 'Renew', tag: 'Bold & bright', bestFor: 'Best for: energetic brands that love bold colour.', font: 'Poppins', home: ['slideF', 'promo', 'col_bento', 'featured', 'testimonials', 'newsletter'] },
@@ -16,7 +16,7 @@ export const THEME_LIBRARY = [
   { id: 's-ledgerline', name: 'Ledgerline', tag: 'Wholesale', bestFor: 'Best for: B2B and wholesale with fast re-ordering.', font: 'Inter', home: ['heroM', 'multicolumn', 'col_grid', 'featured', 'faq', 'contactform'] },
 ] as const;
 export const DEFAULT_THEME = THEME_LIBRARY[0];
-// Retired names (old Sellora originals and earlier names). Stores using them move to Daybreak.
+// Retired names (old VendOm originals and earlier names). Stores using them move to Daybreak.
 export const RETIRED = ['Dawn', 'Ember', 'Tide', 'Orchard', 'Noir', 'Bloom', 'Slate', 'Sunset', 'Mint', 'Ink', 'Aurora', 'Sand'];
 export function defaultThemeData(storeId: string, heading: string) {
   const t = DEFAULT_THEME;

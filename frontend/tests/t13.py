@@ -1,10 +1,11 @@
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import os,sys,json
 from playwright.sync_api import sync_playwright
-F=sys.argv[1] if len(sys.argv)>1 else 'sellora.html';R=[]
+F=sys.argv[1] if len(sys.argv)>1 else 'vendom.html';R=[]
 def ok(n,c,d=''):R.append(bool(c));print(('PASS ' if c else 'FAIL ')+n+(' :: '+str(d) if d else ''),flush=True)
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page(viewport={'width':1400,'height':860},color_scheme='dark');errs=[];pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
-    pg.goto('file://'+os.path.abspath(F));pg.wait_for_timeout(900);E=pg.evaluate
+    vt.open_app(pg,vt.URL);pg.wait_for_timeout(900);E=pg.evaluate
     E("location.hash='themes'");pg.wait_for_timeout(300);E("edit(S.live)");pg.wait_for_timeout(500)
     ids=lambda:E("E.t.pg.home.map(s=>s.id)")
     a=ids();ok('template has >=3 sections',len(a)>=3,len(a))
