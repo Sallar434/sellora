@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { config } from './config';
-const key = () => Buffer.from(config.encKey, 'hex');
+// 64 hex chars are used as-is; any other long secret (e.g. one Render generates) is hashed to 32 bytes.
+const key = () => /^[0-9a-f]{64}$/i.test(config.encKey) ? Buffer.from(config.encKey, 'hex') : crypto.createHash('sha256').update(config.encKey).digest();
 export function encrypt(plain: string) { const iv = crypto.randomBytes(12); const c = crypto.createCipheriv('aes-256-gcm', key(), iv); const ct = Buffer.concat([c.update(plain, 'utf8'), c.final()]); return [iv, c.getAuthTag(), ct].map(b => b.toString('base64')).join('.'); }
 export function decrypt(blob: string) { const [iv, tag, ct] = blob.split('.').map(s => Buffer.from(s, 'base64')); const d = crypto.createDecipheriv('aes-256-gcm', key(), iv); d.setAuthTag(tag); return Buffer.concat([d.update(ct), d.final()]).toString('utf8'); }
 export const sha256 = (s: string) => crypto.createHash('sha256').update(s).digest('hex');

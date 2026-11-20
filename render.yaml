@@ -1,0 +1,31 @@
+# Render Blueprint for the VendOm API (Render dashboard > New > Blueprint > pick this repo).
+# The database is Neon: paste its connection string into DATABASE_URL when Render asks.
+services:
+  - type: web
+    name: vendom-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false            # Neon connection string, ends with ?sslmode=require
+      - key: CORS_ORIGINS
+        value: https://sellora-henna-alpha.vercel.app
+      - key: PUBLIC_URL
+        sync: false            # this service's own address, e.g. https://vendom-api.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true    # never change it later: saved app keys and bank details are encrypted with it
+      - key: WEBHOOK_SIGNING_SECRET
+        generateValue: true
+      - key: PAYMENT_PROVIDER
+        value: mock            # stays in test mode until a payment partner is connected

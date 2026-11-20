@@ -27,4 +27,4 @@ export const config = {
   fxProvider: e.FX_PROVIDER || 'static', fxUrl: e.FX_API_URL || '',
   outWebhookSecret: e.WEBHOOK_SIGNING_SECRET || 'whsec_dev',
 };
-if (config.env === 'production') { const weak = (v: string) => !v || v.startsWith('dev-') || v.startsWith('change-me') || v.length < 16; if (weak(config.jwtSecret) || weak(config.jwtRefreshSecret)) throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set to strong values in production'); if (/^0+$/.test(config.encKey) || config.encKey.length !== 64) throw new Error('ENCRYPTION_KEY (64 hex chars) must be set in production'); }
+if (config.env === 'production') { const weak = (v: string) => !v || v.startsWith('dev-') || v.startsWith('change-me') || v.length < 16; if (weak(config.jwtSecret) || weak(config.jwtRefreshSecret)) throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set to strong values in production'); if (/^0+$/.test(config.encKey) || config.encKey.length < 32) throw new Error('ENCRYPTION_KEY (64 hex chars, or any random secret of 32+ characters) must be set in production'); }

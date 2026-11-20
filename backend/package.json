@@ -16,7 +16,8 @@
     "seed": "tsx prisma/seed.ts",
     "test": "vitest run",
     "typecheck": "tsc -p . --noEmit",
-    "lint": "eslint src tests"
+    "lint": "eslint src tests",
+    "create-admin": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "6.16.2",
