@@ -27,3 +27,7 @@ h=open('vendom.html',encoding='utf-8').read();sj=open('connected/sync.js',encodi
 open('vendom-connected.html','w',encoding='utf-8').write(h[:i]+'<script>\n'+sj+'\n</script>\n'+h[i:]);print('built connected')
 # keep the backend's copy in step with this build
 import shutil;shutil.copyfile('vendom-connected.html','../backend/frontend/vendom-connected.html');shutil.copyfile('connected/sync.js','../backend/frontend/sync.js')
+# Small pages so the site root and the old Sellora link open VendOm even if vercel.json is not applied
+_stub='<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>VendOm</title><meta http-equiv="refresh" content="0; url=vendom.html"><script>location.replace("vendom.html"+location.hash)</script></head><body><a href="vendom.html">Open VendOm</a></body></html>\n'
+for _n in ['index.html','sellora.html','sellora-connected.html']:
+    open(_n,'w',encoding='utf-8').write(_stub if _n!='sellora-connected.html' else _stub.replace('vendom.html','vendom-connected.html'))
