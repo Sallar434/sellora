@@ -309,9 +309,10 @@ function openM(h){$('#box').innerHTML=h;$('#modal').classList.add('on')}function
 $('#modal').addEventListener('click',function(e){if(e.target.id==='modal')closeM()});
 function head(t,btn){return '<div class="top"><h1>'+t+'</h1>'+(btn||'')+'</div>'}
 function tag(s){var c={Paid:'warn',Fulfilled:'ok',Refunded:'bad',Active:'ok',Draft:''}[s]||'';return '<span class="tag '+c+'">'+s+'</span>'}
+function homeMetrics(){/* real numbers: last 30 days, same as Analytics (no sample sessions) */var a=window.agg?agg(30):null,os=(S.orders||[]).filter(function(o){return !o.cancelled}),n=a?a.n:os.length,sales=a?a.net:os.reduce(function(x,o){return x+(o.total||0)-(o.refunded||0)},0),ses=a?a.sess:0,cv=ses?Math.min(100,n/ses*100):0;
+ return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+ses+'</b></div><div class="metric"><small>Total sales</small><b>'+money(sales)+'</b></div><div class="metric"><small>Orders</small><b>'+n+'</b></div><div class="metric"><small>Conversion rate</small><b>'+cv.toFixed(1)+'%</b></div></div>'}
 var V={};
-V.home=function(){var rev=S.orders.reduce(function(a,o){return a+o.total},0);
-return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+(13+S.orders.length*7)+'</b></div><div class="metric"><small>Total sales</small><b>'+money(rev)+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>'+(S.orders.length*7/(13+S.orders.length*7)*100).toFixed(1)+'%</b></div></div>'
+V.home=function(){return homeMetrics()
 +'<div class="hero"><h2>'+esc(S.name)+' is open for business.<br>What do you want to work on next?</h2></div>'
 +'<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
 +'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on VendOm Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
@@ -2055,13 +2056,18 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         var isSub = item.sub.some(function(s) { 
           return s.id === cur || s.alias === cur; 
         });
-        if (isSub || item.id === cur) {
+        // open the section only when the page changes, so the arrow can still close it
+        if ((isSub || item.id === cur) && nav._last !== cur) {
           S.navOpen[item.id] = true;
         }
       }
     });
 
-    var html = NAV_CONFIG.map(function(item) {
+    var adm = typeof window.isPlatformAdmin === 'function' && window.isPlatformAdmin();
+    var list = NAV_CONFIG.filter(function(item) { return adm || !item.admin; }).map(function(item) {
+      return item.sub ? Object.assign({}, item, { sub: item.sub.filter(function(x) { return adm || !x.admin; }) }) : item;
+    });
+    var html = list.map(function(item) {
       if (item.id === '--') {
         return '<div class="grp">' + item.label + '</div>';
       }
@@ -2102,6 +2108,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       }
     }).join('');
 
+    nav._last = cur;
     $('#nav').innerHTML = html;
     chrome();
   };
@@ -6413,13 +6420,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     } catch(e) {
       console.warn('V.home fallback triggered:', e);
     }
-    var rev = (S.orders || []).reduce(function(a, o){ return a + (o.total || 0); }, 0);
-    return '<div class="metrics">' +
-      '<div class="metric"><small>Sessions</small><b>' + (13 + (S.orders || []).length * 7) + '</b></div>' +
-      '<div class="metric"><small>Total sales</small><b>' + money(rev) + '</b></div>' +
-      '<div class="metric"><small>Orders</small><b>' + (S.orders || []).length + '</b></div>' +
-      '<div class="metric"><small>Conversion rate</small><b>' + ((S.orders || []).length * 7 / (13 + (S.orders || []).length * 7 || 1) * 100).toFixed(1) + '%</b></div>' +
-    '</div>' +
+    return homeMetrics() +
     '<div class="hero"><h2>' + esc(S.name) + ' is open for business.<br>What do you want to work on next?</h2></div>' +
     '<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: add a product, get a domain, set up payments"><button class="btn pri" id="go">Ask</button></div>' +
     '<div class="cards">' +
@@ -6679,14 +6680,17 @@ function dl(name,text,type){var b=new Blob([text],{type:type||'text/plain'}),a=d
 function csv(rows){return rows.map(function(r){return r.map(function(c){c=c==null?'':String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\n')}X.toCSV=csv;
 function parseCSV(t){var rows=[],r=[],c='',i=0,qq=false;for(;i<t.length;i++){var ch=t[i];if(qq){if(ch==='"'&&t[i+1]==='"'){c+='"';i++}else if(ch==='"')qq=false;else c+=ch}else if(ch==='"')qq=true;else if(ch===','){r.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);rows.push(r);r=[];c=''}else c+=ch}if(c||r.length){r.push(c);rows.push(r)}return rows.filter(function(r){return r.some(function(x){return x!==''})})}X.parseCSV=parseCSV;
 /* ---------- NAV + ROUTES ---------- */
-try{var NC=X.NAV_CONFIG;if(NC&&!NC.some(function(n){return n.id==='vendom-pay'})){var at=NC.findIndex(function(n){return n.id==='--'&&n.label==='Configuration'});NC.splice(at<0?NC.length:at,0,{id:'--',label:'VendOm+'},{id:'vendom-pay',label:'VendOm Pay',icon:'store',sub:[{id:'pay-onboarding',label:'Seller onboarding (KYC)'},{id:'pay-buyer',label:'Buyer wallet'},{id:'pay-embed',label:'Embed & payment links'},{id:'pay-admin',label:'Platform admin'}]},{id:'ai-builder',label:'AI builder',icon:'store',sub:[{id:'seo-suite',label:'SEO / AEO / GEO'},{id:'seo-offpage',label:'Off-page SEO'},{id:'ai-tools',label:'AI tools'},{id:'ai-files',label:'Sitemap, robots, llms.txt'}]},{id:'app-store',label:'App Store',icon:'store',sub:[{id:'app-installed',label:'Installed apps'}]},{id:'shipping-zones',label:'Shipping & taxes',icon:'store'},{id:'notifications-outbox',label:'Notifications outbox',icon:'store'},{id:'integrations',label:'Integrations (API keys)',icon:'store'},{id:'staff-access',label:'Staff permissions',icon:'store'})}}catch(e){}
+try{var NC=X.NAV_CONFIG;if(NC&&!NC.some(function(n){return n.id==='vendom-pay'})){var at=NC.findIndex(function(n){return n.id==='--'&&n.label==='Configuration'});NC.splice(at<0?NC.length:at,0,{id:'--',label:'VendOm+'},{id:'vendom-pay',label:'VendOm Pay',icon:'store',sub:[{id:'pay-onboarding',label:'Seller onboarding (KYC)'},{id:'pay-embed',label:'Embed & payment links'},{id:'pay-buyer',label:'Buyer wallet',admin:1},{id:'pay-admin',label:'Platform admin',admin:1}]},{id:'ai-builder',label:'AI builder',icon:'store',sub:[{id:'seo-suite',label:'SEO / AEO / GEO'},{id:'seo-offpage',label:'Off-page SEO'},{id:'ai-tools',label:'AI tools'},{id:'ai-files',label:'Sitemap, robots, llms.txt'}]},{id:'notifications-outbox',label:'Notifications outbox',icon:'store',admin:1},{id:'integrations',label:'Integrations (API keys)',icon:'store',admin:1})}}catch(e){}
 var AREAS={home:'Home',orders:'Orders',products:'Products',customers:'Customers',growth:'Marketing',discounts:'Discounts',content:'Content',markets:'Markets',finance:'Finance',analytics:'Analytics',apps:'Apps',themes:'Online store',pay:'VendOm Pay',ai:'AI builder',settings:'Settings'};
 function areaOf(r){if(/^s-|^integrations|^staff-access|^shipping-zones|^notifications/.test(r))return 'settings';if(/^order/.test(r))return 'orders';if(/^customer/.test(r))return 'customers';if(/^product/.test(r))return 'products';if(/^pay|^vendom-pay/.test(r))return 'pay';if(/^ai/.test(r))return 'ai';if(/^app/.test(r))return 'apps';if(/^report/.test(r))return 'analytics';var k=r.split('-')[0];return AREAS[k]?k:'home'}
 function staffList(){var u=so('users');return (u.staff||[]).map(function(s){return typeof s==='string'?{email:s,role:'Staff'}:s}).filter(function(s){return s.email})}
 function can(r){var who=S.viewAs;if(!who)return true;var p=S.staffPerm[who];if(!p)return areaOf(r)==='home';return areaOf(r)==='home'||p.indexOf(areaOf(r))>-1}X.can=can;X.AREAS=AREAS;X.staffList=staffList;
 var PAGE={};X.PAGE=PAGE;/* dynamic routes: name -> fn(arg) */
 var R0=route;
-X.route=route=function(){if(typeof U==='undefined'||!U){if(typeof authGate==='function')authGate();return}try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
+X.isPlatformAdmin=function(){return typeof U!=='undefined'&&U==='admin@vendom.app'};
+var PLATFORM_ONLY=/^(pay-admin|pay-buyer|integrations|notifications-outbox|s-integrations)$/;
+X.route=route=function(){if(typeof U==='undefined'||!U){if(typeof authGate==='function')authGate();return}
+ if(PLATFORM_ONLY.test(location.hash.slice(1))&&!X.isPlatformAdmin()&&!(location.hash.slice(1)==='integrations'&&X.VendOmBackend)){location.replace('#home');return}try{X.migrate()}catch(e){console.error(e)}if(X.PAY)try{X.PAY.tick()}catch(e){}
  var raw=location.hash.slice(1),r=X._normRoute?X._normRoute(raw):raw,m;
  if(!can(r)){nav('home');document.body.classList.remove('st');q('#main').innerHTML='<div class="xw">'+head('No access')+'<div class="xc">You are viewing as <b>'+h(S.viewAs)+'</b>. This staff member does not have permission for <b>'+h(AREAS[areaOf(r)]||r)+'</b>.<br><br><button class="btn pri" data-x="viewas:">Switch back to owner</button></div></div>';sidebarPerm();return}
  if(r.slice(0,2)==='s-'&&SXS[r.slice(2)]){R0();var stc=q('.stc');if(stc){stc.innerHTML=SXS[r.slice(2)]();qa('.stn a').forEach(function(a){a.classList.toggle('on',a.dataset.r===r)})}post(r);return}
@@ -6698,7 +6702,7 @@ function nf(){return '<div class="xw" style="text-align:center;padding-top:60px"
 var POST=[];X.onRoute=function(f){POST.push(f)};
 function post(r){sidebarPerm();topbar();POST.forEach(function(f){try{f(r)}catch(e){console.error(e)}})}
 function sidebarPerm(){if(!S.viewAs)return;qa('#nav [data-r]').forEach(function(a){if(!can(X._normRoute?X._normRoute(a.dataset.r):a.dataset.r)){var w=a.closest('.nav-item-wrap');(a.classList.contains('nav-link')&&w?w:a).style.display='none'}})}
-function topbar(){if(typeof U==='undefined'||!U||document.body.classList.contains('locked')){var old=q('#xviewas');if(old)old.remove();return}var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
+function topbar(){if(typeof U==='undefined'||!U||document.body.classList.contains('locked')||!X.isPlatformAdmin()){if(S.viewAs&&!X.isPlatformAdmin())S.viewAs='';var old=q('#xviewas');if(old)old.remove();return}var b=q('#xviewas');if(!b){b=document.createElement('div');b.id='xviewas';b.style.cssText='position:fixed;bottom:10px;left:10px;width:172px;box-sizing:border-box;z-index:50;font-size:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';document.body.appendChild(b)}var st=staffList();b.innerHTML='Viewing as: <select data-xc="viewas2" style="border:0;font-size:12px;background:transparent"><option value="">Owner</option>'+st.map(function(s){return '<option'+(S.viewAs===s.email?' selected':'')+'>'+h(s.email)+'</option>'}).join('')+'</select>';b.style.display=document.body.classList.contains('st')?'none':''}
 A.viewas2=function(a,t){S.viewAs=t.value||null;save();route()};A.viewas=function(){S.viewAs=null;save();route()};
 A.go=function(a){location.hash=a};
 /* ---------- DEAD BUTTON FIXES (capture) ---------- */
@@ -6788,13 +6792,13 @@ A.pbulk=function(){var rows=[];S.products.forEach(function(p){rows.push('<tr><td
  q('#xbsave').onclick=function(){var pct=+val('xbpct')||0;qa('[data-bk]').forEach(function(e){var a=e.dataset.bk.split(':'),p=prod(+a[0]),vi=+a[1],k=a[2],v=e.value;if(!p)return;var o=vi>-1?p.vars[vi]:p;if(k==='price'||k==='stock'||k==='qty')v=+v;if(k==='price'&&pct)v=r2(v*(1+pct/100));o[k]=v});S.products.forEach(function(p){if(p.vars.length)p.stock=X.PR.vstock(p,-1)});save();closeM();toast('Products updated');route()}};
 /* ---------- ANALYTICS / REPORTS (real data) ---------- */
 function within(o,days){return Date.now()-o.at<=days*864e5}
-function agg(days){var os=S.orders.filter(function(o){return !o.cancelled&&within(o,days)}),gross=0,disc=0,ref=0,tax=0,ship=0;os.forEach(function(o){gross+=o.sub;disc+=o.disc||0;ref+=o.refunded||0;tax+=o.tax||0;ship+=o.shipAmt||0});var net=gross-disc-ref,sess=Math.max(S.stats.views||0,0);return{os:os,n:os.length,gross:r2(gross),disc:r2(disc),ref:r2(ref),tax:r2(tax),ship:r2(ship),net:r2(net),total:r2(net+tax+ship),aov:os.length?r2((gross-disc)/os.length):0,sess:sess,conv:sess?r2(os.length/sess*100):0}}
+function agg(days){var os=S.orders.filter(function(o){return !o.cancelled&&within(o,days)}),gross=0,disc=0,ref=0,tax=0,ship=0;os.forEach(function(o){gross+=o.sub;disc+=o.disc||0;ref+=o.refunded||0;tax+=o.tax||0;ship+=o.shipAmt||0});var net=gross-disc-ref,sess=Math.max(S.stats.sess||0,0);return{os:os,n:os.length,gross:r2(gross),disc:r2(disc),ref:r2(ref),tax:r2(tax),ship:r2(ship),net:r2(net),total:r2(net+tax+ship),aov:os.length?r2((gross-disc)/os.length):0,sess:sess,conv:sess?r2(os.length/sess*100):0}}
 X.agg=agg;
 function series(days){var b=[];for(var i=days-1;i>=0;i--){var d0=new Date();d0.setHours(0,0,0,0);var s=d0.getTime()-i*864e5;b.push({d:new Date(s),v:S.orders.filter(function(o){return !o.cancelled&&o.at>=s&&o.at<s+864e5}).reduce(function(a,o){return a+o.total-o.refunded},0)})}return b}
 function bars(b){var mx=Math.max.apply(null,b.map(function(x){return x.v}).concat([1]));return '<div class="xbar">'+b.map(function(x){return '<i title="'+x.d.toLocaleDateString()+': '+money(x.v)+'" style="height:'+(x.v/mx*100)+'%"></i>'}).join('')+'</div>'}
 V.analytics=function(){var a=agg(30);var top={};a.os.forEach(function(o){o.items.forEach(function(l){top[l.name]=(top[l.name]||0)+l.q*l.price})});
  return '<div class="xw">'+head('Analytics','<span class="xk">Last 30 days · computed from your orders</span><button class="btn" data-x="go:analytics-reports">Reports</button>')+'<div class="xg">'+[['Total sales',money(a.total)],['Orders',a.n],['Average order value',money(a.aov)],['Online store sessions',a.sess],['Conversion rate',a.conv+'%'],['Returns',money(a.ref)]].map(function(k){return '<div class="xc"><div class="xk">'+k[0]+'</div><div class="xb">'+k[1]+'</div></div>'}).join('')+'</div><div class="xc"><h3>Sales over time</h3>'+bars(series(30))+'</div><div class="xc"><h3>Top products</h3><table class="xt">'+Object.keys(top).sort(function(x,y){return top[y]-top[x]}).slice(0,8).map(function(k){return '<tr><td>'+h(k)+'</td><td>'+money(top[k])+'</td></tr>'}).join('')+'</table></div></div>'};
-V['analytics-live-view']=function(){var t=new Date();t.setHours(0,0,0,0);var td=S.orders.filter(function(o){return o.at>=t.getTime()});var carts=(S.carts||[]).length+(X.SF&&X.SF.cart().length?1:0);return '<div class="xw">'+head('Live view')+'<div class="xg">'+[['Storefront views today',(S.stats.days[new Date().toDateString()]||0)],['Orders today',td.length],['Sales today',money(td.reduce(function(a,o){return a+o.total},0))],['Active carts',carts]].map(function(k){return '<div class="xc"><div class="xk">'+k[0]+'</div><div class="xb">'+k[1]+'</div></div>'}).join('')+'</div><div class="xc"><h3>Latest activity</h3>'+S.orders.slice(-8).reverse().map(function(o){return '<div style="padding:5px 0">'+D(o.at)+' · Order #'+o.id+' · '+money(o.total)+' · '+h(o.ship&&o.ship.country||'')+'</div>'}).join('')+'</div></div>'};
+V['analytics-live-view']=function(){var t=new Date();t.setHours(0,0,0,0);var td=S.orders.filter(function(o){return o.at>=t.getTime()});var carts=(S.carts||[]).length+(X.SF&&X.SF.cart().length?1:0);return '<div class="xw">'+head('Live view')+'<div class="xg">'+[['Sessions today',(S.stats.days[new Date().toDateString()]||0)],['Orders today',td.length],['Sales today',money(td.reduce(function(a,o){return a+o.total},0))],['Active carts',carts]].map(function(k){return '<div class="xc"><div class="xk">'+k[0]+'</div><div class="xb">'+k[1]+'</div></div>'}).join('')+'</div><div class="xc"><h3>Latest activity</h3>'+S.orders.slice(-8).reverse().map(function(o){return '<div style="padding:5px 0">'+D(o.at)+' · Order #'+o.id+' · '+money(o.total)+' · '+h(o.ship&&o.ship.country||'')+'</div>'}).join('')+'</div></div>'};
 var REP={sales:'Sales over time',products:'Sales by product',customers:'Sales by customer',countries:'Sales by country',discounts:'Discount usage',taxes:'Taxes collected',refunds:'Refunds',inventory:'Inventory snapshot'};
 V['analytics-reports']=function(){return '<div class="xw">'+head('Reports')+'<div class="xc"><table class="xt"><tr><th>Report</th><th></th></tr>'+Object.keys(REP).map(function(k){return '<tr class="xr" data-x="go:report-'+k+'"><td>'+REP[k]+'</td><td><button class="btn" data-x="go:report-'+k+'">View report</button></td></tr>'}).join('')+'</table></div></div>'};
 function repRows(k){var os=S.orders.filter(function(o){return !o.cancelled}),m={};
@@ -6890,7 +6894,7 @@ P.checkout=function(){var c=cart();if(!c.length)return P.cart();var k=ck(),Q=X.q
  +'<hr><div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>'+m(Q.sub)+'</span></div>'+Q.applied.map(function(a){return '<div style="display:flex;justify-content:space-between;color:#0b6b3a"><span>'+h(a.title)+' ('+h(a.code)+')</span><span>'+(a.type==='freeship'?'Free shipping':'−'+m(a.amt))+'</span></div>'}).join('')+'<div style="display:flex;justify-content:space-between"><span>Shipping</span><span>'+(Q.shipAmt?m(Q.shipAmt):'Free')+'</span></div><div style="display:flex;justify-content:space-between"><span>Tax ('+Q.taxRate+'%'+(S.taxR.inc?' incl.':'')+')</span><span>'+m(Q.tax)+'</span></div>'+(Q.gcAmt?'<div style="display:flex;justify-content:space-between;color:#0b6b3a"><span>Gift card '+h(Q.gc)+'</span><span>−'+m(Q.gcAmt)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;font-size:20px;margin-top:8px"><b>Total</b><b>'+m(Q.due)+' <span style="font-weight:400;font-size:13px;opacity:.75">— '+X.curL(cur())+'</span></b></div>'+(cur()!=='USD'?'<small style="opacity:.6">Charged in '+X.curL(cur())+' at FX '+S.rates[cur()]+' per USD</small>':'')+'</div></div>'};
 P.thanks=function(oid){var o=X.ORD.get(oid);return '<div style="max-width:620px;margin:0 auto;text-align:center"><div style="font-size:48px">✓</div><h1>Thank you!</h1><p>Order <b>#'+h(oid)+'</b> is confirmed. A confirmation email was sent to '+h(o&&o.email)+'.</p><p style="opacity:.75">Your payment of '+m(o?o.total:0)+' is held in VendOm Pay escrow. Once your order arrives, confirm receipt in your account to release funds to the seller.</p><button class="sfb" data-sf="account">View my orders</button> <button class="sfb" data-sf="catalog" style="background:#111">Keep shopping</button></div>'};
 function root(){var r=q('#xsf');if(!r){r=document.createElement('div');r.id='xsf';r.style.cssText='position:fixed;inset:0;z-index:9000;overflow:auto;background:#fff';document.body.appendChild(r);var st=document.createElement('style');st.textContent='#xsf .sfb{background:var(--sfa);color:#fff;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;font:inherit}#xsf .sfi{padding:10px;border:1px solid #bbb;border-radius:8px;font:inherit;width:100%;box-sizing:border-box}#xsf a{color:inherit}';document.head.appendChild(st)}return r}
-function render(){var r=root();r.style.setProperty('--sfa',T().ac);var pg=P[SFX.pg]?SFX.pg:'home',body;try{body=P[pg](SFX.arg)}catch(e){console.error(e);body='<h1>Something went wrong</h1>'}r.innerHTML=shell(body);if(X.APPS_SF&&X.APPS_SF.inject)try{X.APPS_SF.inject(r,pg,SFX.arg)}catch(e){console.error(e)}wire(r);S.stats.views=(S.stats.views||0)+1;var dk=new Date().toDateString();S.stats.days[dk]=(S.stats.days[dk]||0)+1;save()}
+function render(){var r=root();r.style.setProperty('--sfa',T().ac);var pg=P[SFX.pg]?SFX.pg:'home',body;try{body=P[pg](SFX.arg)}catch(e){console.error(e);body='<h1>Something went wrong</h1>'}r.innerHTML=shell(body);if(X.APPS_SF&&X.APPS_SF.inject)try{X.APPS_SF.inject(r,pg,SFX.arg)}catch(e){console.error(e)}wire(r);S.stats.views=(S.stats.views||0)+1;var dk=new Date().toDateString(),nw=Date.now();if(!S.stats.last||nw-S.stats.last>18e5){S.stats.sess=(S.stats.sess||0)+1;S.stats.days[dk]=(S.stats.days[dk]||0)+1}S.stats.last=nw;save()}
 function go(to){var p=String(to||'home').split(':');SFX.pg=p[0];SFX.arg=p.slice(1).join(':');if(SFX.pg!=='product')SFX.gi=0;render();var r=q('#xsf');if(r)r.scrollTop=0}
 function err(i,t){var e=q('#'+i);if(e)e.textContent=t;return false}
 function saveAbandon(){var k=SFX.ck;if(!k||!k.email||!/@/.test(k.email))return;S.carts=(S.carts||[]).filter(function(c){return c.email!==k.email});S.carts.push({email:k.email,items:cart().map(function(c){return{pid:c.pid,vi:c.vi,q:c.q}}),at:Date.now()});save()}

@@ -239,9 +239,10 @@ function openM(h){$('#box').innerHTML=h;$('#modal').classList.add('on')}function
 $('#modal').addEventListener('click',function(e){if(e.target.id==='modal')closeM()});
 function head(t,btn){return '<div class="top"><h1>'+t+'</h1>'+(btn||'')+'</div>'}
 function tag(s){var c={Paid:'warn',Fulfilled:'ok',Refunded:'bad',Active:'ok',Draft:''}[s]||'';return '<span class="tag '+c+'">'+s+'</span>'}
+function homeMetrics(){/* real numbers: last 30 days, same as Analytics (no sample sessions) */var a=window.agg?agg(30):null,os=(S.orders||[]).filter(function(o){return !o.cancelled}),n=a?a.n:os.length,sales=a?a.net:os.reduce(function(x,o){return x+(o.total||0)-(o.refunded||0)},0),ses=a?a.sess:0,cv=ses?Math.min(100,n/ses*100):0;
+ return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+ses+'</b></div><div class="metric"><small>Total sales</small><b>'+money(sales)+'</b></div><div class="metric"><small>Orders</small><b>'+n+'</b></div><div class="metric"><small>Conversion rate</small><b>'+cv.toFixed(1)+'%</b></div></div>'}
 var V={};
-V.home=function(){var rev=S.orders.reduce(function(a,o){return a+o.total},0);
-return '<div class="metrics"><div class="metric"><small>Sessions</small><b>'+(13+S.orders.length*7)+'</b></div><div class="metric"><small>Total sales</small><b>'+money(rev)+'</b></div><div class="metric"><small>Orders</small><b>'+S.orders.length+'</b></div><div class="metric"><small>Conversion rate</small><b>'+(S.orders.length*7/(13+S.orders.length*7)*100).toFixed(1)+'%</b></div></div>'
+V.home=function(){return homeMetrics()
 +'<div class="hero"><h2>'+esc(S.name)+' is open for business.<br>What do you want to work on next?</h2></div>'
 +'<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: build a website, add a collection, add a banner"><button class="btn pri" id="go">Ask</button></div>'
 +'<div class="cards"><div class="card"><h3>Accept payments</h3><p>Connect local and international gateways and turn on VendOm Pay.</p><button class="btn" data-r="payments">Set up payments</button></div><div class="card"><h3>Get a domain</h3><p>Search a name, connect it and get free SSL.</p><button class="btn" data-r="domains">Find a domain</button></div><div class="card"><h3>Add products</h3><p>Let AI write the description for you.</p><button class="btn" data-r="products">Add a product</button></div></div>'};
@@ -1984,13 +1985,18 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
         var isSub = item.sub.some(function(s) { 
           return s.id === cur || s.alias === cur; 
         });
-        if (isSub || item.id === cur) {
+        // open the section only when the page changes, so the arrow can still close it
+        if ((isSub || item.id === cur) && nav._last !== cur) {
           S.navOpen[item.id] = true;
         }
       }
     });
 
-    var html = NAV_CONFIG.map(function(item) {
+    var adm = typeof window.isPlatformAdmin === 'function' && window.isPlatformAdmin();
+    var list = NAV_CONFIG.filter(function(item) { return adm || !item.admin; }).map(function(item) {
+      return item.sub ? Object.assign({}, item, { sub: item.sub.filter(function(x) { return adm || !x.admin; }) }) : item;
+    });
+    var html = list.map(function(item) {
       if (item.id === '--') {
         return '<div class="grp">' + item.label + '</div>';
       }
@@ -2031,6 +2037,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       }
     }).join('');
 
+    nav._last = cur;
     $('#nav').innerHTML = html;
     chrome();
   };
@@ -6342,13 +6349,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     } catch(e) {
       console.warn('V.home fallback triggered:', e);
     }
-    var rev = (S.orders || []).reduce(function(a, o){ return a + (o.total || 0); }, 0);
-    return '<div class="metrics">' +
-      '<div class="metric"><small>Sessions</small><b>' + (13 + (S.orders || []).length * 7) + '</b></div>' +
-      '<div class="metric"><small>Total sales</small><b>' + money(rev) + '</b></div>' +
-      '<div class="metric"><small>Orders</small><b>' + (S.orders || []).length + '</b></div>' +
-      '<div class="metric"><small>Conversion rate</small><b>' + ((S.orders || []).length * 7 / (13 + (S.orders || []).length * 7 || 1) * 100).toFixed(1) + '%</b></div>' +
-    '</div>' +
+    return homeMetrics() +
     '<div class="hero"><h2>' + esc(S.name) + ' is open for business.<br>What do you want to work on next?</h2></div>' +
     '<div class="ask"><input id="q" aria-label="Ask VendOm AI" placeholder="Ask VendOm AI: add a product, get a domain, set up payments"><button class="btn pri" id="go">Ask</button></div>' +
     '<div class="cards">' +

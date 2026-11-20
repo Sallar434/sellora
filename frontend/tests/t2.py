@@ -9,7 +9,9 @@ with sync_playwright() as p:
   pg.on('dialog',lambda d:d.accept())
   vt.open_app(pg,vt.URL); pg.wait_for_timeout(800)
   E=pg.evaluate; W=pg.wait_for_timeout
-  def go(r): E(f"location.hash='{r}'"); W(200)
+  def go(r):
+    # Platform admin pages open only for the VendOm platform account; the rest of the flow is the store owner
+    E("window._own=window._own||U;U=%s" % ("'admin@vendom.app'" if r=='pay-admin' else "window._own")); E(f"location.hash='{r}'"); W(200)
   def cx(dx): pg.click(f'[data-x="{dx}"]'); W(250)
   # ---- Apps
   for a in ['reviews','chat','meta-pixel','google','zapier','whatsapp','printful','shipstation']:
