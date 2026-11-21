@@ -22,12 +22,21 @@ def launch(p, **kw):
     return b, pg, errs
 
 def signup(pg, email='owner@example.com', store='Parity Shop', plan='advanced'):
-    """Open the app and create a store through the Sign in / Create account door."""
+    """Create a store through the public onboarding: landing → email + password → email code → plan → (skip payment) → goals → name the store on Home."""
     pg.goto(URL); pg.wait_for_timeout(800)
     pg.click('#door-up'); pg.wait_for_timeout(200)
     pg.fill('#a2', email); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(400)
+    verify_email(pg, email)
     pg.click('[data-m13p=%s]' % plan); pg.wait_for_timeout(300)
-    pg.fill('#a1', store); pg.click('#ab'); pg.wait_for_timeout(900)
+    pg.click('#ob-skip'); pg.wait_for_timeout(200)          # payment can wait until the trial ends
+    pg.click('#ab'); pg.wait_for_timeout(900)               # "What can we help you do?" → Continue
+    if store and store != 'My Store':
+        pg.evaluate("location.hash='home'"); pg.wait_for_timeout(300)
+        pg.click('#home-name'); pg.fill('#home-name-in', store); pg.click('#home-name-save'); pg.wait_for_timeout(300)
+
+def verify_email(pg, email):
+    code = pg.evaluate("e=>DB.ver[e].code", email.lower())
+    pg.fill('#a-code', code); pg.click('#ab'); pg.wait_for_timeout(400)
 
 def go(pg, route, wait=350):
     pg.evaluate("location.hash=%r" % route); pg.wait_for_timeout(wait)
@@ -53,3 +62,11 @@ def open_app(pg, url=None, email='owner@example.com'):
 
 def path_url(name):
     return 'file://' + os.path.abspath(os.path.join(HERE, '..', name))
+
+def finish_store(pg, name=None):
+    """After the plan: skip payment, continue past goals, then name the store on Home."""
+    pg.click('#ob-skip'); pg.wait_for_timeout(200)
+    pg.click('#ab'); pg.wait_for_timeout(900)
+    if name and name != 'My Store':
+        pg.evaluate("location.hash='home'"); pg.wait_for_timeout(300)
+        pg.click('#home-name'); pg.fill('#home-name-in', name); pg.click('#home-name-save'); pg.wait_for_timeout(300)

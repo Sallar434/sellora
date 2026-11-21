@@ -1,5 +1,12 @@
 # VendOm v36 changelog
 
+## v40: Landing page and new sign-up flow (21 Nov 2026)
+- **Landing page** for visitors: hero with "Start for free" email box, four feature cards, a pricing band and FAQ. Works on phones.
+- **Sign-up in steps:** email + password (8+ characters, strength meter, show/hide, country) → **verify email** (6-digit code, resend, expiry, 5 tries) → plan → payment (card, PayPal/JazzCash/Easypaisa buttons, **Skip** during the 4-day trial) → "What can we help you do?" (11 choices) → admin.
+- **Welcome home:** "Welcome to VendOm / Let's set up **My Store**": click the name to rename the store (Enter saves, Esc cancels); setup cards follow the chosen goals; the guide can be hidden.
+- **Emails:** welcome email and verification code at sign-up (server: `welcome_seller`, `welcome_buyer`, `otp`). In the browser-only version they are kept in this browser and the code is shown on screen until the server sends real email.
+- Tests: new t21 (38 checks), backend onboarding tests (95/95 total); tauth, t3, t14, t16 updated for the new steps.
+
 ## v39: Direct or protected payments, "not received" settlement, international methods, phone layout (20 Nov 2026)
 - **Payments:** each store chooses Buyer chooses (default), Always protected, or Direct only. Direct payments go straight to the seller. Protected payments need a free buyer account (created at checkout).
 - **VendOm Pay Protection fixes:** money is never auto-released before the seller ships (it used to release 7 days after payment); the seller is told "payment secured, ship now" with a 5-day ship-by date; the 7-day confirm window starts at shipping; unshipped orders past the date are refunded in full.

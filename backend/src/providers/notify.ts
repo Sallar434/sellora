@@ -11,6 +11,8 @@ const sms = () => (config.smsProvider === 'twilio' ? twilioSms : mockSms);
 const mailer = config.smtpUrl ? nodemailer.createTransport(config.smtpUrl) : nodemailer.createTransport({ jsonTransport: true });
 export const TEMPLATES: Record<string, (p: any) => { subject: string; text: string }> = {
   otp: p => ({ subject: 'Your VendOm code', text: `Your verification code is ${p.code}. It expires in 10 minutes.` }),
+  welcome_seller: p => ({ subject: 'Welcome to VendOm: your account is ready', text: `Hi, you created a VendOm account with ${p.email}. Verify your email with the code we sent, then set up ${p.store || 'your store'}: add products, pick a design and choose how you get paid. Your 4-day free trial has started.` }),
+  welcome_buyer: p => ({ subject: 'Welcome to VendOm', text: `Hi, you created a VendOm buyer account with ${p.email}. Use it to track orders, confirm delivery and get refunds when VendOm Pay Protection covers your order.` }),
   password_reset: p => ({ subject: 'Reset your password', text: `Use code ${p.code} to reset your password.` }),
   order_confirmation: p => ({ subject: `Order #${p.number} confirmed`, text: `Thanks for your order #${p.number}. Total: ${(p.total / 100).toFixed(2)} ${p.currency}.` }),
   abandoned_cart: p => ({ subject: 'You left something in your cart', text: `Complete your purchase: ${p.url}` }),

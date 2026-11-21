@@ -1,4 +1,5 @@
 import os,sys,json
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 from playwright.sync_api import sync_playwright
 F=sys.argv[1] if len(sys.argv)>1 else 'vendom.html';R=[];SH=os.environ.get('SHOTS')
 def ok(n,c,d=''):R.append(bool(c));print(('PASS ' if c else 'FAIL ')+n+(' :: '+str(d) if d else ''),flush=True)
@@ -8,6 +9,7 @@ with sync_playwright() as p:
     pg.goto('file://'+os.path.abspath(F));pg.wait_for_timeout(900);E=pg.evaluate
     pg.click('#door-up');pg.wait_for_timeout(200)
     pg.fill('#a2','trial@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(400)
+    ok('verify email step',pg.locator('#a-code').count()==1);vt.verify_email(pg,'trial@example.com')
     ok('plan picker shown to new user',pg.locator('.m13pick').count()==1)
     t=pg.inner_text('.m13pick')
     ok('picker lists 4 plans + PKR',all(x in t for x in ['Basic','Grow','Advanced','Enterprise','Pakistani Rupee (PKR)','Rs 300','Rs 600','Rs 1,000','Contact sales']),t[:200])
@@ -15,8 +17,8 @@ with sync_playwright() as p:
     pg.click('[data-iv=annual]');pg.wait_for_timeout(200);ok('annual toggle 20% off',"Rs 2,880" in pg.inner_text('.m13pick'))
     if SH:pg.screenshot(path=SH+'/1-plan-picker.png',full_page=True)
     pg.click('[data-m13p=advanced]');pg.wait_for_timeout(300)
-    ok('store name after plan',pg.locator('#a1').count()==1 and 'Advanced' in pg.inner_text('#m13chosen'))
-    pg.fill('#a1','Trial Shop');pg.click('#ab');pg.wait_for_timeout(900)
+    ok('payment step after plan (annual Advanced)',pg.locator('#pay-go').count()==1 and 'Advanced' in pg.inner_text('#auth') and '/year' in pg.inner_text('#auth'))
+    vt.finish_store(pg,'Trial Shop')
     s=E("S.sub9");ok('trial started on chosen plan',s and s['plan']=='advanced' and s['status']=='trialing' and s['interval']=='annual',s)
     ok('trial is 4 days',abs((s['trialEnds']-s['start'])/864e5-4)<0.01)
     E("location.hash='home'");pg.wait_for_timeout(400)

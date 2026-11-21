@@ -1,4 +1,5 @@
 """Public door: sign in / create account, no auto-opened admin, local store claim."""
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import json, os, time
 from playwright.sync_api import sync_playwright
 
@@ -37,7 +38,7 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda e: errs.append(str(e)[:240]))
     pg.goto(F); pg.wait_for_timeout(900)
     t = body(pg)
-    ok('door shows Sign in and Create account', 'Sign in' in t and 'Create account' in t, t[:180])
+    ok('door shows Sign in and Create account', 'Sign in' in t and 'Start free trial' in t, t[:180])
     ok('auth overlay visible', pg.locator('#auth').is_visible() and pg.locator('#door-in').is_visible() and pg.locator('#door-up').is_visible())
     ok('admin shell hidden', not pg.locator('aside').is_visible())
     ok('no store name on the door', 'Vellacorsa' not in t and 'Heritage Glove' not in t)
@@ -49,11 +50,16 @@ with sync_playwright() as p:
     ok('short password rejected', '8 characters' in (pg.locator('#ae').inner_text() if pg.locator('#ae').count() else ''))
     # new account on a clean browser starts onboarding, not someone else's admin
     pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(500)
+    ok('new account must verify the email first', pg.locator('#a-code').count() == 1 and 'new@example.com' in body(pg))
+    pg.fill('#a-code', '000000'); pg.click('#ab'); pg.wait_for_timeout(200)
+    ok('wrong code rejected', 'not right' in pg.locator('#ae').inner_text())
+    ok('welcome email recorded', pg.evaluate("(DB.mail||[]).some(m=>m.to==='new@example.com'&&/Welcome to VendOm/.test(m.subject))"))
+    vt.verify_email(pg, 'new@example.com')
     ok('clean create account opens plan picker', pg.locator('.m13pick').count() == 1 and 'Vellacorsa' not in body(pg))
     ok('plans in Pakistani Rupee (PKR)', 'Pakistani Rupee (PKR)' in body(pg) and 'Basic' in body(pg) and 'Grow' in body(pg))
     pg.click('[data-m13p=grow]'); pg.wait_for_timeout(300)
-    ok('store name step', pg.locator('#a1').count() == 1 and 'Grow' in pg.inner_text('#m13chosen'))
-    pg.fill('#a1', 'Fresh Shop'); pg.click('#ab'); pg.wait_for_timeout(900)
+    ok('payment step (skippable)', pg.locator('#ob-skip').count() == 1 and 'Grow' in pg.inner_text('#auth'))
+    vt.finish_store(pg, 'Fresh Shop')
     ok('own store admin', pg.evaluate('S.name') == 'Fresh Shop' and pg.evaluate('U') == 'new@example.com' and 'Fresh Shop' in body(pg))
     ok('trial started', pg.evaluate("S.sub9&&S.sub9.status==='trialing'&&S.sub9.plan==='grow'"))
     ok('trial banner after login', 'Free trial' in body(pg) and 'Grow' in body(pg))
@@ -75,7 +81,7 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda e: errs.append(str(e)[:240]))
     seed(pg, DB)
     t = body(pg)
-    ok('unowned store stays behind the door', 'Sign in' in t and 'Create account' in t and 'Vellacorsa' not in t and 'Heritage Glove' not in t and 'Viewing as' not in t)
+    ok('unowned store stays behind the door', 'Sign in' in t and 'Start free trial' in t and 'Vellacorsa' not in t and 'Heritage Glove' not in t and 'Viewing as' not in t)
     ok('store data still in localStorage', pg.evaluate("JSON.parse(localStorage.getItem('vendom')).d['owner@example.com'].products[0].name")=='Heritage Glove')
     pg.click('#door-in'); pg.wait_for_timeout(200)
     pg.fill('#a2', 'owner@real.test'); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(300)
@@ -95,9 +101,10 @@ with sync_playwright() as p:
     pg.click('#so'); pg.wait_for_timeout(300)
     pg.click('#door-up'); pg.wait_for_timeout(200)
     pg.fill('#a2', 'other@real.test'); pg.fill('#a3', 'password123'); pg.click('#ab'); pg.wait_for_timeout(500)
+    vt.verify_email(pg, 'other@real.test')
     ok('second account gets plan picker, not Vellacorsa', pg.locator('.m13pick').count()==1 and 'Vellacorsa' not in body(pg) and 'Heritage Glove' not in body(pg))
     pg.click('[data-m13p=basic]'); pg.wait_for_timeout(250)
-    pg.fill('#a1', 'Other Shop'); pg.click('#ab'); pg.wait_for_timeout(900)
+    vt.finish_store(pg, 'Other Shop')
     ok('second store is its own', pg.evaluate('S.name')=='Other Shop' and not pg.evaluate("S.products.some(p=>p.name==='Heritage Glove')"))
     ok('vellacorsa still saved for the first account', pg.evaluate("(JSON.parse(localStorage.getItem('vendom')).d['owner@real.test'].products||[]).some(p=>p.name==='Heritage Glove')"))
     pg.click('#so'); pg.wait_for_timeout(300)

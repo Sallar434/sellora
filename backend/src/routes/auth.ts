@@ -38,8 +38,9 @@ r.post('/signup', ah(async (req, res) => {
   const email = b.email.toLowerCase();
   if (await db.user.findUnique({ where: { email } })) throw new HttpError(409, 'Email already registered');
   const u = await db.user.create({ data: { email, name: b.name, phone: b.phone, type: b.type, passwordHash: await bcrypt.hash(b.password, 10) } });
-  const store = b.type === 'SELLER' ? await createStore(u.id, b.storeName || `${b.name || email.split('@')[0]}'s store`, b.currency) : null;
+  const store = b.type === 'SELLER' ? await createStore(u.id, b.storeName || 'My Store', b.currency) : null;
   const devCode = await sendOtp(email, 'verify_email', 'email');
+  await notify('email', email, b.type === 'SELLER' ? 'welcome_seller' : 'welcome_buyer', { email, store: store?.name });
   await audit(req, 'auth.signup', { userId: u.id });
   res.status(201).json({ user: pub(u), store, ...(await issueTokens(u)), devCode });
 }));

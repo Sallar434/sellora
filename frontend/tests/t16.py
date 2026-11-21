@@ -1,4 +1,5 @@
 """AI store builder: item vs category, collections, banners, featured layout, voice, suggestions, speed, editor."""
+import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import os
 from playwright.sync_api import sync_playwright
 
@@ -20,19 +21,18 @@ with sync_playwright() as p:
     pg.goto(F)
     pg.wait_for_timeout(700)
     t = body(pg)
-    ok('door still offers Sign in and Create account', 'Sign in' in t and 'Create account' in t, t[:160])
+    ok('door still offers Sign in and a free trial', 'Sign in' in t and 'Start free trial' in t, t[:160])
     pg.click('#door-up')
     pg.wait_for_timeout(200)
     pg.fill('#a2', 'builder@example.com')
     pg.fill('#a3', 'password123')
     pg.click('#ab')
     pg.wait_for_timeout(400)
+    vt.verify_email(pg, 'builder@example.com')
     ok('plan picker still appears', pg.locator('.m13pick').count() == 1, body(pg)[:160])
     pg.click('[data-m13p=grow]')
     pg.wait_for_timeout(250)
-    pg.fill('#a1', 'Ring Shop')
-    pg.click('#ab')
-    pg.wait_for_timeout(900)
+    vt.finish_store(pg, 'Ring Shop')
     ok('signed in to own store', pg.evaluate('S.name') == 'Ring Shop' and pg.evaluate('!!U'))
     ok('voice button next to AI input', pg.locator('#qmic').count() == 1 and pg.locator('#qmic').get_attribute('aria-label') == 'Speak to VendOm AI')
     pg.click('#qmic')

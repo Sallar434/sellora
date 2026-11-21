@@ -75,7 +75,7 @@ with sync_playwright() as p:
     E("document.querySelector('#so').click()");pg.wait_for_timeout(400)
     ok('sign out shows login',E("getComputedStyle(document.querySelector('#auth')).display")!='none' and 'Sign in' in E("document.querySelector('#auth').textContent"))
     pg.reload();pg.wait_for_timeout(900);ok('stays signed out after reload',E("getComputedStyle(document.querySelector('#auth')).display")!='none')
-    pg.click('#door-up');pg.wait_for_timeout(200);pg.fill('#a2','two@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(400);pg.click('[data-m13p=grow]');pg.wait_for_timeout(300);pg.fill('#a1','Second Shop');pg.click('#ab');pg.wait_for_timeout(900)
+    pg.click('#door-up');pg.wait_for_timeout(200);pg.fill('#a2','two@example.com');pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(400);vt.verify_email(pg,'two@example.com');pg.click('[data-m13p=grow]');pg.wait_for_timeout(300);vt.finish_store(pg,'Second Shop')
     ok('new store created',E("S.name")=='Second Shop' and E("U")=='two@example.com',E("S.name"))
     E("document.querySelector('#so').click()");pg.wait_for_timeout(300)
     first=E("Object.keys(DB.d).find(k=>k!=='two@example.com')");pg.click('#door-in');pg.wait_for_timeout(200);pg.fill('#a2',first);pg.fill('#a3','password123');pg.click('#ab');pg.wait_for_timeout(900)
