@@ -1,5 +1,15 @@
 # VendOm v36 changelog
 
+## v46: Online Store › Preferences, private until paid, SEO in the store head (23 Nov 2026)
+- **Private mode:** every store starts private with its own password (editable) and a message for visitors. The password can only be removed on a paid plan ("To let anyone access your online store, select a plan and then remove your password"). If the plan stops being active, the store goes private again automatically (browser and server).
+- **Password page** in the theme's colours and fonts: wrong passwords are refused; the owner preview shows a "Your store is private" notice with a link to it. Server: `GET /s/:shop/access`, `POST /s/:shop/unlock`; private stores send `Disallow: /` in robots.txt and `noindex` in the page head.
+- **Social sharing image and SEO:** home page title (70), meta description (320), sharing image (upload), live share card and Google preview. These go into the store's `<title>`, meta description, Open Graph tags and the server's `/seo/head`; **automatic hreflang tags** can be turned off.
+- **Automatic redirection** by country (currency from Markets) and language (Urdu/Arabic). **Spam protection** on contact and login/sign-up forms ("I'm not a robot" check + hidden bot trap). **Trusted domains:** links to other sites show a confirmation page unless trusted.
+- **Crawler access:** create Ed25519 "web-bot-auth" signatures (Signature, Signature-Input, Signature-Agent) with an expiry; All / Active / Expired tabs, copy and delete. The server lets signed crawlers into private stores and rejects forged or deleted ones.
+- **B2B only:** visitors must log in before seeing products.
+- Server: `GET/PUT /api/stores/:id/online-store/preferences`, `POST/DELETE /api/stores/:id/crawler-signatures`.
+- Tests: backend 113/113 (11 new), new frontend t26 (34 checks); all suites pass.
+
 ## v45: VendOm Theme Store with 120 new free themes (23 Nov 2026)
 - **All old themes removed.** Stores using an old theme move to the new default theme (Kestrel); seller-made copies are kept.
 - **120 original free themes**, each with its own name, colours and design: no two share the same hero layout + header + product card + font combination. Built for clothing, menswear, beauty, jewellery, bags, home, food, drinks, electronics, sports, pets, kids, garden, auto and books, plus single-product and large-catalogue stores and six Pakistan-inspired themes (Indus, Hunza, Monsoon, Shalimar, Ajrak, Chenab).

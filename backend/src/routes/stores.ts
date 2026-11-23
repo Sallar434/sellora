@@ -13,6 +13,7 @@ import { put } from '../providers/storage';
 import { audit } from '../lib/audit';
 import { collectionProducts, inCollection } from '../lib/commerce';
 import { fx } from '../providers/fx';
+import { prefsOf, passwordOf, messageOf, paid, isPrivate, newPassword, cleanDomain, createSignature } from '../lib/storeAccess';
 export const r = Router();
 const J = z.any();
 // ---- stores
@@ -262,3 +263,35 @@ r.get('/:storeId/audit-log', storeAccess('*'), ah(async (req, res) => res.json(a
 
 /** Go live: removes the storefront password. Paid plans only. */
 r.post('/:storeId/online-store/publish', storeAccess('online_store'), requirePaid, ah(async (req, res) => { const s = await db.store.update({ where: { id: req.store.id }, data: { settings: { ...(req.store.settings || {}), passwordEnabled: false, publishedAt: new Date().toISOString() } } }); audit(req, 'store.publish'); res.json({ published: true, settings: s.settings }); }));
+
+/* ---------------- Online store › Preferences ---------------- */
+async function prefsView(store: any) {
+  const p = prefsOf(store); let pw = passwordOf(store);
+  if (!pw) { pw = newPassword(); store = await db.store.update({ where: { id: store.id }, data: { settings: { ...(store.settings || {}), storePassword: pw } } }); }
+  return { private: await isPrivate(store), canRemovePassword: await paid(store.id), password: pw, message: messageOf(store),
+    prefs: { title: p.title || '', desc: p.desc || '', img: p.img || '', hreflang: p.hreflang !== false, redirCountry: p.redirCountry !== false, redirLang: p.redirLang !== false, capContact: p.capContact !== false, capLogin: p.capLogin !== false, b2b: !!p.b2b, trusted: p.trusted || [],
+      crawlers: (p.crawlers || []).map(c => ({ id: c.id, name: c.name, created: c.created, expires: c.expires, active: c.expires > Date.now(), headers: c.headers })) } };
+}
+r.get('/:storeId/online-store/preferences', storeAccess('online_store'), ah(async (req, res) => res.json(await prefsView(req.store))));
+r.put('/:storeId/online-store/preferences', storeAccess('online_store'), ah(async (req, res) => {
+  const b = parse(z.object({ private: z.boolean().optional(), password: z.string().trim().min(1, 'Enter a password').max(100).optional(), message: z.string().max(5000).optional(),
+    prefs: z.object({ title: z.string().max(70), desc: z.string().max(320), img: z.string().max(2000), hreflang: z.boolean(), redirCountry: z.boolean(), redirLang: z.boolean(), capContact: z.boolean(), capLogin: z.boolean(), b2b: z.boolean(), trusted: z.array(z.string()).max(100) }).partial().optional() }), req.body);
+  const set: any = { ...(req.store.settings || {}) };
+  if (b.private === false) { if (!(await paid(req.store.id))) throw new HttpError(402, 'Select a plan before removing your password. Your store stays private until then.', { code: 'plan_required' }); set.passwordEnabled = false; set.publishedAt = set.publishedAt || new Date().toISOString(); }
+  if (b.private === true) set.passwordEnabled = true;
+  if (b.password !== undefined) set.storePassword = b.password;
+  if (b.message !== undefined) set.passwordMessage = b.message;
+  if (b.prefs) { const p: any = { ...(set.prefs || {}), ...b.prefs }; if (b.prefs.trusted) { try { p.trusted = [...new Set(b.prefs.trusted.map(cleanDomain))]; } catch (e: any) { throw bad(e.message); } } set.prefs = p; }
+  const s = await db.store.update({ where: { id: req.store.id }, data: { settings: set } }); audit(req, 'store.preferences'); res.json(await prefsView(s));
+}));
+r.post('/:storeId/crawler-signatures', storeAccess('online_store'), ah(async (req, res) => {
+  const b = parse(z.object({ name: z.string().trim().min(1, 'Name the tool').max(60), days: z.number().int().min(1).max(365).default(30) }), req.body);
+  const host = req.store.domain || `${req.store.handle}.vendom.app`; const c = createSignature(host, b.name, b.days);
+  const set: any = { ...(req.store.settings || {}) }; const p = { ...(set.prefs || {}) }; p.crawlers = [...(p.crawlers || []), c].slice(-50); set.prefs = p;
+  await db.store.update({ where: { id: req.store.id }, data: { settings: set } }); audit(req, 'crawler.signature.create', { name: b.name });
+  res.status(201).json({ id: c.id, name: c.name, created: c.created, expires: c.expires, active: true, headers: c.headers });
+}));
+r.delete('/:storeId/crawler-signatures/:id', storeAccess('online_store'), ah(async (req, res) => {
+  const set: any = { ...(req.store.settings || {}) }; const p = { ...(set.prefs || {}) }; p.crawlers = (p.crawlers || []).filter((c: any) => c.id !== req.params.id); set.prefs = p;
+  await db.store.update({ where: { id: req.store.id }, data: { settings: set } }); res.status(204).end();
+}));
