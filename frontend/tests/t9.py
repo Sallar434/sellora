@@ -89,11 +89,10 @@ with sync_playwright() as p:
     ck('storage key vendom',E("!!localStorage.getItem('vendom')"))
     E("m9P().cfg.lang='en';m9P().cfg.sfLang='en';save()")
     # themes
-    go('themes');ck('24 free themes installed',E("M9_FREE.every(f=>S.themes.some(t=>t.id===f[0]))"))
-    n=E("S.themes.length");pg.locator('.m9dup').nth(3).click();pg.wait_for_timeout(300);ck('theme duplicate',E("S.themes.length")==n+1)
-    pg.locator('.m9dot').nth(1).click();pg.wait_for_timeout(300);ck('style preset applied',True)
-    pg.goto(U+'themes');pg.wait_for_timeout(300);E("S.live='s-meridian';save()");ck('publish free theme',E("S.live")=='s-meridian')
-    ck('every free theme renders',E("M9_FREE.every(f=>sf(S.themes.find(t=>t.id===f[0])).length>500)"))
+    go('themes');ck('old free themes removed, new default installed',E("M9_FREE.length===0&&S.themes.some(t=>t.v21)"))
+    n=E("S.themes.length");pg.click('[data-x^="v21dup:"]');pg.wait_for_timeout(300);ck('theme duplicate',E("S.themes.length")==n+1)
+    E("(function(){var t=V21_build('v-cobalt');S.themes.push(t);save()})()");pg.goto(U+'themes');pg.wait_for_timeout(300);E("S.live='v-cobalt';save()");ck('publish free theme',E("S.live")=='v-cobalt')
+    ck('every free theme renders',E("V21_LIB.every(L=>V21_preview(L.id).length>2000)"))
     # collection editor
     go('colx-new');pg.click('#m9colsave');pg.wait_for_timeout(200);ck('collection title required','colx' in pg.url)
     c0=E("S.collections.length");fill('#x7c1','Goalkeeper Gloves');pg.click('#p8sav' if pg.is_visible('#p8sav') else '#m9colsave');pg.wait_for_timeout(400);ck('collection created 2-col',E("S.collections.length")==c0+1)

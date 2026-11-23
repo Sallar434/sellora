@@ -68,7 +68,7 @@ X.x7mig=function(){if(!X.S||!S.products)return;var ch=0;
  if(S.pickup&&S.pickup.locs)S.pickup.locs.forEach(function(l){if(l.addr==='Main Boulevard, Lahore'){l.addr=S.addr||'';l.sync=true;ch=1}});syncPick();
  if(!S._m7){S._m7=1;ch=1;
   (S.collections||[]).forEach(function(c){if(!c.type||(/auto/i.test(c.type)&&!(c.rules&&c.rules.length)))c.type='Manual';c.rules=c.rules||[];c.handle=c.handle||slug(c.title);delete c.products});
-  try{var t=live();if(t)applyPre(t,'Black & White + Green & Gold')}catch(e){}
+  try{var t=live();if(t&&!t.v21)applyPre(t,'Black & White + Green & Gold')}catch(e){}
   S.pages=S.pages||[];S.pages.forEach(function(p){if(!p.html){p.b='<p>'+h(p.b||'').replace(/\n+/g,'</p><p>')+'</p>';p.html=true}if(p.vis===undefined)p.vis=true});
   if(!S.pages.some(function(p){return p.h==='about'}))S.pages.unshift({h:'about',t:'About us',b:'<p>Tell customers who you are and why you started '+h(S.name)+'.</p>',html:true,vis:true});
   if(!S.pages.some(function(p){return p.h==='contact'}))S.pages.push({h:'contact',t:'Contact',b:'<p>Email us at '+h(S.email||'')+'.</p>',html:true,vis:true});

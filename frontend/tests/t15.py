@@ -1,45 +1,40 @@
+"""Theme library v45: the old themes are gone; 120 original free VendOm themes, each with its own design; names are VendOm's own."""
 import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
-import os,json,re
+import re
 from playwright.sync_api import sync_playwright
 P=0;F=0
 def ok(c,m):
     global P,F
     if c:P+=1
     else:F+=1;print('FAIL',m)
-IDS=['s-daybreak','s-renew','s-serene','s-hearthwork','s-munchbox','s-gallery','s-palate','s-blockparty','s-throttle','s-source','s-folio','s-limelight','s-ledgerline']
-OLD=['dawn','ember','tide','orchard','noir','bloom','slate','sunset','mint','ink','aurora','sand']
-BAN=['Dawn','Refresh','Sense','Craft','Crave','Studio','Taste','Colorblock','Ride','Origin','Publisher','Spotlight','Trade','Horizon','Shopify']
+OLD=['dawn','ember','tide','orchard','noir','bloom','slate','sunset','mint','ink','aurora','sand','s-daybreak','s-renew','s-serene','s-meridian','s-folio']
+# names used by Shopify's own and Theme Store themes must not be reused
+BAN=['Dawn','Refresh','Sense','Craft','Crave','Studio','Taste','Colorblock','Ride','Origin','Publisher','Spotlight','Trade','Horizon','Impulse','Prestige','Symmetry','Focal','Warehouse','Empire','Motion','Impact','Broadcast','Pipeline','Stiletto','Concept','Be Yours','Kiln','Nectar','Haven','Opal','Summit','Doodle','Torque','Apex','Shopify']
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page();errs=[]
     pg.on('pageerror',lambda e:errs.append(str(e)))
     vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
-    th=pg.evaluate("S.themes.map(t=>({id:t.id,name:t.name,tag:t.tag,desc:t.desc,free:t.free,st:[t.font,t.lay,t.rad,t.bg,t.ac].join('|'),home:t.pg.home.map(s=>s.type),hdr:JSON.stringify(t.hdr.map(s=>s.s)),ftr:JSON.stringify(t.ftr.map(s=>s.s)),prod:JSON.stringify((t.pg.product||[]).map(s=>s.s))}))")
-    ids=[t['id'] for t in th]
-    ok(not any(o in ids for o in OLD),'original themes removed')
-    ok(all(i in ids for i in IDS),'13 specialty themes present')
-    ok(all(t['free'] for t in th),'library only has free themes')
-    ok(pg.evaluate('S.live')=='s-daybreak','default theme is Daybreak')
-    for t in th:
-        ok(t['name'] not in BAN and not re.search('Shopify',t['name']),'name not trademarked '+t['name'])
-        ok(bool(t['tag']) and t['desc'].startswith('Best for'),'tag/best-for '+t['id'])
-    S={t['id']:t for t in th if t['id'] in IDS}
-    for k in ['home','st','hdr','ftr','prod']:
-        vals=[json.dumps(S[i][k]) if k=='home' else S[i][k] for i in IDS]
-        ok(len(set(vals))==len(IDS),'distinct '+k+' across 13 themes')
-    # render each storefront and compare
-    html={}
-    for i in IDS:
-        html[i]=pg.evaluate("(function(){var t=S.themes.find(x=>x.id==='%s');var o=sf(t,'home');return typeof o==='string'?o:(o&&o.outerHTML)||''})()"%i)
-        ok(len(html[i])>500,'renders '+i)
-    ok(len(set(html.values()))==len(IDS),'rendered storefronts all differ')
-    pg.evaluate("location.hash='#themes'");pg.wait_for_timeout(500)
-    body=pg.inner_text('body')
-    ok('Layout like' not in body,'no Layout-like label')
-    ok('Wholesale' in body and 'Single product' in body,'tags shown in library')
-    # migration from removed theme
-    pg.evaluate("(function(){var d=JSON.parse(localStorage.getItem('vendom'));(d.stores||[]).forEach(function(){});})()")
-    pg.evaluate("S.themes.push({id:'ember',name:'Ember',free:true,pg:{home:[]},hdr:[],ftr:[]});S.live='ember';X=window;window.m14mig()")
-    ok(pg.evaluate('S.live')=='s-daybreak' and not pg.evaluate("S.themes.some(t=>t.id==='ember')"),'store on removed theme migrated to Daybreak')
+    E=pg.evaluate
+    lib=E("V21_LIB.map(L=>({id:L.id,name:L.name,sig:[L.hero,L.hdr,L.card,L.fp].join('/'),pal:[L.bg,L.tx,L.ac].join(),lay:L.lay,demo:L.demo}))")
+    ok(len(lib)>=120,'120 themes in the library (%d)'%len(lib))
+    ok(len(set(t['name'] for t in lib))==len(lib),'every theme has its own name')
+    ok(len(set(t['sig'] for t in lib))==len(lib),'every theme has its own layout + header + card + font combination')
+    ok(len(set(t['pal'] for t in lib))==len(lib),'every theme has its own colours')
+    for t in lib: ok(t['name'] not in BAN and not re.search('Shopify',t['name']),'own name '+t['name'])
+    ids=E("S.themes.map(t=>t.id)")
+    ok(not any(o in ids for o in OLD),'old themes removed from the store')
+    ok(E("S.themes.every(t=>t.v21||!t.free)"),'only new themes (or seller copies) remain')
+    ok(E('S.live')=='v-kestrel' or E("S.themes.some(t=>t.id===S.live)"),'a new theme is live')
+    # render each theme with demo data and compare
+    n0=E("S.products.length");nm=E("S.name")
+    html=E("V21_LIB.map(L=>V21_preview(L.id))")
+    ok(all(len(h)>2000 for h in html),'all themes render')
+    ok(len(set(html))==len(html),'all rendered previews differ')
+    ok(E("S.products.length")==n0 and E("S.name")==nm and not E("S.products.some(p=>p.id>=900000)"),'demo products never leak into the store')
+    # an old theme comes back from old saved data -> removed again, a new theme goes live
+    E("S.themes.push({id:'ember',name:'Ember',free:true,pg:{home:[]},hdr:[],ftr:[]});S.live='ember';V21_mig()")
+    ok(E("S.themes.some(t=>t.id===S.live&&t.v21)") and not E("S.themes.some(t=>t.id==='ember')"),'store on a removed theme moves to a new theme')
     ok(not errs,'no page errors '+str(errs))
     b.close()
 print('TOTAL %d/%d'%(P,P+F))
+_s.exit(0 if F==0 else 1)

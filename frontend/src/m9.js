@@ -228,6 +228,7 @@ var FT=[['s-meridian','Meridian','Horizon','#ffffff','#111111','#2E6B4F','s','c'
 ['s-limelight','Limelight','Spotlight','#ffffff','#222222','#2E6B4F','s','s',8,'spot',[['#ffffff','#222222','#2E6B4F'],['#222222','#ffffff','#F2C14E']],'Spotlight a few hero products.'],
 ['s-press','Press','Publisher','#fbfbf8','#1a1a1a','#b91c1c','f','s',0,'editorial',[['#fbfbf8','#1a1a1a','#b91c1c'],['#1a1a1a','#fbfbf8','#facc15']],'Books, magazines and content-led stores.'],
 ['s-bulk','Bulk','Trade','#ffffff','#0f172a','#2E6B4F','s','c',4,'b2b',[['#ffffff','#0f172a','#2E6B4F'],['#0f172a','#ffffff','#F2C14E']],'B2B/wholesale catalogue with quote forms.']];
+FT.length=0; // old free themes removed (v45)
 X.M9_FREE=FT;
 function mkFree(f){var t={id:f[0],name:f[1],bg:f[3],tx:f[4],ac:f[5],font:f[6],lay:f[7],rad:f[8],free:true,inspired:f[2],desc:f[11],presets:f[10],c:{}};try{initT(t);var L=HM[f[9]].filter(function(a){return typeof RN==='undefined'||RN[a[0]]});if(L.length)t.pg.home=L.map(mkS)}catch(e){console.error('theme',f[0],e)}return t}
 function themeMig(){if(!S.themes||!Array.isArray(S.themes))return;var have={};S.themes.forEach(function(t){have[t.id]=1});var n=0;FT.forEach(function(f){if(!have[f[0]]){S.themes.push(mkFree(f));n++}});if(n)sv()}

@@ -28,10 +28,10 @@ with sync_playwright() as p:
     ok('collection page filters',len(ids)==exp and all(E("S.products.find(p=>p.id===%d).tags.includes('gloves')"%i) for i in ids),ids)
     E("document.querySelector('#xsfclose')?.click()");go('home')
     # --- hero image + featured collection on storefront
-    E("""(function(){var t=live();var h=t.pg.home.find(s=>/hero/.test(s.type));h.s.img='data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=';var f=t.pg.home.find(s=>s.type==='featured');if(f)f.s.col='Track Day';save()})()""")
+    E("""(function(){var t=live();var h=t.pg.home.find(s=>/hero/.test(s.type));h.s.img='data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=';var f=t.pg.home.find(s=>s.type==='v_grid');if(f)f.s.col='Track Day';save()})()""")
     E("SF.open('home')");pg.wait_for_timeout(500)
     ok('storefront hero shows image',E("!!document.querySelector('#xsf [data-sid] [style*=\"data:image/gif\"],#xsf [style*=\"data:image/gif\"]')"))
-    fc=E("(function(){var t=live(),f=t.pg.home.find(s=>s.type==='featured');var el=f&&document.querySelector('#xsf [data-sid=\"'+f.id+'\"]');return el?[...el.querySelectorAll('.pc')].length:-1})()")
+    fc=E("(function(){var t=live(),f=t.pg.home.find(s=>s.type==='v_grid');var el=f&&document.querySelector('#xsf [data-sid=\"'+f.id+'\"]');return el?[...el.querySelectorAll('.pc')].length:-1})()")
     ok('featured collection shows only its products',fc==1,fc)
     E("document.querySelector('#xsfclose')?.click()")
     # --- theme typing integrity (real keys)
@@ -44,7 +44,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(200);ok('marquee edit reaches preview','Race ready. Every day.' in E("document.querySelector('#ep').textContent"))
     pg.click('[data-ed="theme"]');pg.wait_for_timeout(200)
     ok('palette slots present',E("document.querySelectorAll('#edl [data-x7pal]').length")>=9)
-    ok('default theme is Daybreak with VendOm green',E("live().name")=='Daybreak' and E("live().ac").lower()=='#2e6b4f')
+    ok('default theme is the new Kestrel theme with its own colours',E("live().name")=='Kestrel' and E("live().v21")==1 and E("live().ac").lower()=='#8c6a4f')
     ok('color hex inputs',E("document.querySelectorAll('#edl .x7hex').length")>=12)
     E("document.querySelector('#os').click()")
     # --- pages CRUD

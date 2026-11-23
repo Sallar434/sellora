@@ -1,5 +1,17 @@
 # VendOm v36 changelog
 
+## v45: VendOm Theme Store with 120 new free themes (23 Nov 2026)
+- **All old themes removed.** Stores using an old theme move to the new default theme (Kestrel); seller-made copies are kept.
+- **120 original free themes**, each with its own name, colours and design: no two share the same hero layout + header + product card + font combination. Built for clothing, menswear, beauty, jewellery, bags, home, food, drinks, electronics, sports, pets, kids, garden, auto and books, plus single-product and large-catalogue stores and six Pakistan-inspired themes (Indus, Hunza, Monsoon, Shalimar, Ajrak, Chenab).
+- **Theme Store** (Online Store › Theme store): "Browse all themes" with filters (price, industry, catalogue size, style, features), counts, sort (relevance, newest, A–Z), 24 per page, and real scaled previews with demo photos.
+- **Theme page:** desktop and phone preview, three colour styles, details and features, **Try theme** (adds it to the library) and **Publish**.
+- **Themes page** redesigned: current theme with a live preview, Customize / Preview / Duplicate, theme library (up to 20) and popular themes.
+- **New sections** that also work in the theme editor: Header, Hero banner (Full image, Centred, Split, Big type, Mosaic, Card, Colour block), Collection tiles, Product grid (with collection filter and carousel), Image with text, Scrolling text, Trust badges, Lookbook, Brand story, Newsletter, Footer. Theme settings now include heading/body font, button style, card style and uppercase headings.
+- **The customer store uses the theme**: header, search, currency, account, cart, announcement and footer; it fits phones.
+- Demo photos come from Unsplash (see `frontend/demo/CREDITS.md`); demo products only appear in previews, never in a real store.
+- Fixed: an old migration forced a green palette onto the live theme.
+- Tests: new t25 (30 checks), t15 rewritten for the new library (132 checks), t3 and t9 updated; all suites pass.
+
 ## v44: Finance like Shopify, VendOm Payments account (23 Nov 2026)
 - **Finance** page redesigned like Shopify's: payout balance with currency cards, View payouts, Documents menu (payout statements, sales CSV, bills), Taxes on the right, and a "Manage your business finances in VendOm / Switch to VendOm Payments" card that opens Settings › Payments.
 - **Billing** removed from the Finance menu (still in Settings › Billing).

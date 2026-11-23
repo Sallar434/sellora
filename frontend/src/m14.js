@@ -54,6 +54,7 @@ function build(id){var f=L[id],t={id:id,name:f[0],desc:f[1],tag:f[2],font:f[3],l
  t.pg.home=f[9].filter(function(a){return typeof RN==='undefined'||RN[a[0]]}).map(sec);
  set(t.hdr,'header',f[10]);set(t.ftr,'footer',f[11]);set(t.pg.product,'prodinfo',f[12]);
  if(f[13])set(t.hdr,'announce',{msg:f[13]});else t.hdr=t.hdr.filter(function(x){return x.type!=='announce'});return t}
+L={}; // old VendOm themes removed (v45): the new Theme Store replaces them
 X.M14_LIB=L;X.m14build=build;
 function mig(){if(!S||!S.themes)return;var live=S.live,changed=false;
  S.themes=S.themes.filter(function(t){var gone=OLD.indexOf(t.id)>=0||(MAP[t.id]&&t.free);if(gone)changed=true;return !gone});
@@ -61,7 +62,7 @@ function mig(){if(!S||!S.themes)return;var live=S.live,changed=false;
  Object.keys(L).forEach(function(id){var i=-1;S.themes.forEach(function(t,j){if(t.id===id)i=j});
   if(i<0){S.themes.push(build(id));changed=true}else if(!S.themes[i].v14){var o=S.themes[i],n=build(id);if(id===S.live){n.pg=o.pg;n.hdr=o.hdr;n.ftr=o.ftr}S.themes[i]=n;changed=true}});
  S.themes.forEach(function(t){if(t.free){t.inspired=null;if(RN2[t.id])t.name=RN2[t.id];if(EXTRA[t.id]&&!t.tag){t.desc=EXTRA[t.id][0];t.tag=EXTRA[t.id][1]}}});
- if(!S.themes.some(function(t){return t.id===live}))live='s-daybreak';
+ if(!S.themes.some(function(t){return t.id===live}))live=(X.V21_DEFAULT||'s-daybreak');
  if(live!==S.live){S.live=live;changed=true}
  if(changed&&typeof sv==='function')try{sv()}catch(e){}}
 X.m14mig=mig;
