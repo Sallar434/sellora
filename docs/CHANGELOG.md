@@ -1,5 +1,13 @@
 # VendOm v36 changelog
 
+## v44: Finance like Shopify, VendOm Payments account (23 Nov 2026)
+- **Finance** page redesigned like Shopify's: payout balance with currency cards, View payouts, Documents menu (payout statements, sales CSV, bills), Taxes on the right, and a "Manage your business finances in VendOm / Switch to VendOm Payments" card that opens Settings › Payments.
+- **Billing** removed from the Finance menu (still in Settings › Billing).
+- **VendOm Payments account** in Settings › Payments: create it (business name, owner, type, country, mobile/WhatsApp, email, terms). It unlocks the 15 VendOm Payments tools (WhatsApp ordering, COD verification, couriers, wholesale, …) shown as cards; before that they show locked. Sends a welcome email and asks the seller to verify the business for payouts.
+- **VendOm+ menu group removed**; its tools are opened from Settings › Payments and link back there. "VendOm Pay" is in the menu for the platform admin only.
+- Menu hover and selected items are light grey (no more black).
+- Tests: new t24 (20 checks); t9, t17, t18 updated; all suites pass.
+
 ## v43: Move your store from another platform (23 Nov 2026)
 - **Products › Move your store** (also the "Move an existing store" setup card): paste the link of the old store, confirm you own it, see a preview (products, collections, photos, sample cards), then **Copy to VendOm**.
 - Reads **Shopify** (public products and collections), **WooCommerce** (public Store API) and, from the server, **any other site** (Wix, Squarespace, BigCommerce, custom) through its sitemap and schema.org product data.

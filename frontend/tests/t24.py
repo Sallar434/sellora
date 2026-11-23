@@ -1,0 +1,43 @@
+"""Finance like Shopify's; "Switch to VendOm Payments" opens Settings › Payments; creating a VendOm Payments account unlocks the VendOm+ tools; no VendOm+ group or Billing item in the menu."""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vt
+from vt import ok, go
+from playwright.sync_api import sync_playwright
+T = lambda pg, s='#main': pg.evaluate("(document.querySelector(%r)||{}).innerText||''" % s)
+with sync_playwright() as p:
+    b, pg, errs = vt.launch(p); E = pg.evaluate
+    vt.signup(pg, email='fin@x.pk', store='Noor Lawn', plan='basic')
+    go(pg, 'finance', 400)
+    ok('Finance menu has Payouts only (no Billing)', E("[...document.querySelectorAll('aside .nav-sub a')].map(a=>a.dataset.r).filter(r=>/^finance/.test(r))") == ['finance-payouts'])
+    ok('no VendOm+ group in the menu', pg.locator('#m9nav').count() == 0 and 'VendOm+' not in T(pg, 'aside'))
+    t = T(pg)
+    ok('Finance shows the payout balance with currencies', 'Payout balance' in t and 'View payouts' in t and pg.locator('.fin20-cur').count() == 4)
+    ok('Finance shows taxes and documents', 'Taxes' in t and 'Collecting in' in t and pg.locator('#fin20-docs').count() == 1)
+    ok('Finance offers VendOm Payments like Shopify Payments', 'Manage your business finances in VendOm' in t and 'Switch to VendOm Payments to get paid faster' in t)
+    pg.click('#fin20-docs'); ok('Documents menu opens', pg.is_visible('#fin20-menu'))
+    pg.click('#fin20-switch'); pg.wait_for_timeout(500)
+    ok('the button opens Settings › Payments', E("location.hash") == '#s-payments' and pg.locator('#vp20').count() == 1)
+    ok('tools are shown locked before the account exists', pg.locator('.vp20-locked .vp20-tool').count() == 15)
+    go(pg, 'plus-whatsapp', 300)
+    ok('a tool asks for the account first', 'part of VendOm Payments' in T(pg) and pg.locator('#m9wanum').count() == 0)
+    go(pg, 's-payments', 400); pg.click('#vp20-create'); pg.wait_for_timeout(300)
+    pg.fill('#vp-owner', 'Ayesha Khan'); pg.fill('#vp-phone', '0300'); pg.click('#xok'); pg.wait_for_timeout(200)
+    ok('checks the mobile number', 'mobile number' in pg.inner_text('#vp-err'))
+    pg.fill('#vp-phone', '+92 300 1234567'); pg.click('#xok'); pg.wait_for_timeout(200)
+    ok('needs the terms ticked', 'terms' in pg.inner_text('#vp-err'))
+    pg.check('#vp-terms'); pg.click('#xok'); pg.wait_for_timeout(600)
+    ok('account created', E("!!(S.vpay&&S.vpay.active)") and 'Active' in T(pg, '#vp20'))
+    ok('asks to verify the business for payouts', 'Verify business' in T(pg, '#vp20'))
+    ok('all 15 tools now open', pg.locator('#vp20 a.vp20-tool').count() == 15)
+    pg.click('[data-vtool="plus-whatsapp"]'); pg.wait_for_timeout(400)
+    ok('WhatsApp ordering opens with the account number', pg.locator('#m9wanum').count() == 1 and '923001234567' in pg.input_value('#m9wanum').replace('+', ''), pg.input_value('#m9wanum') if pg.locator('#m9wanum').count() else '')
+    ok('tool pages link back to VendOm Payments', pg.locator('#vp-back').count() == 1)
+    pg.click('#vp-back'); pg.wait_for_timeout(400); ok('back goes to Payments', E("location.hash") == '#s-payments')
+    go(pg, 'finance', 300)
+    ok('Finance now says VendOm Payments is on', 'VendOm Payments is on' in T(pg))
+    pg.set_viewport_size({'width': 390, 'height': 844}); go(pg, 'finance', 300)
+    ok('Finance fits a phone', E("document.documentElement.scrollWidth<=392"), E("document.documentElement.scrollWidth"))
+    pg.reload(); pg.wait_for_timeout(800); ok('account kept after reload', E("!!(S.vpay&&S.vpay.active)"))
+    b.close()
+vt.done(errs)

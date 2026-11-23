@@ -224,7 +224,8 @@ with sync_playwright() as p:
     # ---------- 11. VendOm branding ----------
     whole = E("document.documentElement.outerHTML")
     ok('no old brand name left in the UI', 'Sellora' not in E("document.body.innerText"))
-    ok('VendOm Pay in the admin nav', 'VendOm Pay' in labels)
+    go(pg, 's-payments', 400)
+    ok('VendOm Payments in Settings › Payments', 'VendOm Payments' in txt(pg))
     ok('no page errors', not errs, errs)
     b.close()
 vt.done()

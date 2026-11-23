@@ -53,12 +53,14 @@ with sync_playwright() as p:
 
     # ---- store owner does not see platform-only or duplicate items
     E("Object.keys(NAV_CONFIG).forEach(()=>0);S.navOpen={'vendom-pay':true};save()"); go(pg, 'home', 300)
-    pg.click('[data-navt="vendom-pay"]') if not E("document.querySelector('#sub-vendom-pay').classList.contains('open')") else None
     t = nav_text(pg)
     for w in ['Integrations (API keys)', 'Platform admin', 'Buyer wallet', 'Notifications outbox', 'Staff permissions', 'Shipping & taxes']:
         ok('owner menu has no "%s"' % w, w not in t)
     ok('App Store listed once (under Apps)', t.count('App Store') <= 1, t.count('App Store'))
-    ok('owner keeps VendOm Pay KYC and payment links', 'Seller onboarding (KYC)' in t and 'Embed & payment links' in t)
+    ok('VendOm Pay is not in the owner menu (it lives in Settings › Payments)', 'VendOm Pay' not in t)
+    go(pg, 's-payments', 400); E("S.vpay={active:true,at:Date.now(),biz:'T',country:'Pakistan'};save()"); go(pg, 'home', 200); go(pg, 's-payments', 400)
+    ok('owner keeps business verification and payment links in Settings › Payments', pg.locator('#vp20 [data-x="go:pay-onboarding"]').count() >= 1 and pg.locator('#vp20 [data-x="go:pay-embed"]').count() == 1)
+    go(pg, 'home', 300)
     ok('no "Viewing as" switcher for owners', E("!document.querySelector('#xviewas')||getComputedStyle(document.querySelector('#xviewas')).display==='none'"))
     for r in ['pay-admin', 'integrations', 'pay-buyer', 'notifications-outbox']:
         go(pg, r, 400)

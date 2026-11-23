@@ -8,6 +8,7 @@ with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page(viewport={'width':1366,'height':900});errs=[]
     pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and 'net::ERR_' not in m.text and errs.append(m.text))
     vt.open_app(pg,U+'home');pg.wait_for_timeout(900);E=pg.evaluate
+    E("S.vpay={active:true,at:Date.now(),biz:'Test',country:'Pakistan'};save()")  # VendOm+ tools need a VendOm Payments account
     def go(r):pg.goto(U+r);pg.wait_for_timeout(300)
     def fill(sel,v):pg.fill(sel,str(v))
     def msg(id):return pg.inner_text('#'+id)
