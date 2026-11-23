@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v42: Approved admin design and VendOm logo (23 Nov 2026)
+- **Logo (K1):** a shopping bag with a V, its handle is the O. Deep forest green #0E3B2E, leaf green #5DB346, mint #A6E37A on dark. Files in `frontend/brand/`: SVG logo (light/dark), mark, app icon (512/192/180 PNG), favicon (SVG + 32 PNG).
+- **New admin look** (approved design): dark top bar with the logo, central search (Ctrl K), alerts and a store menu (view store, settings, plan, sign out); light grey side menu; white cards with thin borders; Inter at 13px; dark primary buttons; blue links; phone layout with a menu button in the top bar.
+- Landing and sign-up use the new logo, flat colours and line icons (no emoji or gradients).
+- Fixed: full-screen editors and pop-ups now sit above the top bar; pages scroll items clear of the fixed bar.
+
 ## v41: New stores start empty, all countries, VendOm AI model names (23 Nov 2026)
 - **No more sample data in real stores:** new stores start with no products, orders, draft orders, checkouts, abandoned carts, customers, collections, discounts, gift cards, purchase orders, transfers, companies, blog posts, files, payouts, installed apps or alerts. Meta, Google and WhatsApp start disconnected. Invented numbers are gone (checkout funnel, ROAS/CAC trends, market sales share, "card ending 4242", autopilot counts).
 - Checkouts page shows real counts; "Simulate checkout" is platform-admin only.
