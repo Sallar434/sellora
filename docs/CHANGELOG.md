@@ -1,5 +1,14 @@
 # VendOm v36 changelog
 
+## v43: Move your store from another platform (23 Nov 2026)
+- **Products › Move your store** (also the "Move an existing store" setup card): paste the link of the old store, confirm you own it, see a preview (products, collections, photos, sample cards), then **Copy to VendOm**.
+- Reads **Shopify** (public products and collections), **WooCommerce** (public Store API) and, from the server, **any other site** (Wix, Squarespace, BigCommerce, custom) through its sitemap and schema.org product data.
+- Copies titles, descriptions (scripts removed), prices and sale prices, options, variants, SKUs, photos, tags, vendor, type, collections and which products are in them. On the server, photos are copied into VendOm storage, and products can come in as drafts.
+- Running it again skips products already there unless "Replace" is ticked. Private and local addresses are refused. Up to 2,000 products per run (CSV for the rest).
+- Not copied: the theme design itself (pick a VendOm theme and add your logo and colours), customers and orders (CSV import), and the domain (Settings › Domains).
+- API: `POST /api/stores/:id/migrate/scan {url, owner:true}` and `POST /api/stores/:id/migrate/import {overwrite, copyImages, status}`.
+- Tests: backend 102/102 (7 new), new frontend t23 (22 checks); all earlier suites pass.
+
 ## v42: Approved admin design and VendOm logo (23 Nov 2026)
 - **Logo (K1):** a shopping bag with a V, its handle is the O. Deep forest green #0E3B2E, leaf green #5DB346, mint #A6E37A on dark. Files in `frontend/brand/`: SVG logo (light/dark), mark, app icon (512/192/180 PNG), favicon (SVG + 32 PNG).
 - **New admin look** (approved design): dark top bar with the logo, central search (Ctrl K), alerts and a store menu (view store, settings, plan, sign out); light grey side menu; white cards with thin borders; Inter at 13px; dark primary buttons; blue links; phone layout with a menu button in the top bar.

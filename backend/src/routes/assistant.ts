@@ -17,6 +17,8 @@ import { runAgent, providersFor, modelOf, configured, ToolDef, ChatTurn, McpServ
 export const BRAND: Record<string, string> = { deepseek: 'VendOm AI Lite', kimi: 'VendOm AI Plus', claude: 'VendOm AI Pro', local: 'VendOm AI' };
 import { detect, assertPublicUrl, test as testConnector, sealKey, EVENTS } from '../lib/connectors';
 import { decrypt } from '../lib/crypto';
+import { scan as scanStore, importScan, Scan } from '../lib/migrate';
+import { audit } from '../lib/audit';
 
 export const r = Router();
 
@@ -169,4 +171,20 @@ r.post('/:storeId/assistant/chat', storeAccess(), ah(async (req, res) => {
   await record(req.store.id, 'ai', credits, 'assistant');
   await db.aiLog.create({ data: { storeId: req.store.id, kind: 'assistant', credits, provider: out.provider, model: out.model, inputTokens: out.inputTokens, outputTokens: out.outputTokens, estUsd: out.estUsd } });
   res.json({ brand: BRAND[out.provider], credits, text: out.text, steps: out.steps, refused: !!out.refused, ...(req.user?.type === 'ADMIN' ? { provider: out.provider, vendorModel: out.model } : {}) });
+}));
+
+/* ---------------- Move your store (import from another platform) ---------------- */
+const scans = new Map<string, { at: number; scan: Scan }>(); // short-lived preview cache per store
+r.post('/:storeId/migrate/scan', storeAccess('products'), ah(async (req, res) => {
+  const b = parse(z.object({ url: z.string().min(4).max(500), owner: z.literal(true, { errorMap: () => ({ message: 'Confirm that you own this store or have permission to copy it' }) }) }), req.body);
+  let s: Scan; try { s = await scanStore(b.url); } catch (e: any) { throw bad(e.message || 'Could not read that site'); }
+  scans.set(req.store.id, { at: Date.now(), scan: s });
+  res.json({ platform: s.platform, origin: s.origin, store: s.store, counts: { products: s.products.length, collections: s.collections.length, images: s.products.reduce((n, p) => n + p.images.length, 0) }, sample: s.products.slice(0, 8).map(p => ({ title: p.title, price: p.price, image: p.images[0], variants: p.variants.length })), collections: s.collections.slice(0, 20).map(c => ({ title: c.title, products: c.productHandles.length })), warnings: s.warnings });
+}));
+r.post('/:storeId/migrate/import', storeAccess('products'), ah(async (req, res) => {
+  const b = parse(z.object({ overwrite: z.boolean().default(false), copyImages: z.boolean().default(true), status: z.enum(['active', 'draft']).default('active') }), req.body);
+  const c = scans.get(req.store.id); if (!c || Date.now() - c.at > 3600e3) throw bad('Scan the store again first');
+  const out = await importScan(req.store.id, c.scan, b); scans.delete(req.store.id);
+  audit(req, 'migrate.import', { from: c.scan.origin, platform: c.scan.platform, ...out.products });
+  res.json({ from: c.scan.origin, platform: c.scan.platform, ...out });
 }));
