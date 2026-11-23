@@ -1,5 +1,13 @@
 # VendOm v36 changelog
 
+## v41: New stores start empty, all countries, VendOm AI model names (23 Nov 2026)
+- **No more sample data in real stores:** new stores start with no products, orders, draft orders, checkouts, abandoned carts, customers, collections, discounts, gift cards, purchase orders, transfers, companies, blog posts, files, payouts, installed apps or alerts. Meta, Google and WhatsApp start disconnected. Invented numbers are gone (checkout funnel, ROAS/CAC trends, market sales share, "card ending 4242", autopilot counts).
+- Checkouts page shows real counts; "Simulate checkout" is platform-admin only.
+- Sign-up country list now has every country (Pakistan first, then A–Z).
+- **VendOm AI Lite / Plus / Pro:** sellers see only VendOm's model names; the server no longer returns the AI company or model id to sellers (still logged for the platform).
+- Product and other lists show search, sort and selection even with one row.
+- Tests: new t22 (27 checks), backend 95/95; t14, t17, t19, t20 create their own data.
+
 ## v40: Landing page and new sign-up flow (21 Nov 2026)
 - **Landing page** for visitors: hero with "Start for free" email box, four feature cards, a pricing band and FAQ. Works on phones.
 - **Sign-up in steps:** email + password (8+ characters, strength meter, show/hide, country) → **verify email** (6-digit code, resend, expiry, 5 tries) → plan → payment (card, PayPal/JazzCash/Easypaisa buttons, **Skip** during the 4-day trial) → "What can we help you do?" (11 choices) → admin.

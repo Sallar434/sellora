@@ -7,7 +7,8 @@ function el(id){return document.getElementById(id)}
 function shell(cls,html){var a=A();if(!a)return null;a.className=cls;a.style.display='flex';a.innerHTML=html;a.scrollTop=0;window.scrollTo(0,0);return a}
 var PRICE={basic:300,grow:600,advanced:1000},PNAME={basic:'Basic',grow:'Grow',advanced:'Advanced',enterprise:'Enterprise'};
 function rs(n){return 'Rs '+Math.round(n).toLocaleString('en-US')}
-var COUNTRIES=['Pakistan','United Arab Emirates','Saudi Arabia','United Kingdom','United States','Canada','Australia','India','Bangladesh','Qatar','Oman','Kuwait','Bahrain','Turkey','Malaysia','Germany','France','Netherlands','Italy','Spain','Ireland','Sweden','Norway','South Africa','Nigeria','Kenya','Egypt','Singapore','Japan','China','Other'];
+var ISO='AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR XK KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW'.split(' ');
+var COUNTRIES=(function(){var dn=null;try{dn=new Intl.DisplayNames(['en'],{type:'region'})}catch(e){}var L=ISO.map(function(c){return dn?dn.of(c):c}).filter(function(n,i,a){return n&&a.indexOf(n)===i}).sort(function(a,b){return a.localeCompare(b)});var i=L.indexOf('Pakistan');if(i>0){L.splice(i,1);L.unshift('Pakistan')}return L})();
 function backendOn(){var b=X.VendOmBackend;return !!(b&&b.cfg&&b.cfg().url)}
 /* Emails the browser-only version cannot send: kept in this browser so the seller can see them, and sent for real by the VendOm server once connected. */
 function mail(to,subject,text){DB.mail=DB.mail||[];DB.mail.unshift({to:to,subject:subject,text:text,at:Date.now()});DB.mail=DB.mail.slice(0,50);persist()}
@@ -99,7 +100,23 @@ function goals(){var e=DB.pending;if(!e)return authView('up');var sel={online:1}
  [].forEach.call(document.querySelectorAll('[data-goal]'),function(b){b.onclick=function(){var k=b.dataset.goal;if(sel[k])delete sel[k];else sel[k]=1;b.classList.toggle('on',!!sel[k]);b.setAttribute('aria-pressed',!!sel[k]);b.textContent=(sel[k]?'✓ ':'+ ')+GOALS.filter(function(g){return g[0]===k})[0][1]}});
  el('ob-back').onclick=function(){authView('pay')};
  var done=function(list){finish(e,list)};el('ab').onclick=function(){done(Object.keys(sel))};el('ob-skip').onclick=function(){done([])}}
-function finish(e,list){if(!e||!DB.a[e])return authView('up');var card=(DB.obCard||{})[e];fresh('My Store',e);S.goals=list;S.obSetup=true;S.country=(DB.obCountry||{})[e]||S.country;if(card)S.billingCard=card;S.emailVerified=verified(e);
+/* A real new store starts empty, like Shopify: no sample products, orders, customers, collections, discounts, apps or alerts. */
+var EMPTY=['products','orders','collections','cols','draftOrders','abandonedCheckouts','checkoutsList','purchaseOrders','transfers','giftCards','customerSegments','companies','discountsList','filesList','blogPosts','catalogsList','rolloutsList','installedApps','customApps','payoutsList','disc2','gc2','osPages','alerts','cust','carts','autos'];
+function emptyStore(){S.noDemo=true;EMPTY.forEach(function(k){S[k]=[]});S.pages=[];S.stats={views:0,sess:0,days:{}};S.nid=1}
+X.vendomEmptyStore=emptyStore;
+/* Some pages add sample objects the first time they open. For a real store, reset each one once to an honest empty / not-connected state. */
+var CLEAN={
+ growth:function(g){g.roas='0x';g.attributedRev=0;g.activeAutomations=0;g.channels=[];(g.autopilotRules||[]).forEach(function(r){r.on=false;r.saves=0});['campaigns','attribution','ads'].forEach(function(k){if(Array.isArray(g[k]))g[k]=[]})},
+ metaPixel:function(m){m.enabled=false;m.pixelId='';m.capiToken='';m.testEventCode='';m.account={connected:false,name:'',id:'',catalogSynced:false,catalogItems:0};m.logs=[]},
+ googleChannel:function(g){g.enabled=false;g.ga4Id='';g.gtmId='';g.adsConversionId='';g.adsLabel='';g.account={connected:false,email:'',merchantStatus:'Not connected'}},
+ whatsapp:function(w){if(w.normal){w.normal.enabled=false;w.normal.number='';w.normal.widget=false}if(w.business){w.business={enabled:false,wabaId:'',phoneId:'',token:'',verifiedName:'',status:'Not connected',autoOrderConfirm:false,autoAbandonedRecovery:false,autoShippingUpdates:false}}},
+ marketsList:function(L){var c=S.country||'Pakistan',p=L.filter(function(m){return m.isPrimary})[0]||{name:'Domestic',isPrimary:true,status:'Active'};p.name=c+' (home market)';p.countries=[c];p.salesShare='—';L.length=0;L.push(p)}
+};
+function cleanSamples(){if(!S||!S.noDemo)return;S._clean=S._clean||{};var ch=false;for(var k in CLEAN)if(!S._clean[k]&&S[k]){try{CLEAN[k](S[k])}catch(e){}S._clean[k]=1;ch=true}
+ ['autos','alerts','installedApps','customApps'].forEach(function(k){if(!S._clean[k]&&Array.isArray(S[k])&&S[k].length){S[k]=[];S._clean[k]=1;ch=true}});if(ch)save()}
+X.vendomCleanSamples=cleanSamples;
+if(X.onRoute)X.onRoute(function(){var b=JSON.stringify([S.growth,S.metaPixel,S.googleChannel,S.whatsapp,S.marketsList]);cleanSamples();if(JSON.stringify([S.growth,S.metaPixel,S.googleChannel,S.whatsapp,S.marketsList])!==b&&!X._cleanRe){X._cleanRe=1;setTimeout(function(){X._cleanRe=0;route()},0)}});
+function finish(e,list){if(!e||!DB.a[e])return authView('up');var card=(DB.obCard||{})[e];fresh('My Store',e);emptyStore();S.goals=list;S.obSetup=true;S.country=(DB.obCountry||{})[e]||S.country;if(card)S.billingCard=card;S.emailVerified=verified(e);
  startSession(e);X.API&&X.API.email&&X.API.email(e,'Welcome to VendOm: your account is ready','Hi, your VendOm account and store are ready. Your 4-day free trial has started.','welcome')}
 
 /* sign in: same look, and an unverified account goes back to the code step */

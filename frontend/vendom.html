@@ -1460,7 +1460,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.rates) S.rates = { USD: 1, PKR: 280, EUR: 0.92, AED: 3.67, GBP: 0.79 };
     if (!S.sym) S.sym = { USD: '$', PKR: 'Rs ', EUR: '€', AED: 'AED ', GBP: '£' };
     if (!Array.isArray(S.products)) S.products = [];
-    if (S.products.length === 0) {
+    if (S.products.length === 0 && !S.noDemo) {
       S.products = [
         { id: 1, name: 'Race Day Gloves', price: 48, stock: 34, status: 'Active', desc: 'Leather gloves built for grip and airflow.', cat: 'Apparel & Accessories', track: true, pub: true },
         { id: 2, name: 'Carbon Visor Cover', price: 22, stock: 120, status: 'Active', desc: 'Lightweight cover that keeps your visor clear.', cat: 'Sporting Goods', track: true, pub: true },
@@ -1528,7 +1528,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.oid) S.oid = 1004;
 
     // Collections with Picture, Meta Title, Meta Description
-    if (!Array.isArray(S.collections) || S.collections.length === 0) {
+    if (!Array.isArray(S.collections) || (S.collections.length === 0 && !S.noDemo)) {
       S.collections = [
         { 
           id: 1, 
@@ -2197,11 +2197,14 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       '</tr>';
     }).join('');
 
-    return head('Checkouts', '<button class="btn" id="btn-sim-ck">Simulate checkout</button>') +
+    // real numbers only: completed orders vs checkouts that were started but not finished
+    var done = (S.orders || []).filter(function (o) { return !o.cancelled; }).length, left = (S.carts || []).length + (S.abandonedCheckouts || []).length;
+    var rate = done + left ? (done / (done + left) * 100).toFixed(1) + '%' : '—';
+    return head('Checkouts', (window.isPlatformAdmin && window.isPlatformAdmin() ? '<button class="btn" id="btn-sim-ck">Simulate checkout</button>' : '')) +
       '<div class="stat-grid">' +
-        '<div class="stat-card"><small>Active sessions now</small><b>' + list.length + '</b></div>' +
-        '<div class="stat-card"><small>Cart to Checkout</small><b>64.2%</b></div>' +
-        '<div class="stat-card"><small>Avg checkout duration</small><b>2m 14s</b></div>' +
+        '<div class="stat-card"><small>Checkouts in progress</small><b>' + list.length + '</b></div>' +
+        '<div class="stat-card"><small>Checkouts completed</small><b>' + rate + '</b></div>' +
+        '<div class="stat-card"><small>Abandoned checkouts</small><b>' + left + '</b></div>' +
       '</div>' +
       '<div class="panel wrap"><table>' +
         '<tr><th>Session</th><th>Customer / Lead</th><th>Checkout funnel step</th><th>Cart value</th><th>Last active</th><th>IP / Device</th></tr>' +
@@ -2736,10 +2739,10 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
 
     return head('Growth overview', '<button class="btn pri" data-r="growth-campaigns">New campaign</button>') +
       '<div class="stat-grid">' +
-        '<div class="stat-card"><small>Blended ROAS</small><b>' + g.roas + '</b><span class="diff up">↑ +14.2% this month</span></div>' +
+        '<div class="stat-card"><small>Blended ROAS</small><b>' + g.roas + '</b></div>' +
         '<div class="stat-card"><small>Attributed revenue</small><b>' + money(g.attributedRev) + '</b></div>' +
         '<div class="stat-card"><small>Active Autopilot rules</small><b>' + g.activeAutomations + ' active</b></div>' +
-        '<div class="stat-card"><small>Customer Acq. Cost (CAC)</small><b>$14.80</b><span class="diff up">↓ -8% optimization</span></div>' +
+        '<div class="stat-card"><small>Customer Acq. Cost (CAC)</small><b>' + ((g.channels || []).length && (S.orders || []).length ? money((g.channels || []).reduce(function (a, c) { return a + (+c.spend || 0); }, 0) / S.orders.length) : '—') + '</b></div>' +
       '</div>' +
       '<div class="panel">' +
         '<h3>Acquisition channels</h3>' +
@@ -2777,11 +2780,11 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
               '<td>' + money(c.spend) + '</td>' +
               '<td><b>' + money(c.attributed) + '</b></td>' +
               '<td>' + esc(c.roas) + '</td>' +
-              '<td><div class="prog-bar" style="width:120px"><div class="prog-fill" style="width:92%"></div></div> 92%</td>' +
+              '<td><div class="prog-bar" style="width:120px"><div class="prog-fill" style="width:' + Math.min(100, c.spend ? Math.round(c.attributed / c.spend * 10) : 0) + '%"></div></div></td>' +
             '</tr>';
           }).join('') +
         '</table></div>' +
-        '<div class="bn" style="margin-top:14px"><span>💡 <b>Autopilot recommendation:</b> Increasing TikTok ad spend by $50/week is projected to generate an additional $240 in sales based on recent top-of-funnel traffic velocity.</span></div>' +
+        ((g.channels || []).length ? '<div class="bn" style="margin-top:14px"><span>💡 <b>Autopilot recommendation:</b> Increasing TikTok ad spend by $50/week is projected to generate an additional $240 in sales based on recent top-of-funnel traffic velocity.</span></div>' : '') +
       '</div>';
   };
 
@@ -7462,7 +7465,7 @@ function autoV(){init();var L=S.autos;
 A.p8aut=function(id){var a=S.autos.filter(function(x){return x.id===id})[0];a.on=!a.on;log('Automation '+(a.on?'activated':'turned off')+': '+a.name);sv();route()};
 A.p8au=function(){X.xmodal('Create automation',fl('Name','au1','')+'<label for="au2">Trigger</label><select class="xin" id="au2"><option>Checkout abandoned</option><option>Customer subscribes</option><option>Order placed</option><option>COD order placed</option><option>Order fulfilled</option><option>No order in 90 days</option><option>Product back in stock</option></select>'+fl('Steps (comma separated)','au3','Send email'),'Create',function(){if(!vl('au1'))return (q('#xme').textContent='Name required',false);S.autos.push({id:'au'+Date.now(),name:vl('au1'),trig:vl('au2'),steps:vl('au3').split(',').map(function(s){return s.trim()}).filter(Boolean),on:false,sent:0,conv:0});sv()})};
 function billV(){var inv=S.invoices||[{n:'SB-1042',d:'Oct 1, 2026',amt:29,st:'Paid'},{n:'SB-1031',d:'Sep 1, 2026',amt:29,st:'Paid'}];
- return '<div class="xw">'+hd('Billing','')+'<div class="xdet"><div class="xmain">'+card('Bills','<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+inv.map(function(b){return '<tr><td>'+b.n+'</td><td>'+b.d+'</td><td>'+money(b.amt)+' <small>'+X.curL('USD')+'</small></td><td><span class="pill ok">'+b.st+'</span></td></tr>'}).join('')+'</tbody></table>')+'</div><div class="xside">'+card('Payment method','VendOm Pay wallet balance<br><span class="mu">Backup: card ending 4242</span>')+card('Plan','<b>'+h((S.plan||'Basic'))+'</b><br><a data-r="s-plan" href="#s-plan">Change plan</a>')+'</div></div></div>'}
+ return '<div class="xw">'+hd('Billing','')+'<div class="xdet"><div class="xmain">'+card('Bills','<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+inv.map(function(b){return '<tr><td>'+b.n+'</td><td>'+b.d+'</td><td>'+money(b.amt)+' <small>'+X.curL('USD')+'</small></td><td><span class="pill ok">'+b.st+'</span></td></tr>'}).join('')+'</tbody></table>')+'</div><div class="xside">'+card('Payment method',S.billingCard?h(S.billingCard.brand)+' ending '+h(S.billingCard.last4)+'<br><span class="mu">VendOm Pay wallet balance is used first</span>':'VendOm Pay wallet balance<br><span class="mu">No card added yet</span>')+card('Plan','<b>'+h((S.plan||'Basic'))+'</b><br><a data-r="s-plan" href="#s-plan">Change plan</a>')+'</div></div></div>'}
 if(V){V['online-store-pages']=pagesV;V['online-store-preferences']=prefV;V['growth-automations']=autoV;V['finance-billing']=billV}
 if(X.PAGE)X.PAGE['online-store-page']=pageDetail;
 
@@ -7490,7 +7493,7 @@ function enhance(r){
  qa('#main table').forEach(function(t,ti){if(t.dataset.p8||t.closest('#xsf,.xmodal,#box,.xdet .xside')||t.closest('[id^=x]')&&t.closest('[id^=x]').id!=='main')return;t.dataset.p8=1;
   var rows=rowsOf(t);var hr=q('tr',t);if(!hr||!q('th',hr))return;
   if(!rows.length){var ttl=(q('#main h1')||{}).textContent||'items';var b=q('#main .xh .btn.pri');var w=document.createElement('div');w.innerHTML=empty('🗂️','No '+h(ttl.toLowerCase())+' yet','When you add '+h(ttl.toLowerCase())+', they will appear here.',b?'<button class="btn pri" id="p8eb">'+h(b.textContent)+'</button>':'');t.style.display='none';t.parentNode.insertBefore(w.firstChild,t);var eb=q('#p8eb');if(eb)eb.onclick=function(){b.click()};return}
-  if(rows.length<2)return;
+  /* search, sort and select show for any non-empty table (Shopify shows them even for one row) */
   var heads=qa('th',hr).map(function(x){return x.textContent.trim()});
   /* filter on a column with few distinct values */
   var fcol=-1,fvals=[];heads.forEach(function(nm,ci){if(fcol>-1||!nm)return;var s={};rows.forEach(function(rw){var c=rw.cells[ci];if(c)s[c.textContent.trim()]=1});var k=Object.keys(s);if(k.length>1&&k.length<=6&&k.length<rows.length&&ci>0){fcol=ci;fvals=k}});
@@ -7924,7 +7927,7 @@ A.p10pick=function(code){var s=sub(),p=P(code),cur=P(s.plan),iv=S.pv9int||s.inte
  if(!up){var bad=fits(p);if(bad.length)return md('Can’t downgrade yet','<p>Your store uses more than '+h(p.name)+' allows:</p><ul>'+bad.map(function(i){return '<li>'+LB[i.m]+': '+i.used+' of '+i.inc+'</li>'}).join('')+'</ul><p class="mu">Remove the extra items first.</p>','OK',function(){});
   return md('Downgrade to '+p.name+'?','<p>You keep '+h(cur.name)+' until '+new Date(s.end).toLocaleDateString('en-GB',{timeZone:'Asia/Karachi'})+'. Then '+h(p.name)+' starts at '+fm(amt,c)+' per '+(iv==='annual'?'year':'month')+'.</p>','Schedule downgrade',function(){s.pending=code;sv();push(['POST','/billing/plan'],{plan:code,interval:iv,currency:c});log9('Downgrade scheduled: '+p.name);tst('Downgrade scheduled')})}
  var credit=0;if(!tr&&code!==s.plan&&iv===s.interval&&c===s.cur){var left=Math.max(0,(s.end-now)/(s.end-s.start));credit=Math.round(price(cur,s.interval,c)*left*100)/100;amt=Math.round((price(p,iv,c)-price(cur,iv,c))*left*100)/100}
- md((tr?'Buy ':'Upgrade to ')+p.name,'<p>'+(credit?'Prorated charge today for the rest of this period: <b>'+fm(amt,c)+'</b>':'Charged today: <b>'+fm(amt,c)+'</b>')+' · '+cl(c)+'</p><p class="mu">Paid from your '+(s.pay==='card'?'card ending 4242':'VendOm Pay wallet (card as backup)')+'. New limits apply immediately.</p>','Confirm and pay',function(){
+ md((tr?'Buy ':'Upgrade to ')+p.name,'<p>'+(credit?'Prorated charge today for the rest of this period: <b>'+fm(amt,c)+'</b>':'Charged today: <b>'+fm(amt,c)+'</b>')+' · '+cl(c)+'</p><p class="mu">Paid from your '+(s.pay==='card'?(S.billingCard?'card ending '+S.billingCard.last4:'card'):'VendOm Pay wallet'+(S.billingCard?' (card as backup)':''))+'. New limits apply immediately.</p>','Confirm and pay',function(){
   var lines=[{k:'plan',t:p.name+' plan ('+(iv==='annual'?'annual':'monthly')+')'+(credit?' — prorated':''),a:amt}];
   addInv(lines,c,'paid');var was=tr||iv!==s.interval;s.plan=code;s.status='active';s.trialEnds=null;s.pending=null;s.interval=iv;s.cur=c;if(was||!credit){s.start=now;s.end=now+(iv==='annual'?365:30)*864e5}S.plan=p.name;sv();
   push(['POST','/billing/plan'],{plan:code,interval:iv,currency:c});log9('Plan changed to '+p.name);tst('You are now on '+p.name);location.hash='s-plan';route()})};
@@ -7939,7 +7942,7 @@ X.billRun9=function(){var s=sub(),p=P(s.plan),c=s.cur,lines=[];if(s.status==='tr
 
 function billV(){var s=sub(),inv=S.inv9||[];
  var rows=inv.length?inv.map(function(v){return '<tr class="row" data-x="p10inv:'+v.n+'" style="cursor:pointer"><td><b>'+h(v.n)+'</b></td><td>'+new Date(v.d).toLocaleDateString('en-GB',{timeZone:'Asia/Karachi'})+'</td><td>'+v.lines.map(function(l){return '<div style="font-size:12px"><span class="pill'+(l.k==='overage'?'" style="background:#FFF4D6':l.k==='credit'?' ok':'')+'">'+l.k+'</span> '+h(l.t)+' — '+fm(l.a,v.cur)+'</div>'}).join('')+'</td><td><b>'+fm(v.tot,v.cur)+'</b><div class="mu" style="font-size:11px">'+cl(v.cur)+'</div></td><td><span class="pill '+(v.st==='paid'?'ok':'')+'">'+h(v.st==='paid'?'Paid':v.st==='past_due'?'Past due':'Open')+'</span></td></tr>'}).join(''):'<tr><td colspan="5" class="mu">No bills yet. Your first bill is created when your trial ends or you choose a plan.</td></tr>';
- return '<div class="xw"><div class="xh"><h1>Billing</h1><button class="btn" data-x="p10run">Close billing period (demo)</button></div><div class="xdet"><div class="xmain"><div class="xc"><h3>Bills</h3><table class="tbl" data-p8="1"><thead><tr><th>Bill</th><th>Date</th><th>Line items</th><th>Total</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div></div><div class="xside"><div class="xc"><h3>Plan</h3><b>'+h(P(s.plan).name)+'</b>'+(s.status==='trialing'?' (trial)':'')+'<br><span class="mu">'+cl(s.cur)+'</span><br><a href="#s-plan">Change plan</a></div><div class="xc"><h3>Upcoming bill</h3>Overage so far: <b>'+fm(projected(),s.cur)+'</b><br><span class="mu">Overage mode: '+(s.mode==='auto'?'auto-pay':'stop at limit')+(s.cap!==''?' · cap '+fm(+s.cap,s.cur):'')+'</span></div><div class="xc"><h3>Payment method</h3>'+(s.pay==='card'?'Card ending 4242':'VendOm Pay wallet balance<br><span class="mu">Backup: card ending 4242</span>')+'</div></div></div></div>'}
+ return '<div class="xw"><div class="xh"><h1>Billing</h1><button class="btn" data-x="p10run">Close billing period (demo)</button></div><div class="xdet"><div class="xmain"><div class="xc"><h3>Bills</h3><table class="tbl" data-p8="1"><thead><tr><th>Bill</th><th>Date</th><th>Line items</th><th>Total</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div></div><div class="xside"><div class="xc"><h3>Plan</h3><b>'+h(P(s.plan).name)+'</b>'+(s.status==='trialing'?' (trial)':'')+'<br><span class="mu">'+cl(s.cur)+'</span><br><a href="#s-plan">Change plan</a></div><div class="xc"><h3>Upcoming bill</h3>Overage so far: <b>'+fm(projected(),s.cur)+'</b><br><span class="mu">Overage mode: '+(s.mode==='auto'?'auto-pay':'stop at limit')+(s.cap!==''?' · cap '+fm(+s.cap,s.cur):'')+'</span></div><div class="xc"><h3>Payment method</h3>'+(s.pay==='card'?(S.billingCard?h(S.billingCard.brand)+' ending '+h(S.billingCard.last4):'No card added yet'):'VendOm Pay wallet balance<br><span class="mu">'+(S.billingCard?'Backup: '+h(S.billingCard.brand)+' ending '+h(S.billingCard.last4):'No backup card yet')+'</span>')+'</div></div></div></div>'}
 A.p10run=function(){md('Close billing period?','<p>Creates the bill for overage used this period plus next month’s plan fee, then resets the monthly counters.</p>','Close period',function(){X.billRun9()})};
 A.p10inv=function(n){var v=(S.inv9||[]).filter(function(x){return x.n===n})[0];if(!v)return;md('Bill '+h(v.n),'<table class="tbl"><tbody>'+v.lines.map(function(l){return '<tr><td>'+h(l.t)+'</td><td style="text-align:right">'+fm(l.a,v.cur)+'</td></tr>'}).join('')+'<tr><td><b>Total</b></td><td style="text-align:right"><b>'+fm(v.tot,v.cur)+'</b></td></tr></tbody></table><p class="mu">'+cl(v.cur)+' · '+(v.st==='paid'?'Paid with VendOm Pay':'Unpaid')+'</p>','Close',function(){})};
 /* platform admin */
@@ -7973,7 +7976,7 @@ function tr(c){return '<tr>'+c.map(function(x){return '<td>'+x+'</td>'}).join(''
 function pre(t,id){return '<textarea class="xin m12pre" id="'+id+'" rows="8" readonly>'+h(t)+'</textarea>'}
 function cur(){return (S.cur||'PKR')}
 function base(){return 'https://'+slug(S.name||'store')+'.vendom.app'}
-function prov(){var b=BK();return b?'DeepSeek (server)':'Built-in templates (offline demo)'}
+function prov(){var b=BK();return b?'VendOm AI':'VendOm AI (built-in)'}
 /* backend call → falls back to local generator */
 function call(path,body,local,done){var b=BK();if(!b){done(local());return}b.api('POST',path,body||{}).then(function(r){done(r&&r.result?r.result:r)}).catch(function(e){tst('Backend error — used offline template');done(local())})}
 
@@ -8033,7 +8036,7 @@ V['ai-builder']=function(){var g=G(),s=g.site,th=g.theme;
  return '<div class="xw">'+hd('AI website builder','Build a full store from one sentence — by typing or by voice. Then edit it by talking to it.',btn('Classic builder & audit','m12go:ai-builder-classic')+' '+btn('SEO suite','m12go:seo-suite'))+'<div class="m12two"><div>'+form+edit+'</div><div>'+(prev||card('Preview','<p class="xk">Your generated website appears here.</p>'))+'</div></div></div>'};
 A.m12go=function(r){location.hash=r;rr()};
 A.m12build=function(){var g=G(),pr=vl('m12prompt');if(pr.length<3){tst('Describe your store first');return}g.prompt=pr;g.lang=vl('m12lang');g.applyChk=vl('m12apply');if(!meter(25,'site.build'))return;
- call('/ai/site/build',{prompt:pr,language:g.lang,apply:!!g.applyChk,via:g.via||'text'},function(){return {site:mockSite(pr),source:'template'}},function(r){var site=r.site||r;g.site=site;g.theme={palette:site.theme.palette,settings:site.theme.settings,sections:site.sections};g.src=r.source==='llm'?'DeepSeek':'Template';
+ call('/ai/site/build',{prompt:pr,language:g.lang,apply:!!g.applyChk,via:g.via||'text'},function(){return {site:mockSite(pr),source:'template'}},function(r){var site=r.site||r;g.site=site;g.theme={palette:site.theme.palette,settings:site.theme.settings,sections:site.sections};g.src=r.source==='llm'?'VendOm AI':'Template';
   if(g.applyChk&&!BK())applyLocal(site);sv();rr();var msg='Your website for '+(site.name||'your store')+' is ready with '+(site.products||[]).length+' products and '+(site.pages||[]).length+' pages.';tst(msg);speak(msg);g.via='text'})};
 function applyLocal(site){S.nid=S.nid||1000;(site.products||[]).forEach(function(p){S.products.push({id:++S.nid,name:p.title,price:+p.price,stock:(p.variants||[]).reduce(function(a,v){return a+(+v.inventory||0)},0),status:'Draft',desc:strip(p.description),cols:[],vars:(p.variants||[]).map(function(v){return {name:v.title,price:+v.price,stock:+v.inventory||0}}),opts:[],imgs:[],tags:p.tags||[],sku:'AI-'+S.nid,handle:p.handle||slug(p.title),seo:{title:p.seoTitle,desc:p.seoDesc}})});
  S.collections=S.collections||[];(site.collections||[]).forEach(function(c){if(!S.collections.some(function(x){return x.handle===c.handle}))S.collections.push({id:++S.nid,title:c.title,handle:c.handle,desc:c.description,type:'Manual'})});
@@ -9072,7 +9075,8 @@ try{var NC=X.NAV_CONFIG;if(NC){var i=NC.findIndex(function(n){return n.id==='ai-
 
 /* ---------- plan → model (mirrors the backend; shown to the seller) ---------- */
 var TIER={free:'deepseek',basic:'deepseek',grow:'kimi',advanced:'claude',enterprise:'claude'};
-var MODEL={deepseek:'DeepSeek',kimi:'Kimi',claude:'Claude',local:'Built-in'};
+/* VendOm AI has three models of its own; sellers never see which AI company runs them */
+var MODEL={deepseek:'VendOm AI Lite',kimi:'VendOm AI Plus',claude:'VendOm AI Pro',local:'VendOm AI'};X.ai16brand=function(p){return MODEL[p]||'VendOm AI'};
 function planCode(){return ((S.sub9||{}).plan)||'grow'}
 function chatState(){S.ai16=S.ai16||{log:[]};return S.ai16}
 
@@ -9098,7 +9102,7 @@ function local(text){
 /* ---------- chat page ---------- */
 var CHIPS=['How are sales this month?','Show orders to ship','What is low on stock?','Audit my SEO','Write AEO FAQs for my best seller','Create a 10% discount code EID10','Build a website for my brand'];
 V['ai-assistant']=function(){var c=chatState(),p=planCode(),prov=TIER[p]||'deepseek',on=!!be();
- var info='<span class="mu" id="ai16model">Plan: <b>'+h(p.charAt(0).toUpperCase()+p.slice(1))+'</b> · AI model: <b>'+(on?MODEL[prov]:MODEL[prov]+' (once your store is connected to the VendOm server; built-in answers until then)')+'</b></span>';
+ var info='<span class="mu" id="ai16model">Your plan includes <b>'+MODEL[prov]+'</b>'+(on?'':' · quick answers now, full AI once your store is online')+'</span>';
  return '<div class="xw ai16">'+head('VendOm AI','<button class="btn" data-x="ai16clear">New chat</button>')+'<div class="xc" style="padding:12px 16px">'+info+'</div>'
   +'<div class="xc ai16box"><div id="ai16log" class="ai16log">'+(c.log.length?c.log.map(bubble).join(''):'<div class="ai16empty"><b>Ask me anything about your store.</b><br><span class="mu">Sales and orders, stock, SEO / AEO / GEO, content, discounts, and building or editing your website. I make real changes, and ask before big ones.</span></div>')+'</div>'
   +'<div class="ai16chips">'+CHIPS.map(function(x){return '<button class="btn" data-x="ai16ask:'+h(x)+'">'+h(x)+'</button>'}).join('')+'</div>'
@@ -9107,7 +9111,7 @@ function bubble(m){return '<div class="ai16m '+(m.role==='user'?'u':'a')+'"><div
 function render(){var l=q('#ai16log');if(!l)return;var c=chatState();l.innerHTML=c.log.map(bubble).join('');l.scrollTop=l.scrollHeight}
 var busy=false;
 function ask(text){text=String(text||'').trim();if(!text||busy)return;var c=chatState();c.log.push({role:'user',text:text,at:Date.now()});c.log=c.log.slice(-60);save();render();var inp=q('#ai16q');if(inp)inp.value='';busy=true;
- var b=be();var done=function(r){busy=false;c.log.push({role:'assistant',text:r.text||'(no answer)',steps:(r.steps||[]).map(function(s){return typeof s==='string'?s:s.tool}),model:r.model&&r.model!=='built-in'?r.model:'',at:Date.now()});save();render()};
+ var b=be();var done=function(r){busy=false;c.log.push({role:'assistant',text:r.text||'(no answer)',steps:(r.steps||[]).map(function(s){return typeof s==='string'?s:s.tool}),model:r.brand||'',at:Date.now()});save();render()};
  if(b){var hist=c.log.slice(-20).map(function(m){return{role:m.role,content:m.text}});while(hist.length&&hist[0].role!=='user')hist.shift();
   c.log.push({role:'assistant',text:'…',pending:1});render();
   b.api('POST','/api/stores/'+b.cfg().storeId+'/assistant/chat',{messages:hist}).then(function(r){c.log=c.log.filter(function(m){return !m.pending});done(r)}).catch(function(e){c.log=c.log.filter(function(m){return !m.pending});done({text:/402|credits|limit/i.test(e.message)?'You have used this month’s AI credits. Upgrade or turn on auto-pay overage in Settings › Plan.':'I could not reach the VendOm server ('+e.message+'). Answering from this browser instead:\n\n'+local(text).text})});return}
@@ -9126,7 +9130,7 @@ var RULES=[[/^hooks\.zapier\.com$/,'webhook','zapier','Zapier'],[/(^|\.)hook\.[a
  [/(^|\.)(facebook|instagram)\.com$/,'app','meta','Meta (Facebook & Instagram)'],[/^merchants\.google\.com$|^merchantcenter\.google\.com$/,'app','google-merchant','Google Merchant Center'],[/^ads\.google\.com$/,'app','google-ads','Google Ads'],[/^analytics\.google\.com$/,'app','ga4','Google Analytics 4'],[/^search\.google\.com$/,'app','search-console','Google Search Console'],[/(^|\.)tiktok\.com$/,'app','tiktok','TikTok'],[/(^|\.)pinterest\.com$/,'app','pinterest','Pinterest'],[/(^|\.)snapchat\.com$/,'app','snapchat','Snapchat'],[/(^|\.)(whatsapp\.com|wa\.me)$/,'app','whatsapp','WhatsApp Business'],[/(^|\.)mailchimp\.com$/,'app','mailchimp','Mailchimp'],[/(^|\.)klaviyo\.com$/,'app','klaviyo','Klaviyo'],[/(^|\.)xero\.com$/,'app','xero','Xero'],[/(^|\.)intuit\.com$/,'app','quickbooks','QuickBooks'],[/(^|\.)tcscourier\.com$/,'app','tcs','TCS'],[/(^|\.)leopardscourier\.com$/,'app','leopards','Leopards'],[/(^|\.)postex\.pk$/,'app','postex','PostEx'],[/(^|\.)(trax|sonic)\.pk$/,'app','trax','Trax']];
 function detect(raw){var u;try{u=new URL(String(raw).trim())}catch(e){throw new Error('That is not a valid link. Paste the full address, starting with https://')}
  if(!/^https?:$/.test(u.protocol))throw new Error('Only http(s) links can be connected.');var host=u.hostname.toLowerCase(),path=u.pathname.toLowerCase();
- if(/\/(mcp|sse)\/?$/.test(path)||/^mcp\./.test(host))return{kind:'mcp',provider:'mcp',name:host+' (MCP)',note:'An MCP server. Its tools become available to VendOm AI on plans that use Claude.'};
+ if(/\/(mcp|sse)\/?$/.test(path)||/^mcp\./.test(host))return{kind:'mcp',provider:'mcp',name:host+' (MCP)',note:'An MCP server. Its tools become available to VendOm AI Pro (Advanced plan).'};
  if(/(openapi|swagger)[^/]*\.(json|ya?ml)$/.test(path)||/\/(openapi|swagger)(\.json)?$/.test(path))return{kind:'api',provider:'openapi',name:host+' API',needsKey:true,note:'An API description (OpenAPI). VendOm AI can read data from it. Add its key if it needs one.'};
  if((host==='discord.com'||host==='discordapp.com')&&/\/api\/webhooks\//.test(path))return{kind:'webhook',provider:'discord',name:'Discord',note:'Discord will get a message for each store event.'};
  if(/\/webhook(-test)?\//.test(path)||/n8n/.test(host))return{kind:'webhook',provider:'n8n',name:'n8n',note:'An n8n webhook. Store events will be sent to it.'};
@@ -9201,7 +9205,8 @@ function el(id){return document.getElementById(id)}
 function shell(cls,html){var a=A();if(!a)return null;a.className=cls;a.style.display='flex';a.innerHTML=html;a.scrollTop=0;window.scrollTo(0,0);return a}
 var PRICE={basic:300,grow:600,advanced:1000},PNAME={basic:'Basic',grow:'Grow',advanced:'Advanced',enterprise:'Enterprise'};
 function rs(n){return 'Rs '+Math.round(n).toLocaleString('en-US')}
-var COUNTRIES=['Pakistan','United Arab Emirates','Saudi Arabia','United Kingdom','United States','Canada','Australia','India','Bangladesh','Qatar','Oman','Kuwait','Bahrain','Turkey','Malaysia','Germany','France','Netherlands','Italy','Spain','Ireland','Sweden','Norway','South Africa','Nigeria','Kenya','Egypt','Singapore','Japan','China','Other'];
+var ISO='AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR XK KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW'.split(' ');
+var COUNTRIES=(function(){var dn=null;try{dn=new Intl.DisplayNames(['en'],{type:'region'})}catch(e){}var L=ISO.map(function(c){return dn?dn.of(c):c}).filter(function(n,i,a){return n&&a.indexOf(n)===i}).sort(function(a,b){return a.localeCompare(b)});var i=L.indexOf('Pakistan');if(i>0){L.splice(i,1);L.unshift('Pakistan')}return L})();
 function backendOn(){var b=X.VendOmBackend;return !!(b&&b.cfg&&b.cfg().url)}
 /* Emails the browser-only version cannot send: kept in this browser so the seller can see them, and sent for real by the VendOm server once connected. */
 function mail(to,subject,text){DB.mail=DB.mail||[];DB.mail.unshift({to:to,subject:subject,text:text,at:Date.now()});DB.mail=DB.mail.slice(0,50);persist()}
@@ -9293,7 +9298,23 @@ function goals(){var e=DB.pending;if(!e)return authView('up');var sel={online:1}
  [].forEach.call(document.querySelectorAll('[data-goal]'),function(b){b.onclick=function(){var k=b.dataset.goal;if(sel[k])delete sel[k];else sel[k]=1;b.classList.toggle('on',!!sel[k]);b.setAttribute('aria-pressed',!!sel[k]);b.textContent=(sel[k]?'✓ ':'+ ')+GOALS.filter(function(g){return g[0]===k})[0][1]}});
  el('ob-back').onclick=function(){authView('pay')};
  var done=function(list){finish(e,list)};el('ab').onclick=function(){done(Object.keys(sel))};el('ob-skip').onclick=function(){done([])}}
-function finish(e,list){if(!e||!DB.a[e])return authView('up');var card=(DB.obCard||{})[e];fresh('My Store',e);S.goals=list;S.obSetup=true;S.country=(DB.obCountry||{})[e]||S.country;if(card)S.billingCard=card;S.emailVerified=verified(e);
+/* A real new store starts empty, like Shopify: no sample products, orders, customers, collections, discounts, apps or alerts. */
+var EMPTY=['products','orders','collections','cols','draftOrders','abandonedCheckouts','checkoutsList','purchaseOrders','transfers','giftCards','customerSegments','companies','discountsList','filesList','blogPosts','catalogsList','rolloutsList','installedApps','customApps','payoutsList','disc2','gc2','osPages','alerts','cust','carts','autos'];
+function emptyStore(){S.noDemo=true;EMPTY.forEach(function(k){S[k]=[]});S.pages=[];S.stats={views:0,sess:0,days:{}};S.nid=1}
+X.vendomEmptyStore=emptyStore;
+/* Some pages add sample objects the first time they open. For a real store, reset each one once to an honest empty / not-connected state. */
+var CLEAN={
+ growth:function(g){g.roas='0x';g.attributedRev=0;g.activeAutomations=0;g.channels=[];(g.autopilotRules||[]).forEach(function(r){r.on=false;r.saves=0});['campaigns','attribution','ads'].forEach(function(k){if(Array.isArray(g[k]))g[k]=[]})},
+ metaPixel:function(m){m.enabled=false;m.pixelId='';m.capiToken='';m.testEventCode='';m.account={connected:false,name:'',id:'',catalogSynced:false,catalogItems:0};m.logs=[]},
+ googleChannel:function(g){g.enabled=false;g.ga4Id='';g.gtmId='';g.adsConversionId='';g.adsLabel='';g.account={connected:false,email:'',merchantStatus:'Not connected'}},
+ whatsapp:function(w){if(w.normal){w.normal.enabled=false;w.normal.number='';w.normal.widget=false}if(w.business){w.business={enabled:false,wabaId:'',phoneId:'',token:'',verifiedName:'',status:'Not connected',autoOrderConfirm:false,autoAbandonedRecovery:false,autoShippingUpdates:false}}},
+ marketsList:function(L){var c=S.country||'Pakistan',p=L.filter(function(m){return m.isPrimary})[0]||{name:'Domestic',isPrimary:true,status:'Active'};p.name=c+' (home market)';p.countries=[c];p.salesShare='—';L.length=0;L.push(p)}
+};
+function cleanSamples(){if(!S||!S.noDemo)return;S._clean=S._clean||{};var ch=false;for(var k in CLEAN)if(!S._clean[k]&&S[k]){try{CLEAN[k](S[k])}catch(e){}S._clean[k]=1;ch=true}
+ ['autos','alerts','installedApps','customApps'].forEach(function(k){if(!S._clean[k]&&Array.isArray(S[k])&&S[k].length){S[k]=[];S._clean[k]=1;ch=true}});if(ch)save()}
+X.vendomCleanSamples=cleanSamples;
+if(X.onRoute)X.onRoute(function(){var b=JSON.stringify([S.growth,S.metaPixel,S.googleChannel,S.whatsapp,S.marketsList]);cleanSamples();if(JSON.stringify([S.growth,S.metaPixel,S.googleChannel,S.whatsapp,S.marketsList])!==b&&!X._cleanRe){X._cleanRe=1;setTimeout(function(){X._cleanRe=0;route()},0)}});
+function finish(e,list){if(!e||!DB.a[e])return authView('up');var card=(DB.obCard||{})[e];fresh('My Store',e);emptyStore();S.goals=list;S.obSetup=true;S.country=(DB.obCountry||{})[e]||S.country;if(card)S.billingCard=card;S.emailVerified=verified(e);
  startSession(e);X.API&&X.API.email&&X.API.email(e,'Welcome to VendOm: your account is ready','Hi, your VendOm account and store are ready. Your 4-day free trial has started.','welcome')}
 
 /* sign in: same look, and an unverified account goes back to the code step */

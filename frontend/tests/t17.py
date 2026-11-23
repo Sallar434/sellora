@@ -166,7 +166,9 @@ with sync_playwright() as p:
     ok('add customer form', 'mail' in box)
 
     # ---------- 7. draft order -> order ----------
-    E("closeM()"); go(pg, 'orders-drafts', 400)
+    E("closeM()")
+    E("S.draftOrders.push({id:'D1',customer:'Walk-in buyer',date:'Today',items:1,total:20,status:'Open'});save()")  # the seller's own draft
+    go(pg, 'orders-drafts', 400)
     n0 = E("S.orders.length")
     btn = pg.locator('#main button:has-text("Complete")')
     if btn.count():

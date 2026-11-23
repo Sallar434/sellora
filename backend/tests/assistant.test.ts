@@ -43,16 +43,16 @@ describe('model routing by plan', () => {
   });
   it('GET /assistant reports the plan, model and credits per reply', async () => {
     const info = (await A().get(S('/assistant')).set(tok()).expect(200)).body;
-    expect(info).toMatchObject({ plan: 'grow', provider: 'local', creditsPerReply: 0 }); expect(info.tools).toContain('seo_audit');
+    expect(info).toMatchObject({ plan: 'grow', model: 'VendOm AI', creditsPerReply: 0, ready: false }); expect(info.tools).toContain('seo_audit'); expect(JSON.stringify(info)).not.toMatch(/deepseek|kimi|claude/i);
     Object.assign(config, { kimiKey: 'k' });
-    expect((await A().get(S('/assistant')).set(tok())).body).toMatchObject({ provider: 'kimi', model: 'kimi-k2.6', creditsPerReply: 2 });
+    const i2 = (await A().get(S('/assistant')).set(tok())).body; expect(i2).toMatchObject({ model: 'VendOm AI Plus', creditsPerReply: 2, ready: true }); expect(JSON.stringify(i2)).not.toMatch(/kimi|moonshot/i);
   });
 });
 
 describe('assistant chat', () => {
   it('no AI keys: built-in replies still run real tools (SEO audit, low stock)', async () => {
     const r = (await chat('check my SEO please').expect(200)).body;
-    expect(r.provider).toBe('local'); expect(r.steps[0].tool).toBe('seo_audit'); expect(r.text).toMatch(/SEO score is \d+\/100/);
+    expect(r.brand).toBe('VendOm AI'); expect(r.steps[0].tool).toBe('seo_audit'); expect(r.text).toMatch(/SEO score is \d+\/100/);
     expect((await chat('what is low on stock?')).body.text).toContain('Lawn Kurta: 3');
   });
 
@@ -66,7 +66,7 @@ describe('assistant chat', () => {
     });
     const before = await aiUsed();
     const r = (await chat('anything low on stock?').expect(200)).body;
-    expect(r).toMatchObject({ provider: 'deepseek', model: 'deepseek-flash', credits: 1, text: 'Lawn Kurta has only 3 left.' });
+    expect(r).toMatchObject({ brand: 'VendOm AI Lite', credits: 1, text: 'Lawn Kurta has only 3 left.' }); expect(r.provider).toBeUndefined();
     expect(calls[0].url).toBe('https://api.deepseek.com/chat/completions'); expect(calls[0].body.tools.map((t: any) => t.function.name)).toContain('build_website');
     const toolMsg = calls[1].body.messages.find((m: any) => m.role === 'tool'); expect(toolMsg.tool_call_id).toBe('c1'); expect(toolMsg.content).toContain('"stock":3');
     expect(await aiUsed()).toBe(before + 1);
@@ -79,7 +79,7 @@ describe('assistant chat', () => {
     const urls: string[] = [];
     outside((url, init) => { urls.push(url); expect(JSON.parse(init.body).model).toBe('kimi-k2.6'); expect(init.headers.Authorization).toBe('Bearer sk-kimi'); return json({ choices: [{ message: { content: 'Salam! How can I help?' } }], usage: { prompt_tokens: 10, completion_tokens: 5 } }); });
     const r = (await chat('salam').expect(200)).body;
-    expect(r).toMatchObject({ provider: 'kimi', credits: 2 }); expect(urls).toEqual(['https://api.moonshot.ai/v1/chat/completions']);
+    expect(r).toMatchObject({ brand: 'VendOm AI Plus', credits: 2 }); expect(urls).toEqual(['https://api.moonshot.ai/v1/chat/completions']);
   });
 
   it('Advanced plan → Claude via the official SDK: tool loop edits the product; 5 credits', async () => {
@@ -90,7 +90,7 @@ describe('assistant chat', () => {
     setClaudeClient({ beta: { messages: { create } } } as any);
     const before = await aiUsed();
     const r = (await chat('set a better SEO title for the lawn kurta').expect(200)).body;
-    expect(r).toMatchObject({ provider: 'claude', model: 'claude-opus-5-5', credits: 5, text: 'Done: the SEO title is set.' });
+    expect(r).toMatchObject({ brand: 'VendOm AI Pro', credits: 5, text: 'Done: the SEO title is set.' }); expect(JSON.stringify(r)).not.toMatch(/claude|anthropic/i);
     expect(r.steps).toEqual([{ tool: 'update_product', input: { productId: product.id, seoTitle: 'Lawn Kurta | Noor Lawn' }, ok: true }]);
     expect((await db.product.findUnique({ where: { id: product.id } }))!.seoTitle).toBe('Lawn Kurta | Noor Lawn');
     const q = reqs[0]; expect(q.model).toBe('claude-opus-5-5'); expect(q.fallbacks).toBe('default'); expect(q.betas).toContain('server-side-fallback-2026-07-01');
@@ -104,10 +104,10 @@ describe('assistant chat', () => {
   it('Claude refusal is reported; a failing provider falls back to the next model', async () => {
     await plan('advanced'); Object.assign(config, { anthropicKey: 'sk-ant', kimiKey: 'sk-kimi' });
     setClaudeClient({ beta: { messages: { create: async () => ({ stop_reason: 'refusal', content: [], usage: { input_tokens: 5, output_tokens: 0 } }) } } } as any);
-    expect((await chat('hi').expect(200)).body).toMatchObject({ provider: 'claude', refused: true });
+    expect((await chat('hi').expect(200)).body).toMatchObject({ brand: 'VendOm AI Pro', refused: true });
     setClaudeClient({ beta: { messages: { create: async () => { throw new Error('overloaded'); } } } } as any);
     outside(() => json({ choices: [{ message: { content: 'From Kimi' } }], usage: {} }));
-    expect((await chat('hi').expect(200)).body).toMatchObject({ provider: 'kimi', text: 'From Kimi' });
+    expect((await chat('hi').expect(200)).body).toMatchObject({ brand: 'VendOm AI Plus', text: 'From Kimi' });
   });
 
   it('402 when the plan has no AI credits left (trial)', async () => {

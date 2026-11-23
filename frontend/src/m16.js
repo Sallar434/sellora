@@ -11,7 +11,8 @@ try{var NC=X.NAV_CONFIG;if(NC){var i=NC.findIndex(function(n){return n.id==='ai-
 
 /* ---------- plan → model (mirrors the backend; shown to the seller) ---------- */
 var TIER={free:'deepseek',basic:'deepseek',grow:'kimi',advanced:'claude',enterprise:'claude'};
-var MODEL={deepseek:'DeepSeek',kimi:'Kimi',claude:'Claude',local:'Built-in'};
+/* VendOm AI has three models of its own; sellers never see which AI company runs them */
+var MODEL={deepseek:'VendOm AI Lite',kimi:'VendOm AI Plus',claude:'VendOm AI Pro',local:'VendOm AI'};X.ai16brand=function(p){return MODEL[p]||'VendOm AI'};
 function planCode(){return ((S.sub9||{}).plan)||'grow'}
 function chatState(){S.ai16=S.ai16||{log:[]};return S.ai16}
 
@@ -37,7 +38,7 @@ function local(text){
 /* ---------- chat page ---------- */
 var CHIPS=['How are sales this month?','Show orders to ship','What is low on stock?','Audit my SEO','Write AEO FAQs for my best seller','Create a 10% discount code EID10','Build a website for my brand'];
 V['ai-assistant']=function(){var c=chatState(),p=planCode(),prov=TIER[p]||'deepseek',on=!!be();
- var info='<span class="mu" id="ai16model">Plan: <b>'+h(p.charAt(0).toUpperCase()+p.slice(1))+'</b> · AI model: <b>'+(on?MODEL[prov]:MODEL[prov]+' (once your store is connected to the VendOm server; built-in answers until then)')+'</b></span>';
+ var info='<span class="mu" id="ai16model">Your plan includes <b>'+MODEL[prov]+'</b>'+(on?'':' · quick answers now, full AI once your store is online')+'</span>';
  return '<div class="xw ai16">'+head('VendOm AI','<button class="btn" data-x="ai16clear">New chat</button>')+'<div class="xc" style="padding:12px 16px">'+info+'</div>'
   +'<div class="xc ai16box"><div id="ai16log" class="ai16log">'+(c.log.length?c.log.map(bubble).join(''):'<div class="ai16empty"><b>Ask me anything about your store.</b><br><span class="mu">Sales and orders, stock, SEO / AEO / GEO, content, discounts, and building or editing your website. I make real changes, and ask before big ones.</span></div>')+'</div>'
   +'<div class="ai16chips">'+CHIPS.map(function(x){return '<button class="btn" data-x="ai16ask:'+h(x)+'">'+h(x)+'</button>'}).join('')+'</div>'
@@ -46,7 +47,7 @@ function bubble(m){return '<div class="ai16m '+(m.role==='user'?'u':'a')+'"><div
 function render(){var l=q('#ai16log');if(!l)return;var c=chatState();l.innerHTML=c.log.map(bubble).join('');l.scrollTop=l.scrollHeight}
 var busy=false;
 function ask(text){text=String(text||'').trim();if(!text||busy)return;var c=chatState();c.log.push({role:'user',text:text,at:Date.now()});c.log=c.log.slice(-60);save();render();var inp=q('#ai16q');if(inp)inp.value='';busy=true;
- var b=be();var done=function(r){busy=false;c.log.push({role:'assistant',text:r.text||'(no answer)',steps:(r.steps||[]).map(function(s){return typeof s==='string'?s:s.tool}),model:r.model&&r.model!=='built-in'?r.model:'',at:Date.now()});save();render()};
+ var b=be();var done=function(r){busy=false;c.log.push({role:'assistant',text:r.text||'(no answer)',steps:(r.steps||[]).map(function(s){return typeof s==='string'?s:s.tool}),model:r.brand||'',at:Date.now()});save();render()};
  if(b){var hist=c.log.slice(-20).map(function(m){return{role:m.role,content:m.text}});while(hist.length&&hist[0].role!=='user')hist.shift();
   c.log.push({role:'assistant',text:'…',pending:1});render();
   b.api('POST','/api/stores/'+b.cfg().storeId+'/assistant/chat',{messages:hist}).then(function(r){c.log=c.log.filter(function(m){return !m.pending});done(r)}).catch(function(e){c.log=c.log.filter(function(m){return !m.pending});done({text:/402|credits|limit/i.test(e.message)?'You have used this month’s AI credits. Upgrade or turn on auto-pay overage in Settings › Plan.':'I could not reach the VendOm server ('+e.message+'). Answering from this browser instead:\n\n'+local(text).text})});return}
@@ -65,7 +66,7 @@ var RULES=[[/^hooks\.zapier\.com$/,'webhook','zapier','Zapier'],[/(^|\.)hook\.[a
  [/(^|\.)(facebook|instagram)\.com$/,'app','meta','Meta (Facebook & Instagram)'],[/^merchants\.google\.com$|^merchantcenter\.google\.com$/,'app','google-merchant','Google Merchant Center'],[/^ads\.google\.com$/,'app','google-ads','Google Ads'],[/^analytics\.google\.com$/,'app','ga4','Google Analytics 4'],[/^search\.google\.com$/,'app','search-console','Google Search Console'],[/(^|\.)tiktok\.com$/,'app','tiktok','TikTok'],[/(^|\.)pinterest\.com$/,'app','pinterest','Pinterest'],[/(^|\.)snapchat\.com$/,'app','snapchat','Snapchat'],[/(^|\.)(whatsapp\.com|wa\.me)$/,'app','whatsapp','WhatsApp Business'],[/(^|\.)mailchimp\.com$/,'app','mailchimp','Mailchimp'],[/(^|\.)klaviyo\.com$/,'app','klaviyo','Klaviyo'],[/(^|\.)xero\.com$/,'app','xero','Xero'],[/(^|\.)intuit\.com$/,'app','quickbooks','QuickBooks'],[/(^|\.)tcscourier\.com$/,'app','tcs','TCS'],[/(^|\.)leopardscourier\.com$/,'app','leopards','Leopards'],[/(^|\.)postex\.pk$/,'app','postex','PostEx'],[/(^|\.)(trax|sonic)\.pk$/,'app','trax','Trax']];
 function detect(raw){var u;try{u=new URL(String(raw).trim())}catch(e){throw new Error('That is not a valid link. Paste the full address, starting with https://')}
  if(!/^https?:$/.test(u.protocol))throw new Error('Only http(s) links can be connected.');var host=u.hostname.toLowerCase(),path=u.pathname.toLowerCase();
- if(/\/(mcp|sse)\/?$/.test(path)||/^mcp\./.test(host))return{kind:'mcp',provider:'mcp',name:host+' (MCP)',note:'An MCP server. Its tools become available to VendOm AI on plans that use Claude.'};
+ if(/\/(mcp|sse)\/?$/.test(path)||/^mcp\./.test(host))return{kind:'mcp',provider:'mcp',name:host+' (MCP)',note:'An MCP server. Its tools become available to VendOm AI Pro (Advanced plan).'};
  if(/(openapi|swagger)[^/]*\.(json|ya?ml)$/.test(path)||/\/(openapi|swagger)(\.json)?$/.test(path))return{kind:'api',provider:'openapi',name:host+' API',needsKey:true,note:'An API description (OpenAPI). VendOm AI can read data from it. Add its key if it needs one.'};
  if((host==='discord.com'||host==='discordapp.com')&&/\/api\/webhooks\//.test(path))return{kind:'webhook',provider:'discord',name:'Discord',note:'Discord will get a message for each store event.'};
  if(/\/webhook(-test)?\//.test(path)||/n8n/.test(host))return{kind:'webhook',provider:'n8n',name:'n8n',note:'An n8n webhook. Store events will be sent to it.'};

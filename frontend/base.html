@@ -1390,7 +1390,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.rates) S.rates = { USD: 1, PKR: 280, EUR: 0.92, AED: 3.67, GBP: 0.79 };
     if (!S.sym) S.sym = { USD: '$', PKR: 'Rs ', EUR: '€', AED: 'AED ', GBP: '£' };
     if (!Array.isArray(S.products)) S.products = [];
-    if (S.products.length === 0) {
+    if (S.products.length === 0 && !S.noDemo) {
       S.products = [
         { id: 1, name: 'Race Day Gloves', price: 48, stock: 34, status: 'Active', desc: 'Leather gloves built for grip and airflow.', cat: 'Apparel & Accessories', track: true, pub: true },
         { id: 2, name: 'Carbon Visor Cover', price: 22, stock: 120, status: 'Active', desc: 'Lightweight cover that keeps your visor clear.', cat: 'Sporting Goods', track: true, pub: true },
@@ -1458,7 +1458,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     if (!S.oid) S.oid = 1004;
 
     // Collections with Picture, Meta Title, Meta Description
-    if (!Array.isArray(S.collections) || S.collections.length === 0) {
+    if (!Array.isArray(S.collections) || (S.collections.length === 0 && !S.noDemo)) {
       S.collections = [
         { 
           id: 1, 
@@ -2126,11 +2126,14 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       '</tr>';
     }).join('');
 
-    return head('Checkouts', '<button class="btn" id="btn-sim-ck">Simulate checkout</button>') +
+    // real numbers only: completed orders vs checkouts that were started but not finished
+    var done = (S.orders || []).filter(function (o) { return !o.cancelled; }).length, left = (S.carts || []).length + (S.abandonedCheckouts || []).length;
+    var rate = done + left ? (done / (done + left) * 100).toFixed(1) + '%' : '—';
+    return head('Checkouts', (window.isPlatformAdmin && window.isPlatformAdmin() ? '<button class="btn" id="btn-sim-ck">Simulate checkout</button>' : '')) +
       '<div class="stat-grid">' +
-        '<div class="stat-card"><small>Active sessions now</small><b>' + list.length + '</b></div>' +
-        '<div class="stat-card"><small>Cart to Checkout</small><b>64.2%</b></div>' +
-        '<div class="stat-card"><small>Avg checkout duration</small><b>2m 14s</b></div>' +
+        '<div class="stat-card"><small>Checkouts in progress</small><b>' + list.length + '</b></div>' +
+        '<div class="stat-card"><small>Checkouts completed</small><b>' + rate + '</b></div>' +
+        '<div class="stat-card"><small>Abandoned checkouts</small><b>' + left + '</b></div>' +
       '</div>' +
       '<div class="panel wrap"><table>' +
         '<tr><th>Session</th><th>Customer / Lead</th><th>Checkout funnel step</th><th>Cart value</th><th>Last active</th><th>IP / Device</th></tr>' +
@@ -2665,10 +2668,10 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
 
     return head('Growth overview', '<button class="btn pri" data-r="growth-campaigns">New campaign</button>') +
       '<div class="stat-grid">' +
-        '<div class="stat-card"><small>Blended ROAS</small><b>' + g.roas + '</b><span class="diff up">↑ +14.2% this month</span></div>' +
+        '<div class="stat-card"><small>Blended ROAS</small><b>' + g.roas + '</b></div>' +
         '<div class="stat-card"><small>Attributed revenue</small><b>' + money(g.attributedRev) + '</b></div>' +
         '<div class="stat-card"><small>Active Autopilot rules</small><b>' + g.activeAutomations + ' active</b></div>' +
-        '<div class="stat-card"><small>Customer Acq. Cost (CAC)</small><b>$14.80</b><span class="diff up">↓ -8% optimization</span></div>' +
+        '<div class="stat-card"><small>Customer Acq. Cost (CAC)</small><b>' + ((g.channels || []).length && (S.orders || []).length ? money((g.channels || []).reduce(function (a, c) { return a + (+c.spend || 0); }, 0) / S.orders.length) : '—') + '</b></div>' +
       '</div>' +
       '<div class="panel">' +
         '<h3>Acquisition channels</h3>' +
@@ -2706,11 +2709,11 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
               '<td>' + money(c.spend) + '</td>' +
               '<td><b>' + money(c.attributed) + '</b></td>' +
               '<td>' + esc(c.roas) + '</td>' +
-              '<td><div class="prog-bar" style="width:120px"><div class="prog-fill" style="width:92%"></div></div> 92%</td>' +
+              '<td><div class="prog-bar" style="width:120px"><div class="prog-fill" style="width:' + Math.min(100, c.spend ? Math.round(c.attributed / c.spend * 10) : 0) + '%"></div></div></td>' +
             '</tr>';
           }).join('') +
         '</table></div>' +
-        '<div class="bn" style="margin-top:14px"><span>💡 <b>Autopilot recommendation:</b> Increasing TikTok ad spend by $50/week is projected to generate an additional $240 in sales based on recent top-of-funnel traffic velocity.</span></div>' +
+        ((g.channels || []).length ? '<div class="bn" style="margin-top:14px"><span>💡 <b>Autopilot recommendation:</b> Increasing TikTok ad spend by $50/week is projected to generate an additional $240 in sales based on recent top-of-funnel traffic velocity.</span></div>' : '') +
       '</div>';
   };
 

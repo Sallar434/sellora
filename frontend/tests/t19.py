@@ -25,7 +25,7 @@ with sync_playwright() as p:
         ok('menu no longer shows "%s"' % w, w not in nav)
     go(pg, 'ai-assistant', 500)
     t = E("document.querySelector('#main').innerText")
-    ok('chat page with plan and model', 'VendOm AI' in t and 'AI model' in t and 'Plan:' in t, t[:200])
+    ok('chat page names the VendOm AI model, never the AI company', 'VendOm AI' in t and 'Your plan includes' in t and not any(w in t for w in ['DeepSeek','Kimi','Claude']), t[:200])
     ok('suggestion chips', pg.locator('[data-x^="ai16ask:"]').count() >= 5)
     a = ask(pg, 'How are sales this month?')
     ok('sales answer from real orders', 'Last 30 days:' in a and 'order' in a, a)

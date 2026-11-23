@@ -13,6 +13,8 @@ import { config } from '../lib/config';
 import { check, record, getSub } from '../lib/billing';
 import { INTERNAL_TOKEN } from '../lib/internal';
 import { runAgent, providersFor, modelOf, configured, ToolDef, ChatTurn, McpServer, Provider } from '../providers/ai/agent';
+/** Sellers see VendOm's own model names, never the AI company behind them (that stays in AiLog for the platform). */
+export const BRAND: Record<string, string> = { deepseek: 'VendOm AI Lite', kimi: 'VendOm AI Plus', claude: 'VendOm AI Pro', local: 'VendOm AI' };
 import { detect, assertPublicUrl, test as testConnector, sealKey, EVENTS } from '../lib/connectors';
 import { decrypt } from '../lib/crypto';
 
@@ -149,7 +151,9 @@ async function localReply(req: Request, text: string): Promise<{ text: string; s
 r.get('/:storeId/assistant', storeAccess(), ah(async (req, res) => {
   const sub = await getSub(req.store.id); const order = providersFor(sub.planCode);
   const p = order[0] as Provider | undefined;
-  res.json({ plan: sub.planCode, provider: p || 'local', model: p ? modelOf(p) : 'built-in', creditsPerReply: config.aiCredits[p || 'local'], fallbacks: order.slice(1), configured: { deepseek: configured('deepseek'), kimi: configured('kimi'), claude: configured('claude') }, tools: TOOLS.map(t => t.name) });
+  const brand = BRAND[p || 'local'];
+  if (req.user?.type !== 'ADMIN') return res.json({ plan: sub.planCode, model: brand, creditsPerReply: config.aiCredits[p || 'local'], ready: !!p, tools: TOOLS.map(t => t.name) });
+  res.json({ plan: sub.planCode, model: brand, provider: p || 'local', vendorModel: p ? modelOf(p) : 'built-in', creditsPerReply: config.aiCredits[p || 'local'], fallbacks: order.slice(1), configured: { deepseek: configured('deepseek'), kimi: configured('kimi'), claude: configured('claude') }, tools: TOOLS.map(t => t.name) });
 }));
 
 r.post('/:storeId/assistant/chat', storeAccess(), ah(async (req, res) => {
@@ -160,9 +164,9 @@ r.post('/:storeId/assistant/chat', storeAccess(), ah(async (req, res) => {
   await check(req.store.id, 'ai', config.aiCredits[first] || 0); // 402 when the plan's AI credits are used up and overage is off
   const mcp: McpServer[] = (await db.connector.findMany({ where: { storeId: req.store.id, kind: 'mcp', status: 'connected' } })).map(c => ({ name: c.provider + '-' + c.id.slice(-6), url: c.url, token: c.credentialsEnc ? decrypt(c.credentialsEnc) : undefined }));
   const out = await runAgent(sub.planCode, systemPrompt(req.store), history, TOOLS, (n, a) => runTool(req, n, a), mcp);
-  if (!out) { const l = await localReply(req, history[history.length - 1].content); return res.json({ provider: 'local', model: 'built-in', credits: 0, ...l }); }
+  if (!out) { const l = await localReply(req, history[history.length - 1].content); return res.json({ brand: BRAND.local, credits: 0, ...l }); }
   const credits = config.aiCredits[out.provider] || 1;
   await record(req.store.id, 'ai', credits, 'assistant');
   await db.aiLog.create({ data: { storeId: req.store.id, kind: 'assistant', credits, provider: out.provider, model: out.model, inputTokens: out.inputTokens, outputTokens: out.outputTokens, estUsd: out.estUsd } });
-  res.json({ provider: out.provider, model: out.model, credits, text: out.text, steps: out.steps, refused: !!out.refused });
+  res.json({ brand: BRAND[out.provider], credits, text: out.text, steps: out.steps, refused: !!out.refused, ...(req.user?.type === 'ADMIN' ? { provider: out.provider, vendorModel: out.model } : {}) });
 }));

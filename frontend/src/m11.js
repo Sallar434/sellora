@@ -19,7 +19,7 @@ function tr(c){return '<tr>'+c.map(function(x){return '<td>'+x+'</td>'}).join(''
 function pre(t,id){return '<textarea class="xin m12pre" id="'+id+'" rows="8" readonly>'+h(t)+'</textarea>'}
 function cur(){return (S.cur||'PKR')}
 function base(){return 'https://'+slug(S.name||'store')+'.vendom.app'}
-function prov(){var b=BK();return b?'DeepSeek (server)':'Built-in templates (offline demo)'}
+function prov(){var b=BK();return b?'VendOm AI':'VendOm AI (built-in)'}
 /* backend call → falls back to local generator */
 function call(path,body,local,done){var b=BK();if(!b){done(local());return}b.api('POST',path,body||{}).then(function(r){done(r&&r.result?r.result:r)}).catch(function(e){tst('Backend error — used offline template');done(local())})}
 
@@ -79,7 +79,7 @@ V['ai-builder']=function(){var g=G(),s=g.site,th=g.theme;
  return '<div class="xw">'+hd('AI website builder','Build a full store from one sentence — by typing or by voice. Then edit it by talking to it.',btn('Classic builder & audit','m12go:ai-builder-classic')+' '+btn('SEO suite','m12go:seo-suite'))+'<div class="m12two"><div>'+form+edit+'</div><div>'+(prev||card('Preview','<p class="xk">Your generated website appears here.</p>'))+'</div></div></div>'};
 A.m12go=function(r){location.hash=r;rr()};
 A.m12build=function(){var g=G(),pr=vl('m12prompt');if(pr.length<3){tst('Describe your store first');return}g.prompt=pr;g.lang=vl('m12lang');g.applyChk=vl('m12apply');if(!meter(25,'site.build'))return;
- call('/ai/site/build',{prompt:pr,language:g.lang,apply:!!g.applyChk,via:g.via||'text'},function(){return {site:mockSite(pr),source:'template'}},function(r){var site=r.site||r;g.site=site;g.theme={palette:site.theme.palette,settings:site.theme.settings,sections:site.sections};g.src=r.source==='llm'?'DeepSeek':'Template';
+ call('/ai/site/build',{prompt:pr,language:g.lang,apply:!!g.applyChk,via:g.via||'text'},function(){return {site:mockSite(pr),source:'template'}},function(r){var site=r.site||r;g.site=site;g.theme={palette:site.theme.palette,settings:site.theme.settings,sections:site.sections};g.src=r.source==='llm'?'VendOm AI':'Template';
   if(g.applyChk&&!BK())applyLocal(site);sv();rr();var msg='Your website for '+(site.name||'your store')+' is ready with '+(site.products||[]).length+' products and '+(site.pages||[]).length+' pages.';tst(msg);speak(msg);g.via='text'})};
 function applyLocal(site){S.nid=S.nid||1000;(site.products||[]).forEach(function(p){S.products.push({id:++S.nid,name:p.title,price:+p.price,stock:(p.variants||[]).reduce(function(a,v){return a+(+v.inventory||0)},0),status:'Draft',desc:strip(p.description),cols:[],vars:(p.variants||[]).map(function(v){return {name:v.title,price:+v.price,stock:+v.inventory||0}}),opts:[],imgs:[],tags:p.tags||[],sku:'AI-'+S.nid,handle:p.handle||slug(p.title),seo:{title:p.seoTitle,desc:p.seoDesc}})});
  S.collections=S.collections||[];(site.collections||[]).forEach(function(c){if(!S.collections.some(function(x){return x.handle===c.handle}))S.collections.push({id:++S.nid,title:c.title,handle:c.handle,desc:c.description,type:'Manual'})});

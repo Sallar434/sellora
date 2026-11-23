@@ -10,6 +10,7 @@ with sync_playwright() as p:
     E = pg.evaluate
     vt.signup(pg, email='seller@shop.pk', store='Noor Lawn', plan='advanced')
     E("S.sub9.status='active';S.online=S.online||{};S.online.password=false;S.online.live=true;save()")
+    E("S.products.push({id:S.nid++,name:'Lawn Suit',price:25,stock:50,status:'Active',desc:'',vars:[],opts:[],imgs:[],tags:[]});save()")
     pid = E("S.products[0].id")
     W = pg.wait_for_timeout
     sf = lambda: E("(document.querySelector('#xsf')||{innerText:''}).innerText")
