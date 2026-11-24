@@ -1499,53 +1499,28 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     }
 
     if (!Array.isArray(S.draftOrders)) {
-      S.draftOrders = [
-        { id: 'D101', customer: 'Zainab Bibi', date: 'Today', items: 2, total: 64, status: 'Open' },
-        { id: 'D102', customer: 'Hamza Tariq', date: 'Yesterday', items: 1, total: 48, status: 'Invoice sent' }
-      ];
+      S.draftOrders = [];
     }
     if (!Array.isArray(S.abandonedCheckouts)) {
-      S.abandonedCheckouts = [
-        { id: 'AC-901', email: 'kamran@fastmail.com', date: '2 hours ago', total: 70, recovery: 'Not sent' },
-        { id: 'AC-902', email: 'maryam.s@gmail.com', date: 'Yesterday', total: 112, recovery: 'Email sent' }
-      ];
+      S.abandonedCheckouts = [];
     }
     if (!Array.isArray(S.checkoutsList)) {
-      S.checkoutsList = [
-        { id: 'CK-441', customer: 'Usman Ghani', step: 'Shipping step', total: 48, time: '8 mins ago', ip: '182.185.12.4' },
-        { id: 'CK-442', customer: 'Fatima Noor', step: 'Payment method', total: 96, time: '21 mins ago', ip: '119.160.67.18' }
-      ];
+      S.checkoutsList = [];
     }
     if (!Array.isArray(S.purchaseOrders)) {
-      S.purchaseOrders = [
-        { id: 'PO-104', supplier: 'Apex Leathercraft Co.', destination: 'Main location', status: 'Ordered', expected: 'Nov 5, 2026', total: 840 },
-        { id: 'PO-105', supplier: 'Carbon Fiber Works Ltd.', destination: 'Main location', status: 'Received', expected: 'Oct 20, 2026', total: 1250 }
-      ];
+      S.purchaseOrders = [];
     }
     if (!Array.isArray(S.transfers)) {
-      S.transfers = [
-        { id: 'TR-201', origin: 'Main location', destination: 'Lahore Outlet', items: 25, status: 'In transit', tracking: 'TCS-883910' },
-        { id: 'TR-202', origin: 'Central Hub', destination: 'Karachi Warehouse', items: 10, status: 'Completed', tracking: 'LEO-299104' }
-      ];
+      S.transfers = [];
     }
     if (!Array.isArray(S.giftCards)) {
-      S.giftCards = [
-        { id: 1, code: '•••• •••• •••• 9812', initial: 100, balance: 100, customer: 'Ayesha Khan', status: 'Active', expires: 'No expiry' },
-        { id: 2, code: '•••• •••• •••• 4401', initial: 50, balance: 18, customer: 'Daniel Ruiz', status: 'Active', expires: 'Dec 31, 2026' }
-      ];
+      S.giftCards = [];
     }
     if (!Array.isArray(S.customerSegments)) {
-      S.customerSegments = [
-        { name: 'All customers', count: 3, query: 'All profiles created', desc: 'Every registered shopper in your store' },
-        { name: 'High-value repeat buyers', count: 1, query: 'Orders count >= 2 AND Total spend >= $50', desc: 'Top spending loyal customers' },
-        { name: 'First-time shoppers', count: 2, query: 'Orders count == 1', desc: 'Buyers who completed their first purchase' }
-      ];
+      S.customerSegments = [];
     }
     if (!Array.isArray(S.companies)) {
-      S.companies = [
-        { id: 'CP-1', name: 'Apex Racing Team Ltd.', location: 'Dubai, UAE', terms: 'Net 30', contacts: 'Hassan Ali', spend: 4500 },
-        { id: 'CP-2', name: 'Velocity Motors Club', location: 'London, UK', terms: 'Due on receipt', contacts: 'James Wright', spend: 2800 }
-      ];
+      S.companies = [];
     }
     if (!S.growth) {
       S.growth = {
@@ -1570,16 +1545,10 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       };
     }
     if (!Array.isArray(S.discountsList)) {
-      S.discountsList = [
-        { id: 'DSC-1', code: 'WELCOME10', type: '10% off entire order', uses: 28, status: 'Active', starts: 'Oct 1, 2026' },
-        { id: 'DSC-2', code: 'FREESHIP100', type: 'Free shipping over $100', uses: 45, status: 'Active', starts: 'Sep 15, 2026' }
-      ];
+      S.discountsList = [];
     }
     if (!Array.isArray(S.filesList)) {
-      S.filesList = [
-        { name: 'hero-banner-autumn.jpg', size: '240 KB', type: 'Image', uploaded: 'Oct 24, 2026', url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22240%22%3E%3Crect width=%22480%22 height=%22240%22 fill=%22%232E6B4F%22/%3E%3Ccircle cx=%22380%22 cy=%2270%22 r=%2240%22 fill=%22%23F2C14E%22/%3E%3C/svg%3E' },
-        { name: 'sizing-chart-2026.pdf', size: '1.2 MB', type: 'Document', uploaded: 'Oct 12, 2026', url: 'https://cdn.vendom.app/docs/sizing-2026.pdf' }
-      ];
+      S.filesList = [];
     }
     if (!Array.isArray(S.menusList)) {
       S.menusList = [
@@ -1588,10 +1557,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
       ];
     }
     if (!Array.isArray(S.blogPosts)) {
-      S.blogPosts = [
-        { id: 1, title: 'How Carbon Fiber is Changing Track Safety in 2026', author: 'Sallar', date: 'Oct 22, 2026', comments: 4, status: 'Published' },
-        { id: 2, title: 'The Ultimate Driver’s Gear Maintenance Guide', author: 'Team VendOm', date: 'Oct 15, 2026', comments: 1, status: 'Published' }
-      ];
+      S.blogPosts = [];
     }
     if (!Array.isArray(S.marketsList)) {
       S.marketsList = [
@@ -2129,7 +2095,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     }).join('');
 
     // real numbers only: completed orders vs checkouts that were started but not finished
-    var done = (S.orders || []).filter(function (o) { return !o.cancelled; }).length, left = (S.carts || []).length + (S.abandonedCheckouts || []).length;
+    var done = (S.orders || []).filter(function (o) { return !o.cancelled; }).length, left = (S.carts || []).filter(function (c) { return !c.recovered; }).length + (S.abandonedCheckouts || []).length;
     var rate = done + left ? (done / (done + left) * 100).toFixed(1) + '%' : '—';
     return head('Checkouts', (window.isPlatformAdmin && window.isPlatformAdmin() ? '<button class="btn" id="btn-sim-ck">Simulate checkout</button>' : '')) +
       '<div class="stat-grid">' +

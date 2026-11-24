@@ -109,7 +109,7 @@ X.ORD={statusOf:statusOf,tl:tl,get:function(i){return S.orders.filter(function(o
   Q.applied.forEach(function(a){var d=S.disc2.filter(function(x){return x.code===a.code})[0];if(d)d.used++});
   if(Q.gc){var g=S.gc2.filter(function(x){return x.code===Q.gc})[0];g.bal=r2(g.bal-Q.gcAmt)}
   tl(o,'Order placed by '+o.who+' · paid '+money(o.total)+' via '+o.gw+(o.cur!=='USD'?' (charged in '+o.cur+')':''));statusOf(o);S.orders.push(o);
-  S.carts=S.carts.filter(function(a){return a.email!==c.email});
+  S.carts.forEach(function(a){if(a.email===c.email&&!a.recovered){a.recovered=o.id;a.recAt=Date.now()}});
   if(X.PAY&&pay.escrow!==false)X.PAY.onOrder(o,ctx);
   X.API.email(o.email,'Order #'+o.id+' confirmed','Hi '+(c.first||'')+',\nThanks for your order #'+o.id+'.\n'+o.items.map(function(l){return l.q+' × '+l.name+(l.variant?' ('+l.variant+')':'')+' — '+money(l.price*l.q)}).join('\n')+'\nTotal: '+money(o.total)+'\n'+(o.protected?'VendOm Pay Protection is holding your payment until you confirm delivery.':''),'order_confirmation');
   (X.HOOKS||[]).forEach(function(f){try{f('order',o)}catch(e){}});save();return o},

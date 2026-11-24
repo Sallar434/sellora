@@ -161,19 +161,17 @@ with sync_playwright() as p:
         go(pg, 'customer-%s' % cid, 400)
         ok('customer detail shows order history', str(oid) in txt(pg), txt(pg)[:300])
     go(pg, 'customers', 300)
-    pg.click('[data-x="custadd"]'); pg.wait_for_timeout(300)
+    pg.click('#s23addc'); pg.wait_for_timeout(300)
     box = E("document.querySelector('#box').innerHTML")
     ok('add customer form', 'mail' in box)
 
     # ---------- 7. draft order -> order ----------
     E("closeM()")
-    E("S.draftOrders.push({id:'D1',customer:'Walk-in buyer',date:'Today',items:1,total:20,status:'Open'});save()")  # the seller's own draft
-    go(pg, 'orders-drafts', 400)
     n0 = E("S.orders.length")
-    btn = pg.locator('#main button:has-text("Complete")')
-    if btn.count():
-        btn.first.click(); pg.wait_for_timeout(400)
-        if pg.locator('#xok:visible').count(): pg.click('#xok'); pg.wait_for_timeout(300)
+    go(pg, 'draft-new', 400)
+    pg.click('[data-x="s23pick"]'); pg.wait_for_timeout(300); pg.locator('[data-pp]').first.check(); pg.click('#xok'); pg.wait_for_timeout(500)
+    pg.click('#s23cs'); pg.wait_for_timeout(300); pg.locator('[data-x^="s23setcust:"]').first.click(); pg.wait_for_timeout(400)
+    pg.click('#s23col'); pg.wait_for_timeout(200); pg.click('#s23paidopt'); pg.wait_for_timeout(300); pg.click('#xok'); pg.wait_for_timeout(600)
     ok('draft order converts to an order', E("S.orders.length") == n0 + 1)
 
     # cancel an unfulfilled order (the one just created from the draft)
