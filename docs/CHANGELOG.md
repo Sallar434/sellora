@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v49: 348 more themes in the Theme Store (25 Nov 2026)
+- **Theme Store:** 468 free themes (was 120), 20 pages of 24. The 348 new themes come from a study of Shopify Theme Store pages 13–59 (348 themes, 1,107 styles, see `docs/Shopify-theme-store-research.md`). Each new theme has an original VendOm name, its own industries, one or more catalog sizes and up to 6 ready-made styles. Names, photos, copy and code are VendOm's own.
+- **Filters:** Industry now covers all 20 industries (adds Entertainment, Services, Toys, Hardware, Office, Shoes, Wellness). A theme can be in more than one catalog size.
+- **Theme page:** shows all of the theme's styles with a count; the description lists up to three industries.
+- Tests: new t29 (25 checks); t15 and t25 updated for 468 themes.
+
 ## v48: Growth, Discounts and Content from the owner's second document (24 Nov 2026)
 - **Growth:** overview (Run your marketing on autopilot, marketing performance chart, sessions by traffic type, recent campaigns). **Get started** asks for a plan, or you can skip and set things up. **Autopilot:** a setup warning until the store has a product, a plan and no password, and pending actions to connect channels. The configuration is editable: regions (every country, search), languages (English and Urdu by default, 20 available), target ROAS, customer acquisition cost, permissions (Always ask / Manage approved campaigns / Full autonomy) and Connect to a channel (Meta Ads, Google Ads, TikTok, Microsoft Advertising, Snapchat, Pinterest, X, LinkedIn, YouTube, Messaging). There is an activity log. **Attribution** is locked until a plan is bought; then it shows sales, orders, AOV, sessions and top channels/campaigns from real store visits.
 - **Campaigns:** empty state, an "N unassigned activities" button, and Assign campaign activities (search, type filter, table) built from real visits (utm_source / referrer). The campaign page has stats, breakdowns, a name, **shareable links** (destination, short handle, UTM parameters, QR code download, copy short link / full URL / delete), **auto-match rules** (UTM fields, channel list, type) and activities. The QR code library is bundled (MIT, qrcode-generator 1.4.4).

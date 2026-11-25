@@ -34,7 +34,7 @@ See `backend/README.md` for going live (Stripe, SMTP, Twilio, LLM, S3, FX).
 - During the trial the store can be fully built, but it stays behind its password page until a plan is bought through VendOm Pay.
 - After 4 days without a plan the store is closed: the storefront shows "Store unavailable" and the admin only shows the plan page. Buying any plan reopens it with all data kept.
 - Products: CSV import (preview, errors, overwrite by handle, template) and export (page, all, selected or search; Excel or plain CSV).
-- Themes: only VendOm's own free themes (Daybreak is the default). See `docs/Themes.md`.
+- Themes: only VendOm's own free themes, 468 in the Theme Store (Daybreak is the default). See `docs/Themes.md`.
 - Tests: frontend `bash frontend/tests/run_all.sh` (needs Python Playwright; runs every `frontend/tests/t*.py`, including the Shopify parity suite `t17.py`); backend `cd backend && npm test`. `tconn.py` also needs the backend running on port 4000.
 - Shopify coverage: see `docs/Shopify-parity.md`.
 
