@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v50: Admin rebuild step 1: shell and Home (25 Nov 2026)
+- **Alerts:** the bell opens a popover (not a modal) with real alerts only: orders to fulfil, out-of-stock and low-stock products, abandoned checkouts, trial days left and "add your first product". The old sample alerts ("3 orders are ready to fulfil" on an empty store) are gone. Mark all as read, Escape and click-outside close it; the badge counts only new alerts.
+- **Store menu:** shows the store name and domain, and adds Online store preferences. The alerts popover and the store menu never open together.
+- **Home:** a date range (Today, Last 7/30/90 days), metric cards (sessions, total sales, orders, conversion rate with AOV) with trend lines and change against the previous period, a live-visitors link (last 5 minutes), **Things to do** (orders to fulfil, abandoned checkouts, out of stock, drafts) and **Recent activity** (orders, order events, new customers). All numbers come from the store's own orders and visits.
+- Tests: new t30 (24 checks).
+
 ## v49: 348 more themes in the Theme Store (25 Nov 2026)
 - **Theme Store:** 468 free themes (was 120), 20 pages of 24. The 348 new themes come from a study of Shopify Theme Store pages 13–59 (348 themes, 1,107 styles, see `docs/Shopify-theme-store-research.md`). Each new theme has an original VendOm name, its own industries, one or more catalog sizes and up to 6 ready-made styles. Names, photos, copy and code are VendOm's own.
 - **Filters:** Industry now covers all 20 industries (adds Entertainment, Services, Toys, Hardware, Office, Shoes, Wellness). A theme can be in more than one catalog size.
