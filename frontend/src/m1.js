@@ -79,7 +79,7 @@ function addCust(o){var c={id:id('C'),first:o.first||'',last:o.last||'',email:(o
 function hash(s){var h1=5381;for(var i=0;i<s.length;i++)h1=((h1<<5)+h1+s.charCodeAt(i))|0;return 'h'+(h1>>>0).toString(16)}
 X.CU={byEmail:custByEmail,add:addCust,hash:hash,get:function(i){return S.cust.filter(function(c){return c.id===i})[0]},orders:function(c){return S.orders.filter(function(o){return o.cid===c.id})},name:function(c){return ((c.first||'')+' '+(c.last||'')).trim()||c.email}};
 /* ---------- PRICING ENGINE ---------- */
-function vprice(p,vi){var v=vi>-1&&p.vars[vi];return v&&v.price!==''&&v.price!=null?+v.price:+p.price}
+function vprice(p,vi){var v=vi>-1&&p.vars[vi],b=v&&v.price!==''&&v.price!=null?+v.price:+p.price;return X.MKP?X.MKP(p,vi,b):b}
 function vstock(p,vi){var v=vi>-1&&p.vars[vi];if(v)return v.qty===''?0:+v.qty;if(p.vars.length)return p.vars.reduce(function(a,v){return a+(+v.qty||0)},0);return +p.stock||0}
 function adjStock(p,vi,d){if(vi>-1&&p.vars[vi]){p.vars[vi].qty=Math.max(0,(+p.vars[vi].qty||0)+d);p.stock=vstock(p,-1)}else p.stock=Math.max(0,(+p.stock||0)+d)}
 X.PR={vprice:vprice,vstock:vstock,adjStock:adjStock};

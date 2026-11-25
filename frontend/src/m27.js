@@ -73,7 +73,7 @@ function activity(){var ev=[];orders().forEach(function(o){ev.push({at:oAt(o),t:
  (S.orders||[]).filter(function(o){return o.cancelled}).forEach(function(o){ev.push({at:o.cancelledAt||oAt(o),t:'Order #'+o.id+' was cancelled',r:'order-'+o.id,k:'tl'})});
  return ev.filter(function(e){return e.at}).sort(function(a,b){return b.at-a.at}).slice(0,8)}
 function homeBlock(){var d=HM.days,s=series(d),p=prevTotals(d),sales=sum(s.sales),on=sum(s.orders),se=sum(s.sess),cv=se?Math.min(100,on/se*100):0,aov=on?sales/on:0,lv=live(),T=todo(),ev=activity();
- var card=function(lbl,val,dl,sp){return '<button type="button" class="h27m" data-x="go:analytics"><small>'+lbl+'</small><div class="h27mv"><b>'+val+'</b>'+dl+'</div>'+sp+'</button>'};
+ var card=function(lbl,val,dl,sp){return '<button type="button" class="h27m metric" data-x="go:analytics"><small>'+lbl+'</small><div class="h27mv"><b>'+val+'</b>'+dl+'</div>'+sp+'</button>'};
  return '<div class="h27" id="h27home"><div class="h27bar"><label class="h27rng"><span class="sr">Date range</span><select id="h27days" aria-label="Date range">'+RANGES.map(function(r){return '<option value="'+r[0]+'"'+(r[0]===d?' selected':'')+'>'+r[1]+'</option>'}).join('')+'</select></label><span class="h27ch">All channels</span>'
   +'<a class="h27live" href="#analytics-live-view"><i class="'+(lv?'on':'')+'"></i>'+lv+' live visitor'+(lv===1?'':'s')+'</a></div>'
   +'<div class="h27ms">'+card('Sessions',se,delta(se,p.sess),spark(s.sess))+card('Total sales',mon(sales),delta(sales,p.sales),spark(s.sales))+card('Orders',on,delta(on,p.orders),spark(s.orders))+card('Conversion rate',cv.toFixed(1)+'%','<span class="h27dl">AOV '+mon(aov)+'</span>','')+'</div>'

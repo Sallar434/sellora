@@ -1,5 +1,12 @@
 # VendOm v36 changelog
 
+## v51: Admin rebuild step 2: Markets (25 Nov 2026)
+- **Markets** rebuilt to follow Shopify's workflow: All/Active/Draft tabs, search, market types (Regions, Company locations, POS locations, Channels), **Inherited vs Customized** settings (currency with automatic/manual rate, rounding and local currencies; catalogs; domain and language; duties and taxes), backup region, shipping check, delete with safeguards, and a **Graph view** with "View as a customer in".
+- **Catalogs**: price adjustment, exclusions, fixed prices, currency, markets, CSV export. They really change store and checkout prices and availability for that market; admin prices stay the same.
+- **Rollouts**: Launch and Event with catalog and discount changes, traffic allocation, start/end, automatic roll back, End now.
+- Fixed: the unsaved-changes bar could not be hidden on pages that used `hidden`.
+- Docs: `docs/Markets.md`. Tests: new t31 (51 checks).
+
 ## v50: Admin rebuild step 1: shell and Home (25 Nov 2026)
 - **Alerts:** the bell opens a popover (not a modal) with real alerts only: orders to fulfil, out-of-stock and low-stock products, abandoned checkouts, trial days left and "add your first product". The old sample alerts ("3 orders are ready to fulfil" on an empty store) are gone. Mark all as read, Escape and click-outside close it; the badge counts only new alerts.
 - **Store menu:** shows the store name and domain, and adds Online store preferences. The alerts popover and the store menu never open together.
