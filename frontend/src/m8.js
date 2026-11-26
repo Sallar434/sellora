@@ -86,7 +86,7 @@ function log(t){init();S.activity.push({t:t,at:Date.now(),by:S.viewAs||'Owner'})
 var BULK={products:[['Set as active','active'],['Set as draft','draft'],['Archive products','archived']]};
 function rowsOf(t){return qa('tr',t).filter(function(r){return r.cells.length&&r.cells[0].tagName==='TD'})}
 function enhance(r){
- qa('#main table').forEach(function(t,ti){if(t.dataset.p8||t.closest('#xsf,.xmodal,#box,.xdet .xside')||t.closest('[id^=x]')&&t.closest('[id^=x]').id!=='main')return;t.dataset.p8=1;
+ qa('#main table').forEach(function(t,ti){if(t.dataset.p8||/^(productform|product-)/.test(r||'')&&t.closest('.ab')||t.closest('#xsf,.xmodal,#box,.xdet .xside')||t.closest('[id^=x]')&&t.closest('[id^=x]').id!=='main')return;t.dataset.p8=1;
   var rows=rowsOf(t);var hr=q('tr',t);if(!hr||!q('th',hr))return;
   if(!rows.length){var ttl=(q('#main h1')||{}).textContent||'items';var b=q('#main .xh .btn.pri');var w=document.createElement('div');w.innerHTML=empty('🗂️','No '+h(ttl.toLowerCase())+' yet','When you add '+h(ttl.toLowerCase())+', they will appear here.',b?'<button class="btn pri" id="p8eb">'+h(b.textContent)+'</button>':'');t.style.display='none';t.parentNode.insertBefore(w.firstChild,t);var eb=q('#p8eb');if(eb)eb.onclick=function(){b.click()};return}
   /* search, sort and select show for any non-empty table (Shopify shows them even for one row) */

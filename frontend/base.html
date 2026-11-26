@@ -1454,7 +1454,7 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     }
 
     if (!Array.isArray(S.domains)) S.domains = [];
-    if (!Array.isArray(S.roles)) S.roles = [];
+    if (S.roles && !Array.isArray(S.roles)) delete S.roles; /* roles() fills the built-in roles */
     if (!Array.isArray(S.mod)) S.mod = [];
     if (!S.nid) S.nid = 10;
     if (!S.oid) S.oid = 1004;

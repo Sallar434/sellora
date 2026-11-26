@@ -35,7 +35,7 @@ with sync_playwright() as p:
     vt.signup(pg, email='mover@x.pk', store='Noor Lawn', plan='basic')
     go(pg, 'products', 400)
     ok('Products has a "Move your store" button', pg.locator('#xpmove').count() == 1)
-    pg.click('#xpmove'); pg.wait_for_timeout(300)
+    pg.click('#p32more'); pg.wait_for_timeout(200); pg.click('#xpmove'); pg.wait_for_timeout(300)
     ok('opens the Move your store page', E("location.hash") == '#products-import' and 'Move your store' in E("document.querySelector('#main h1').textContent"))
     ok('menu lists it under Products', E("NAV_CONFIG.find(n=>n.id==='products').sub.some(s=>s.id==='products-import')"))
     ok('explains what is and is not copied', all(t in E("document.querySelector('#main').innerText") for t in ['Product photos', 'Collections', 'Theme design', 'Domain']))

@@ -30,3 +30,16 @@ Also kept, as extra library themes: Meridian, Workbench, Legacy, Seamline, Ascen
 | Press | Folio |
 | Bulk | Ledgerline |
 | Tinkerer / Atelierra / Dwelling / Pitchline | Workbench / Seamline / Roomly / Sprint |
+
+## v46: 348 more themes (468 in total)
+The Theme Store now has **468 free themes**: the 120 above plus 348 new ones. That is 20 pages of 24.
+
+The new themes were planned from a study of Shopify Theme Store pages 13–59 (348 themes, 1,107 styles). For each theme there, VendOm got one original theme that matches its *kind*:
+- **Industries**: the same industry tags (a theme can have several). The Industry filter now also has Entertainment, Services, Toys, Hardware, Office, Shoes and Wellness.
+- **Catalog size**: one or more of One product / Few / Some / Lots. A theme can show under more than one size.
+- **Styles**: up to 6 ready-made colour styles per theme (background, text, accent, surface), sampled from that theme's style colours. The default style of every theme is unique in the library.
+- **Mood** (Bold, Editorial, Luxury, Modern, Soft) and layout chosen from the theme's description, with Lookbooks and large-catalog layouts where the original had them.
+
+Names, demo content, layouts, sections and code are VendOm's own. No Shopify theme names, images, text or code are copied. Names were checked against every Shopify Theme Store theme and style name (pages 1–59) and against the existing VendOm names.
+
+Data lives in `ROWS2` in `frontend/src/m21.js`. Each row is `name|demo|mood|industries|sizes|layout|styles`. Test: `frontend/tests/t29.py`.

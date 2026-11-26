@@ -1,4 +1,4 @@
-"""Theme library v45: the old themes are gone; 120 original free VendOm themes, each with its own design; names are VendOm's own."""
+"""Theme library v45: the old themes are gone; 468 original free VendOm themes, each with its own design; names are VendOm's own."""
 import sys as _s,os as _o;_s.path.insert(0,_o.path.dirname(_o.path.abspath(__file__)));import vt
 import re
 from playwright.sync_api import sync_playwright
@@ -16,7 +16,7 @@ with sync_playwright() as p:
     vt.open_app(pg,vt.URL);pg.wait_for_timeout(800)
     E=pg.evaluate
     lib=E("V21_LIB.map(L=>({id:L.id,name:L.name,sig:[L.hero,L.hdr,L.card,L.fp].join('/'),pal:[L.bg,L.tx,L.ac].join(),lay:L.lay,demo:L.demo}))")
-    ok(len(lib)>=120,'120 themes in the library (%d)'%len(lib))
+    ok(len(lib)>=468,'468 themes in the library (%d)'%len(lib))
     ok(len(set(t['name'] for t in lib))==len(lib),'every theme has its own name')
     ok(len(set(t['sig'] for t in lib))==len(lib),'every theme has its own layout + header + card + font combination')
     ok(len(set(t['pal'] for t in lib))==len(lib),'every theme has its own colours')

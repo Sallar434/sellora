@@ -161,9 +161,8 @@ with sync_playwright() as p:
         go(pg, 'customer-%s' % cid, 400)
         ok('customer detail shows order history', str(oid) in txt(pg), txt(pg)[:300])
     go(pg, 'customers', 300)
-    pg.click('#s23addc'); pg.wait_for_timeout(300)
-    box = E("document.querySelector('#box').innerHTML")
-    ok('add customer form', 'mail' in box)
+    pg.click('#s23addc'); pg.wait_for_timeout(500)
+    ok('add customer form', E("location.hash") == '#customers-new' and 'Email' in txt(pg))
 
     # ---------- 7. draft order -> order ----------
     E("closeM()")
@@ -177,7 +176,7 @@ with sync_playwright() as p:
     # cancel an unfulfilled order (the one just created from the draft)
     other = E("(S.orders.find(o=>o.ful==='Unfulfilled'&&!o.cancelled)||{}).id")
     if other:
-        go(pg, 'order-%s' % other, 400); pg.click('[data-x="ocancel:%s"]' % other); pg.wait_for_timeout(300)
+        go(pg, 'order-%s' % other, 400); pg.click('#o31db'); pg.wait_for_timeout(200); pg.click('[data-x="ocancel:%s"]' % other); pg.wait_for_timeout(300)
         if pg.locator('#xok:visible').count(): pg.click('#xok'); pg.wait_for_timeout(300)
         ok('order cancelled', bool(E("ORD.get(%s).cancelled" % other)))
     else:
@@ -215,7 +214,7 @@ with sync_playwright() as p:
     go(pg, 's-users', 300)
     ok('staff and roles page', 'Role' in txt(pg) or 'role' in txt(pg))
     go(pg, 'themes', 400)
-    ok('theme library + customize', 'Customize' in txt(pg) or 'Customise' in txt(pg))
+    ok('theme library + customize', 'Edit theme' in txt(pg) or 'Customize' in txt(pg))
     go(pg, 'content-menus', 300)
     ok('navigation menus', 'Main menu' in txt(pg) or 'main-menu' in txt(pg).lower())
 

@@ -1,0 +1,47 @@
+"""Theme Store v46: 348 more original themes, each with its own industries, catalog sizes and ready-made styles."""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vt
+from vt import ok, go
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    b, pg, errs = vt.launch(p, viewport={'width': 1440, 'height': 1000}); E = pg.evaluate
+    vt.signup(pg, email='themes2@x.pk', store='Rang Mahal')
+    ok('library has 468 themes', E("V21_LIB.length") == 468, E("V21_LIB.length"))
+    ok('348 of them are the new batch', E("V21_LIB.filter(L=>L.batch===2).length") == 348)
+    ok('every theme name is unique', E("new Set(V21_LIB.map(L=>L.name.toLowerCase())).size") == 468)
+    ok('every theme id is unique', E("new Set(V21_LIB.map(L=>L.id)).size") == 468)
+    ok('every new theme has at least one industry', E("V21_LIB.filter(L=>L.batch===2).every(L=>L.ind.length>0)"))
+    ok('no theme lists an industry twice', E("V21_LIB.every(L=>new Set(L.ind).size===L.ind.length)"))
+    ok('every new theme has a catalog size', E("V21_LIB.filter(L=>L.batch===2).every(L=>L.sizes.length>0)"))
+    ok('new themes bring their own styles', E("V21_LIB.filter(L=>L.batch===2&&L.pals.length>1).length") > 250)
+    ok('colours are valid hex', E("V21_LIB.filter(L=>L.batch===2).every(L=>L.pals.every(p=>p.length===4&&p.every(c=>/^#[0-9A-F]{6}$/i.test(c))))"))
+    ok('every theme builds into a real theme with a home page', E("V21_LIB.every(L=>{var t=V21_build(L.id);return t&&t.pg.home.length>=4&&t.hdr.length&&t.ftr.length})"))
+    go(pg, 'theme-store', 1200)
+    ok('20 pages of themes', E("document.querySelector('[data-x=\"v21pg:20\"]')!==null"))
+    for ind in ['Entertainment', 'Services', 'Toys', 'Hardware', 'Office', 'Shoes', 'Wellness']:
+        ok('industry filter has ' + ind, pg.locator('[data-tsf="ind|%s"]' % ind).count() == 1)
+    pg.check('[data-tsf="ind|Services"]'); pg.wait_for_timeout(700)
+    ok('Services filter shows only services themes', pg.locator('.ts-card').count() > 0 and E("[...document.querySelectorAll('.ts-card')].every(c=>V21_LIB.find(L=>L.id===c.dataset.tsid).ind.includes('Services'))"))
+    pg.click('[data-x="v21clear"]'); pg.wait_for_timeout(600)
+    pg.check('[data-tsf="size|Lots (100+)"]'); pg.wait_for_timeout(600)
+    lots = E("+document.querySelector('#ts-count').textContent.split(' of ')[1].split(' ')[0]")
+    pg.uncheck('[data-tsf="size|Lots (100+)"]'); pg.check('[data-tsf="size|Some (11–100)"]'); pg.wait_for_timeout(600)
+    some = E("+document.querySelector('#ts-count').textContent.split(' of ')[1].split(' ')[0]")
+    ok('a theme can fit several catalog sizes', lots + some > 468 - E("V21_LIB.filter(L=>!(L.sizes||[L.size]).some(s=>/Lots|Some/.test(s))).length"), (lots, some))
+    pg.click('[data-x="v21clear"]'); pg.wait_for_timeout(500)
+    tid = E("V21_LIB.find(L=>L.batch===2&&L.pals.length>=4).id")
+    E("ACT.v21open(%r)" % tid); pg.wait_for_timeout(1200)
+    n = E("V21_LIB.find(L=>L.id===%r).pals.length" % tid)
+    ok('theme page shows all its styles', pg.locator('.tv-pal').count() == n, (n, pg.locator('.tv-pal').count()))
+    pg.click('[data-x="v21pal:2"]'); pg.wait_for_timeout(600)
+    bg = E("V21_LIB.find(L=>L.id===%r).pals[2][0]" % tid)
+    ok('picking a style recolours the preview', ('--b:' + bg) in E("document.querySelector('.tv-desk .v21').getAttribute('style')"))
+    pg.click('#tv-try'); pg.wait_for_timeout(500)
+    ok('tried theme keeps the picked style', E("S.themes.find(t=>t.lib===%r).bg" % tid) == bg)
+    pg.click('#tv-pub'); pg.wait_for_timeout(800)
+    ok('new theme can be published', E("live().lib") == tid)
+    E("SF.open('home')"); pg.wait_for_timeout(1000)
+    ok('customer store opens in the new theme', pg.locator('#xsf .v21[data-v21="%s"]' % tid).count() == 1)
+    b.close()
+vt.done(errs)

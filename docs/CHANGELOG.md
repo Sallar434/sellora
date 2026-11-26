@@ -1,5 +1,59 @@
 # VendOm v36 changelog
 
+## v58: Online Store page from the Shopify guide (26 Nov 2026)
+- Title "Online Store" with a Public/Private status menu (Public goes live when a plan allows; Private opens Preferences to turn on the password), View store and Visit Theme Store.
+- The live theme is a large preview with the domain, theme name and status on it, plus Edit theme, Preview and Duplicate.
+- New "Schedule changes to your online store" card opens Markets › Rollouts. Theme library and popular themes stay below.
+- **Theme editor**: section rows are clean like the guide; the drag handle and row actions (actions, move, hide, duplicate, remove) appear on hover or keyboard focus; Add section is a blue link with a plus.
+- Tests: new t38 (7); t14, t17 and t25 updated for the new Online Store and New customer pages.
+
+## v57: Analytics dashboard from the Shopify guide (26 Nov 2026)
+- Date range (Today, Yesterday, Last 7/30/90 days, This year), comparison to the previous period and currency chips; Live View and New exploration buttons.
+- Metric cards with sparklines and change: Gross sales, Returning customer rate, Orders fulfilled, Orders.
+- Total sales over time (line chart with axes, current vs previous period), Total sales breakdown (gross, discounts, sales reversals, net, shipping, return fees, taxes, total; rows open Reports), Total sales by sales channel (donut), Average order value over time, Total sales by product (bars), Online store sessions and Conversion rate. Everything is worked out from the store's own orders and visits.
+- Tests: new t37 (10).
+
+## v55–v56: Products header and New customer page from the Shopify guides (26 Nov 2026)
+- **Products**: header is View as, Import, Export, More actions (Bulk edit, Quick add, Move your store), Add product. View as shows each product's price in a market (catalog prices, currency) and marks products not sold there as Unpublished. Switches on the product form draw correctly; the form's inventory table has no extra table tools.
+- **New customer** is a full page (was a pop-up): first and last name, language (published languages), email, phone with country code, consent for email, SMS and WhatsApp with the consent note, default address, tax settings, notes and tags, with a save bar. Checks: name/email/phone needed, unique valid email, consent needs the matching email or phone.
+- Pop-ups now close when you move to another page.
+- Tests: new t35 (8) and t36 (12); t23 updated.
+
+## v53–v54: New admin shell and Orders from the owner's Shopify admin guides (26 Nov 2026)
+- **Shell** (desktop): full-height dark sidebar with search at the top and Settings, the store menu, alerts and a trial box at the bottom; the page sits in a light rounded panel; a "Work with VendOm AI" bar at the bottom opens VendOm AI with the question. Phones keep the old layout. Switches (toggles) now always draw as switches.
+- **Orders list**: totals strip (orders, items ordered, sales reversals, orders fulfilled) with mini charts and a date range, view dropdown (All, Unfulfilled, Unpaid, Open, Archived, Return requests), search and filter, column picker, bulk select (archive, unarchive, mark as fulfilled), struck-through closed orders, open-order count on Orders in the sidebar, Export and More actions.
+- **Order page**: back arrow and breadcrumb, Refund, Edit, More actions (print, archive, cancel) and previous/next arrows; title with payment and fulfilment badges; Unfulfilled card with Mark as fulfilled, Fulfilled cards, payment card; timeline with staff comments grouped by day; notes, customer and contact, shipping address with map link, conversion (fraud risk, sessions, first session) and tags.
+- Tests: new t33 (15) and t34 (23); tauth, t14, t17, t30 updated for the new layout.
+
+## v52: Admin rebuild step 3: Settings (26 Nov 2026)
+- **Roles have permissions**: each role (built-in or your own) lists the areas it can open, and the admin's access check now uses them. Built-in Administrator/Developer roles are read-only and can be duplicated. Custom roles need a name and at least one permission.
+- **User page** (click a user): role, custom permissions for one user, suspend/reactivate (a suspended user has no access), resend invite, remove. Save bar for changes.
+- **Languages**: add from a list, publish/unpublish, make default, remove. A language a market uses can't be unpublished or removed.
+- **Brand**: default and square logo upload (up to 1 MB), primary/secondary colours with contrast colours and a preview, cover image, slogan (80) and short description (150) with counters, social links (must be full https addresses). Save bar.
+- **Settings › Markets** shows the real markets and backup region (it used to show a fixed "Pakistan / International" text).
+- **Store activity log** records every saved change across the admin, with area and user, search, area filter and CSV export.
+- Fixed: new stores had no roles (a startup step saved an empty list).
+- Tests: new t32 (25 checks).
+
+## v51: Admin rebuild step 2: Markets (25 Nov 2026)
+- **Markets** rebuilt to follow Shopify's workflow: All/Active/Draft tabs, search, market types (Regions, Company locations, POS locations, Channels), **Inherited vs Customized** settings (currency with automatic/manual rate, rounding and local currencies; catalogs; domain and language; duties and taxes), backup region, shipping check, delete with safeguards, and a **Graph view** with "View as a customer in".
+- **Catalogs**: price adjustment, exclusions, fixed prices, currency, markets, CSV export. They really change store and checkout prices and availability for that market; admin prices stay the same.
+- **Rollouts**: Launch and Event with catalog and discount changes, traffic allocation, start/end, automatic roll back, End now.
+- Fixed: the unsaved-changes bar could not be hidden on pages that used `hidden`.
+- Docs: `docs/Markets.md`. Tests: new t31 (51 checks).
+
+## v50: Admin rebuild step 1: shell and Home (25 Nov 2026)
+- **Alerts:** the bell opens a popover (not a modal) with real alerts only: orders to fulfil, out-of-stock and low-stock products, abandoned checkouts, trial days left and "add your first product". The old sample alerts ("3 orders are ready to fulfil" on an empty store) are gone. Mark all as read, Escape and click-outside close it; the badge counts only new alerts.
+- **Store menu:** shows the store name and domain, and adds Online store preferences. The alerts popover and the store menu never open together.
+- **Home:** a date range (Today, Last 7/30/90 days), metric cards (sessions, total sales, orders, conversion rate with AOV) with trend lines and change against the previous period, a live-visitors link (last 5 minutes), **Things to do** (orders to fulfil, abandoned checkouts, out of stock, drafts) and **Recent activity** (orders, order events, new customers). All numbers come from the store's own orders and visits.
+- Tests: new t30 (24 checks).
+
+## v49: 348 more themes in the Theme Store (25 Nov 2026)
+- **Theme Store:** 468 free themes (was 120), 20 pages of 24. The 348 new themes come from a study of Shopify Theme Store pages 13–59 (348 themes, 1,107 styles, see `docs/Shopify-theme-store-research.md`). Each new theme has an original VendOm name, its own industries, one or more catalog sizes and up to 6 ready-made styles. Names, photos, copy and code are VendOm's own.
+- **Filters:** Industry now covers all 20 industries (adds Entertainment, Services, Toys, Hardware, Office, Shoes, Wellness). A theme can be in more than one catalog size.
+- **Theme page:** shows all of the theme's styles with a count; the description lists up to three industries.
+- Tests: new t29 (25 checks); t15 and t25 updated for 468 themes.
+
 ## v48: Growth, Discounts and Content from the owner's second document (24 Nov 2026)
 - **Growth:** overview (Run your marketing on autopilot, marketing performance chart, sessions by traffic type, recent campaigns). **Get started** asks for a plan, or you can skip and set things up. **Autopilot:** a setup warning until the store has a product, a plan and no password, and pending actions to connect channels. The configuration is editable: regions (every country, search), languages (English and Urdu by default, 20 available), target ROAS, customer acquisition cost, permissions (Always ask / Manage approved campaigns / Full autonomy) and Connect to a channel (Meta Ads, Google Ads, TikTok, Microsoft Advertising, Snapchat, Pinterest, X, LinkedIn, YouTube, Messaging). There is an activity log. **Attribution** is locked until a plan is bought; then it shows sales, orders, AOV, sessions and top channels/campaigns from real store visits.
 - **Campaigns:** empty state, an "N unassigned activities" button, and Assign campaign activities (search, type filter, table) built from real visits (utm_source / referrer). The campaign page has stats, breakdowns, a name, **shareable links** (destination, short handle, UTM parameters, QR code download, copy short link / full URL / delete), **auto-match rules** (UTM fields, channel list, type) and activities. The QR code library is bundled (MIT, qrcode-generator 1.4.4).
