@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v55–v56: Products header and New customer page from the Shopify guides (26 Nov 2026)
+- **Products**: header is View as, Import, Export, More actions (Bulk edit, Quick add, Move your store), Add product. View as shows each product's price in a market (catalog prices, currency) and marks products not sold there as Unpublished. Switches on the product form draw correctly; the form's inventory table has no extra table tools.
+- **New customer** is a full page (was a pop-up): first and last name, language (published languages), email, phone with country code, consent for email, SMS and WhatsApp with the consent note, default address, tax settings, notes and tags, with a save bar. Checks: name/email/phone needed, unique valid email, consent needs the matching email or phone.
+- Pop-ups now close when you move to another page.
+- Tests: new t35 (8) and t36 (12); t23 updated.
+
 ## v53–v54: New admin shell and Orders from the owner's Shopify admin guides (26 Nov 2026)
 - **Shell** (desktop): full-height dark sidebar with search at the top and Settings, the store menu, alerts and a trial box at the bottom; the page sits in a light rounded panel; a "Work with VendOm AI" bar at the bottom opens VendOm AI with the question. Phones keep the old layout. Switches (toggles) now always draw as switches.
 - **Orders list**: totals strip (orders, items ordered, sales reversals, orders fulfilled) with mini charts and a date range, view dropdown (All, Unfulfilled, Unpaid, Open, Archived, Return requests), search and filter, column picker, bulk select (archive, unarchive, mark as fulfilled), struck-through closed orders, open-order count on Orders in the sidebar, Export and More actions.
