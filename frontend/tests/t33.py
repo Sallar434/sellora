@@ -17,6 +17,10 @@ with sync_playwright() as p:
     for sel in ['#sh30set', '#sh30trial', '.vtop-store', '#vtop-bell']:
         r = E("(function(){var e=document.querySelector(%r).getBoundingClientRect(),x=e.left+e.width/2,y=e.top+e.height/2,t=document.elementFromPoint(x,y);return !!t&&!!t.closest(%r)})()" % (sel, sel))
         ok(sel + ' is clickable (not covered)', r)
+    E("document.querySelector('aside').scrollTop=300"); pg.wait_for_timeout(200)
+    ok('menu scrolls under a solid top strip (logo and search stay clear)', E("(function(){var e=document.elementFromPoint(150,30);return !e.closest('aside')})()") and E("!!document.elementFromPoint(120,64).closest('#vtop-search')"))
+    ok('bottom group stays clear of the menu', all(E("(function(){var e=document.querySelector(%r).getBoundingClientRect(),t=document.elementFromPoint(e.left+e.width/2,e.top+e.height/2);return !t.closest('aside')})()" % s) for s in ['#sh30set', '.vtop-store', '#sh30trial']))
+    E("document.querySelector('aside').scrollTop=0")
     pg.click('#sh30set'); pg.wait_for_timeout(600)
     ok('Settings opens settings', E("location.hash") == '#s-general')
     go(pg, 'home', 600); pg.click('#sh30trial .sh30sub'); pg.wait_for_timeout(600)
