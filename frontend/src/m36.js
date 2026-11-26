@@ -9,7 +9,7 @@ function st(){S.ai15=S.ai15||{};S.ai15.log=S.ai15.log||[];return S.ai15}
 function sv(){try{save()}catch(e){}}
 var SR=X.SpeechRecognition||X.webkitSpeechRecognition,canRec=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&X.MediaRecorder);
 var B={talk:false,listening:false,rec:null,clips:{}};
-var NOVOICE='Voice typing needs Chrome, Edge or Safari. You can still type, or record a voice message.';
+var NOVOICE='Voice typing is not available in this browser (use Chrome, Edge or Safari). You can still type your request or record a voice message.';
 
 function speak(t,then){try{if(X.speechSynthesis&&X.SpeechSynthesisUtterance){var u=new SpeechSynthesisUtterance(String(t).slice(0,400));u.onend=function(){if(then)then()};X.speechSynthesis.cancel();X.speechSynthesis.speak(u);return}}catch(e){}if(then)setTimeout(then,300)}
 function log(role,text,clip){var g=st();var m={role:role,text:String(text||'').slice(0,600),at:Date.now()};if(clip)m.clip=clip;g.log.push(m);if(g.log.length>60)g.log=g.log.slice(-60);sv();paint()}
@@ -58,8 +58,10 @@ function mount(){var old=q('#sh30ai');if(old&&!old.closest('#ai36'))old.remove()
  q('#ai36q').onfocus=function(){open(true)};q('#ai36mic').onclick=mic;q('#ai36rec').onclick=record;q('#ai36talk').onclick=talk;
  q('#ai36x').onclick=function(){open(false)};q('#ai36clr').onclick=function(){st().log=[];sv();paint()}}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&q('#ai36p')&&!q('#ai36p').hidden)open(false)});
-function sync(){if(document.body.classList.contains('locked'))return;mount();var hide=/^#(ai-assistant)/.test(location.hash)||document.body.classList.contains('st');var d=q('#ai36');if(d)d.style.display=hide?'none':''}
-if(X.onRoute)X.onRoute(function(){setTimeout(function(){try{sync()}catch(e){console.error('ai36',e)}},0)});setTimeout(sync,0);setInterval(sync,4000);
+function inEditor(){var o=q('#ov');return !!(o&&o.style.display&&o.style.display!=='none')}
+function sync(){if(document.body.classList.contains('locked'))return;mount();var hide=/^#(ai-assistant)/.test(location.hash)||document.body.classList.contains('st')||inEditor();if(hide&&B.talk)talk();var d=q('#ai36');if(d)d.style.display=hide?'none':''}
+if(X.onRoute)X.onRoute(function(){setTimeout(function(){try{sync()}catch(e){console.error('ai36',e)}},0)});
+(function watchOv(){var o=q('#ov');if(!o)return setTimeout(watchOv,500);new MutationObserver(function(){try{sync()}catch(e){}}).observe(o,{attributes:true,attributeFilter:['style']})})();setTimeout(sync,0);setInterval(sync,4000);
 
 var css=document.createElement('style');css.textContent=['#main .ask,#main #qvstat,#main #aichat,#vmic{display:none!important}',
 '.ai36{position:fixed;left:calc(50% + 120px);transform:translateX(-50%);bottom:14px;z-index:70;width:min(520px,calc(100vw - 300px))}',

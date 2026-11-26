@@ -33,7 +33,7 @@ var css=document.createElement('style');css.textContent=['.os35bar{display:inlin
 '.er .el{flex:1 1 auto!important;min-width:0!important;width:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.er .erh:hover,.er .erh:focus-within{background:#F1F1F1}',
 '.er .egrip{opacity:0;cursor:grab;color:#8A8A8A}.er .erh:hover .egrip,.er .erh:focus-within .egrip{opacity:1}',
 '.er .el{flex:1;text-align:left;font-size:13px!important;font-weight:450!important;background:none!important;border:0!important;padding:6px 4px!important}',
-'.er .eri{display:inline-flex;gap:2px;opacity:0;transition:opacity .1s;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:#F1F1F1;border-radius:8px;padding:0 2px}.er .erh:hover .eri,.er .erh:focus-within .eri{opacity:1}',
+'.er .eri{display:none;gap:2px;flex:none}.er .erh:hover .eri,.er .erh:focus-within .eri{display:inline-flex}',
 '.er .eri button{border:0!important;background:none!important;width:24px;height:24px;border-radius:6px;padding:0!important;color:#4A4A4A;cursor:pointer}.er .eri button:hover{background:#E3E3E3!important}',
 '@media(hover:none){.er .eri,.er .egrip{opacity:1}}'].join('\n');document.head.appendChild(css);
  function blue(){Array.prototype.forEach.call(document.querySelectorAll('a,button'),function(b){if(/^\s*\+\s*Add section\s*$/.test(b.textContent)&&!b.dataset.os35){b.dataset.os35=1;b.classList.add('os35add');b.innerHTML='<span aria-hidden="true">⊕</span> Add section'}})}

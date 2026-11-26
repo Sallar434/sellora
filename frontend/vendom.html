@@ -14568,7 +14568,7 @@ var css=document.createElement('style');css.textContent=['.os35bar{display:inlin
 '.er .el{flex:1 1 auto!important;min-width:0!important;width:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.er .erh:hover,.er .erh:focus-within{background:#F1F1F1}',
 '.er .egrip{opacity:0;cursor:grab;color:#8A8A8A}.er .erh:hover .egrip,.er .erh:focus-within .egrip{opacity:1}',
 '.er .el{flex:1;text-align:left;font-size:13px!important;font-weight:450!important;background:none!important;border:0!important;padding:6px 4px!important}',
-'.er .eri{display:inline-flex;gap:2px;opacity:0;transition:opacity .1s;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:#F1F1F1;border-radius:8px;padding:0 2px}.er .erh:hover .eri,.er .erh:focus-within .eri{opacity:1}',
+'.er .eri{display:none;gap:2px;flex:none}.er .erh:hover .eri,.er .erh:focus-within .eri{display:inline-flex}',
 '.er .eri button{border:0!important;background:none!important;width:24px;height:24px;border-radius:6px;padding:0!important;color:#4A4A4A;cursor:pointer}.er .eri button:hover{background:#E3E3E3!important}',
 '@media(hover:none){.er .eri,.er .egrip{opacity:1}}'].join('\n');document.head.appendChild(css);
  function blue(){Array.prototype.forEach.call(document.querySelectorAll('a,button'),function(b){if(/^\s*\+\s*Add section\s*$/.test(b.textContent)&&!b.dataset.os35){b.dataset.os35=1;b.classList.add('os35add');b.innerHTML='<span aria-hidden="true">⊕</span> Add section'}})}
@@ -14586,7 +14586,7 @@ function st(){S.ai15=S.ai15||{};S.ai15.log=S.ai15.log||[];return S.ai15}
 function sv(){try{save()}catch(e){}}
 var SR=X.SpeechRecognition||X.webkitSpeechRecognition,canRec=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&X.MediaRecorder);
 var B={talk:false,listening:false,rec:null,clips:{}};
-var NOVOICE='Voice typing needs Chrome, Edge or Safari. You can still type, or record a voice message.';
+var NOVOICE='Voice typing is not available in this browser (use Chrome, Edge or Safari). You can still type your request or record a voice message.';
 
 function speak(t,then){try{if(X.speechSynthesis&&X.SpeechSynthesisUtterance){var u=new SpeechSynthesisUtterance(String(t).slice(0,400));u.onend=function(){if(then)then()};X.speechSynthesis.cancel();X.speechSynthesis.speak(u);return}}catch(e){}if(then)setTimeout(then,300)}
 function log(role,text,clip){var g=st();var m={role:role,text:String(text||'').slice(0,600),at:Date.now()};if(clip)m.clip=clip;g.log.push(m);if(g.log.length>60)g.log=g.log.slice(-60);sv();paint()}
@@ -14635,8 +14635,10 @@ function mount(){var old=q('#sh30ai');if(old&&!old.closest('#ai36'))old.remove()
  q('#ai36q').onfocus=function(){open(true)};q('#ai36mic').onclick=mic;q('#ai36rec').onclick=record;q('#ai36talk').onclick=talk;
  q('#ai36x').onclick=function(){open(false)};q('#ai36clr').onclick=function(){st().log=[];sv();paint()}}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&q('#ai36p')&&!q('#ai36p').hidden)open(false)});
-function sync(){if(document.body.classList.contains('locked'))return;mount();var hide=/^#(ai-assistant)/.test(location.hash)||document.body.classList.contains('st');var d=q('#ai36');if(d)d.style.display=hide?'none':''}
-if(X.onRoute)X.onRoute(function(){setTimeout(function(){try{sync()}catch(e){console.error('ai36',e)}},0)});setTimeout(sync,0);setInterval(sync,4000);
+function inEditor(){var o=q('#ov');return !!(o&&o.style.display&&o.style.display!=='none')}
+function sync(){if(document.body.classList.contains('locked'))return;mount();var hide=/^#(ai-assistant)/.test(location.hash)||document.body.classList.contains('st')||inEditor();if(hide&&B.talk)talk();var d=q('#ai36');if(d)d.style.display=hide?'none':''}
+if(X.onRoute)X.onRoute(function(){setTimeout(function(){try{sync()}catch(e){console.error('ai36',e)}},0)});
+(function watchOv(){var o=q('#ov');if(!o)return setTimeout(watchOv,500);new MutationObserver(function(){try{sync()}catch(e){}}).observe(o,{attributes:true,attributeFilter:['style']})})();setTimeout(sync,0);setInterval(sync,4000);
 
 var css=document.createElement('style');css.textContent=['#main .ask,#main #qvstat,#main #aichat,#vmic{display:none!important}',
 '.ai36{position:fixed;left:calc(50% + 120px);transform:translateX(-50%);bottom:14px;z-index:70;width:min(520px,calc(100vw - 300px))}',
