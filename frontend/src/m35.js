@@ -28,3 +28,14 @@ var css=document.createElement('style');css.textContent=['.os35bar{display:inlin
 '.os35cur .v21acts{display:flex;gap:6px}.os35cur .v21acts .btn{background:rgba(255,255,255,.92)!important;color:#111!important;border-color:transparent!important}.os35cur .v21acts .btn.pri,html body .os35cur .v21acts button.btn.pri{background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important;font-weight:650}',
 '.os35sch{background:#fff;border:1px solid #E3E3E3;border-radius:12px;padding:14px 16px;margin:12px 0}.os35sch h3{margin:0 0 4px;font-size:14px}.os35sch p{margin:0 0 10px;color:#616161}'].join('\n');document.head.appendChild(css);
 })();
+/* ---- v58b: theme editor section list like the Shopify guide: clean rows, actions on hover/focus, blue Add section ---- */
+(function(){var css=document.createElement('style');css.textContent=['.er .erh{display:flex;align-items:center;gap:4px;border-radius:8px;padding:2px 4px;position:relative}'+
+'.er .el{flex:1 1 auto!important;min-width:0!important;width:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.er .erh:hover,.er .erh:focus-within{background:#F1F1F1}',
+'.er .egrip{opacity:0;cursor:grab;color:#8A8A8A}.er .erh:hover .egrip,.er .erh:focus-within .egrip{opacity:1}',
+'.er .el{flex:1;text-align:left;font-size:13px!important;font-weight:450!important;background:none!important;border:0!important;padding:6px 4px!important}',
+'.er .eri{display:inline-flex;gap:2px;opacity:0;transition:opacity .1s;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:#F1F1F1;border-radius:8px;padding:0 2px}.er .erh:hover .eri,.er .erh:focus-within .eri{opacity:1}',
+'.er .eri button{border:0!important;background:none!important;width:24px;height:24px;border-radius:6px;padding:0!important;color:#4A4A4A;cursor:pointer}.er .eri button:hover{background:#E3E3E3!important}',
+'@media(hover:none){.er .eri,.er .egrip{opacity:1}}'].join('\n');document.head.appendChild(css);
+ function blue(){Array.prototype.forEach.call(document.querySelectorAll('a,button'),function(b){if(/^\s*\+\s*Add section\s*$/.test(b.textContent)&&!b.dataset.os35){b.dataset.os35=1;b.classList.add('os35add');b.innerHTML='<span aria-hidden="true">⊕</span> Add section'}})}
+ var c2=document.createElement('style');c2.textContent='.os35add{color:#005BD3!important;text-decoration:none!important;font-weight:550;display:inline-flex;gap:6px;align-items:center;padding:6px 4px}.os35add:hover{text-decoration:underline!important}';document.head.appendChild(c2);
+ new MutationObserver(function(){try{blue()}catch(e){}}).observe(document.body,{childList:true,subtree:true})})();

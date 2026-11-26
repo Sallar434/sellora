@@ -10,7 +10,7 @@ with sync_playwright() as p:
     vt.signup(pg, email='themes@x.pk', store='Noor Lawn')
     ok('new store starts on a new VendOm theme', E("S.themes.length") == 1 and E("live().v21===1"))
     go(pg, 'themes', 800)
-    ok('Themes page shows the current theme and its preview', 'Current theme' in T(pg) and pg.locator('.v21cur .ts-frame .v21').count() == 1)
+    ok('Themes page shows the current theme and its preview', 'Edit theme' in T(pg) and pg.locator('.v21cur .ts-frame .v21').count() == 1)
     ok('menu has Theme store under Online Store', E("NAV_CONFIG.find(n=>n.id==='themes').sub.some(s=>s.id==='theme-store')"))
     pg.click('[data-x="go:theme-store"]'); pg.wait_for_timeout(1500)
     ok('Theme Store lists 468 themes, 24 per page', pg.inner_text('#ts-count') == '1–24 of 468 themes' and pg.locator('.ts-card').count() == 24, pg.inner_text('#ts-count'))

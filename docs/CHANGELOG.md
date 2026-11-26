@@ -4,7 +4,8 @@
 - Title "Online Store" with a Public/Private status menu (Public goes live when a plan allows; Private opens Preferences to turn on the password), View store and Visit Theme Store.
 - The live theme is a large preview with the domain, theme name and status on it, plus Edit theme, Preview and Duplicate.
 - New "Schedule changes to your online store" card opens Markets › Rollouts. Theme library and popular themes stay below.
-- Tests: new t38 (7).
+- **Theme editor**: section rows are clean like the guide; the drag handle and row actions (actions, move, hide, duplicate, remove) appear on hover or keyboard focus; Add section is a blue link with a plus.
+- Tests: new t38 (7); t14, t17 and t25 updated for the new Online Store and New customer pages.
 
 ## v57: Analytics dashboard from the Shopify guide (26 Nov 2026)
 - Date range (Today, Yesterday, Last 7/30/90 days, This year), comparison to the previous period and currency chips; Live View and New exploration buttons.
