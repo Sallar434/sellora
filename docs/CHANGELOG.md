@@ -1,5 +1,12 @@
 # VendOm v36 changelog
 
+## v59: One VendOm AI bar (26 Nov 2026)
+- The "Work with VendOm AI" bar at the bottom does everything: type a request, 🎤 voice typing (speak and it sends), ⏺ voice message (records your voice, keeps the recording in the conversation and sends what you said) and 🗣 talk mode (VendOm AI answers out loud and listens again until you stop it). Replies show in a conversation panel above the bar, with Clear and Escape to close. It runs the same VendOm AI actions as before (add products, build a website, add banners, go to pages, change theme colours and more). Works on phones too.
+- Removed the Home "Ask VendOm AI" box and the old floating mic button.
+- The bar hides inside the theme editor. Editor row buttons no longer catch clicks while hidden.
+- Sidebar: the menu scrolls under solid top and bottom areas, so the logo, search, Settings and store stay clear.
+- Tests: new t39 (11); t16 and t33 updated.
+
 ## v58: Online Store page from the Shopify guide (26 Nov 2026)
 - Title "Online Store" with a Public/Private status menu (Public goes live when a plan allows; Private opens Preferences to turn on the password), View store and Visit Theme Store.
 - The live theme is a large preview with the domain, theme name and status on it, plus Edit theme, Preview and Duplicate.

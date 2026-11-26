@@ -34,10 +34,10 @@ with sync_playwright() as p:
     pg.wait_for_timeout(250)
     vt.finish_store(pg, 'Ring Shop')
     ok('signed in to own store', pg.evaluate('S.name') == 'Ring Shop' and pg.evaluate('!!U'))
-    ok('voice button next to AI input', pg.locator('#qmic').count() == 1 and pg.locator('#qmic').get_attribute('aria-label') == 'Speak to VendOm AI')
-    pg.click('#qmic')
+    ok('voice button in the VendOm AI bar', pg.locator('#ai36mic').count() == 1 and pg.locator('#ai36mic').get_attribute('aria-label') == 'Speak your request')
+    pg.click('#ai36mic')
     pg.wait_for_timeout(250)
-    voice = pg.locator('#qvstat').inner_text()
+    voice = pg.locator('#ai36s').inner_text()
     ok('voice unavailable explains itself or starts listening', 'not available' in voice.lower() or 'type your request' in voice.lower() or 'listening' in voice.lower(), voice)
 
     before = pg.evaluate('S.products.length')
