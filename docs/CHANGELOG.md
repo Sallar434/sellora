@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v58: Online Store page from the Shopify guide (26 Nov 2026)
+- Title "Online Store" with a Public/Private status menu (Public goes live when a plan allows; Private opens Preferences to turn on the password), View store and Visit Theme Store.
+- The live theme is a large preview with the domain, theme name and status on it, plus Edit theme, Preview and Duplicate.
+- New "Schedule changes to your online store" card opens Markets › Rollouts. Theme library and popular themes stay below.
+- Tests: new t38 (7).
+
 ## v57: Analytics dashboard from the Shopify guide (26 Nov 2026)
 - Date range (Today, Yesterday, Last 7/30/90 days, This year), comparison to the previous period and currency chips; Live View and New exploration buttons.
 - Metric cards with sparklines and change: Gross sales, Returning customer rate, Orders fulfilled, Orders.
