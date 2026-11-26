@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v57: Analytics dashboard from the Shopify guide (26 Nov 2026)
+- Date range (Today, Yesterday, Last 7/30/90 days, This year), comparison to the previous period and currency chips; Live View and New exploration buttons.
+- Metric cards with sparklines and change: Gross sales, Returning customer rate, Orders fulfilled, Orders.
+- Total sales over time (line chart with axes, current vs previous period), Total sales breakdown (gross, discounts, sales reversals, net, shipping, return fees, taxes, total; rows open Reports), Total sales by sales channel (donut), Average order value over time, Total sales by product (bars), Online store sessions and Conversion rate. Everything is worked out from the store's own orders and visits.
+- Tests: new t37 (10).
+
 ## v55–v56: Products header and New customer page from the Shopify guides (26 Nov 2026)
 - **Products**: header is View as, Import, Export, More actions (Bulk edit, Quick add, Move your store), Add product. View as shows each product's price in a market (catalog prices, currency) and marks products not sold there as Unpublished. Switches on the product form draw correctly; the form's inventory table has no extra table tools.
 - **New customer** is a full page (was a pop-up): first and last name, language (published languages), email, phone with country code, consent for email, SMS and WhatsApp with the consent note, default address, tax settings, notes and tags, with a save bar. Checks: name/email/phone needed, unique valid email, consent needs the matching email or phone.
