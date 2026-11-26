@@ -7460,7 +7460,7 @@ function log(t){init();S.activity.push({t:t,at:Date.now(),by:S.viewAs||'Owner'})
 var BULK={products:[['Set as active','active'],['Set as draft','draft'],['Archive products','archived']]};
 function rowsOf(t){return qa('tr',t).filter(function(r){return r.cells.length&&r.cells[0].tagName==='TD'})}
 function enhance(r){
- qa('#main table').forEach(function(t,ti){if(t.dataset.p8||t.closest('#xsf,.xmodal,#box,.xdet .xside')||t.closest('[id^=x]')&&t.closest('[id^=x]').id!=='main')return;t.dataset.p8=1;
+ qa('#main table').forEach(function(t,ti){if(t.dataset.p8||/^(productform|product-)/.test(r||'')&&t.closest('.ab')||t.closest('#xsf,.xmodal,#box,.xdet .xside')||t.closest('[id^=x]')&&t.closest('[id^=x]').id!=='main')return;t.dataset.p8=1;
   var rows=rowsOf(t);var hr=q('tr',t);if(!hr||!q('th',hr))return;
   if(!rows.length){var ttl=(q('#main h1')||{}).textContent||'items';var b=q('#main .xh .btn.pri');var w=document.createElement('div');w.innerHTML=empty('🗂️','No '+h(ttl.toLowerCase())+' yet','When you add '+h(ttl.toLowerCase())+', they will appear here.',b?'<button class="btn pri" id="p8eb">'+h(b.textContent)+'</button>':'');t.style.display='none';t.parentNode.insertBefore(w.firstChild,t);var eb=q('#p8eb');if(eb)eb.onclick=function(){b.click()};return}
   /* search, sort and select show for any non-empty table (Shopify shows them even for one row) */
@@ -14167,6 +14167,210 @@ var css=document.createElement('style');css.id='st29css';css.textContent=[
 '.st29img{display:flex;gap:14px;align-items:center;padding:10px 0;border-top:1px solid #F1F1F1}.st29img:first-of-type{border-top:0}.st29iv{width:96px;height:64px;border:1px dashed #C9CCCF;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#FAFAFA;flex:none}.st29iv img{max-width:100%;max-height:100%}.st29img p{margin:2px 0 6px}.st29up{display:inline-flex;cursor:pointer}',
 '.st29cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.st29col{display:flex;gap:8px;align-items:center}.st29col input{width:40px;height:40px;padding:0;border:1px solid #E3E3E3;border-radius:8px}',
 '.st29sw{display:inline-block;margin:12px 8px 0 0;padding:8px 14px;border-radius:8px;font-weight:600}'
+].join('\n');document.head.appendChild(css);
+})();
+
+/* ===== v53: new admin shell (layout from the owner's Shopify admin guides, VendOm's own colours):
+   full-height dark sidebar with search at the top and Settings, store menu, alerts and the trial box at the bottom;
+   the page sits in a light rounded panel; a "Work with VendOm AI" bar floats at the bottom. Desktop only (>900px). ===== */
+(function(){
+var X=window;
+function q(s){return document.querySelector(s)}
+function h(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var C={side:'#0D1F1A',sideHi:'#1E3A32',sideOn:'#27463D',ink:'#E8EFEC',mute:'#9DB3AB',canvas:'#F4F5F4',accent:'#A6E37A'};
+
+function trialBox(){var a=q('aside');if(!a)return;var b=q('#sh30trial');var m=X.m13,txt='',show=false;
+ try{var s=m&&m.sub();if(s&&!m.paid()){show=true;var l=m.left();txt=m.dead()?'Your trial has ended':'Trial ends in '+l+' day'+(l===1?'':'s')}}catch(e){}
+ if(!show){if(b)b.remove();return}
+ if(!b){b=document.createElement('div');b.id='sh30trial';document.body.appendChild(b)}
+ b.innerHTML='<b>'+h(txt)+'</b><a href="#s-plan" class="sh30sub">Pick a plan</a>'}
+function settingsLink(){var a=q('aside');if(!a||q('#sh30set'))return;var l=document.createElement('a');l.id='sh30set';l.href='#s-general';l.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span>';document.body.appendChild(l)}
+function aiBar(){if(q('#sh30ai'))return;var d=document.createElement('form');d.id='sh30ai';d.setAttribute('role','search');d.innerHTML='<span class="sh30aidot" aria-hidden="true"></span><input id="sh30aiq" placeholder="Work with VendOm AI" aria-label="Ask VendOm AI" autocomplete="off"><button type="submit" aria-label="Send">↵</button>';document.body.appendChild(d);
+ d.onsubmit=function(e){e.preventDefault();var v=q('#sh30aiq').value.trim();X._sh30ask=v;location.hash='ai-assistant';setTimeout(function(){var i=q('#main textarea,#main input[type=text],#main input:not([type])');if(i&&v){i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}));i.focus()}},300);q('#sh30aiq').value=''}}
+function foot(){if(!q('#sh30foot')){var f=document.createElement('div');f.id='sh30foot';document.body.appendChild(f)}
+ Array.prototype.forEach.call(document.querySelectorAll('aside .nav-section,aside .nav-label,aside #nav > div'),function(e){if(/^\s*Configuration\s*$/.test(e.textContent))e.style.display='none'})}
+function sync(){if(document.body.classList.contains('locked'))return;foot();settingsLink();trialBox();aiBar();
+ var on=/^#s-/.test(location.hash);var s=q('#sh30set');if(s)s.classList.toggle('on',on);
+ var ai=q('#sh30ai');if(ai)ai.style.display=(/^#(ai-assistant|theme-editor|editor)/.test(location.hash)||document.body.classList.contains('st'))?'none':''}
+if(X.onRoute)X.onRoute(function(){try{sync()}catch(e){console.error('sh30',e)}});setTimeout(sync,0);setInterval(sync,5000);
+
+var css=document.createElement('style');css.id='sh30css';css.textContent=['@media(min-width:901px){',
+'html body:not(.locked){background:'+C.side+'!important;padding-top:0!important}',
+'html body:not(.locked) #vtop{background:transparent!important;height:0!important;padding:0!important;pointer-events:none;z-index:80}',
+'html body:not(.locked) #vtop>*{pointer-events:auto}',
+'html body:not(.locked) #vtop .vtop-logo{position:fixed;left:16px;top:12px;width:auto}',
+'html body:not(.locked) #vtop-search{position:fixed;left:10px;top:48px;width:220px;margin:0;background:#1A332C;border-color:#2C4A41;color:'+C.mute+'}',
+'html body:not(.locked) #vtop-search:hover{border-color:#41665B}',
+'html body:not(.locked) .vtop-store{position:fixed;left:8px;bottom:104px;width:186px}',
+'html body:not(.locked) #vtop-store{width:100%;justify-content:flex-start;background:transparent!important;color:'+C.ink+'!important}',
+'html body:not(.locked) #vtop-store:hover{background:'+C.sideHi+'!important}',
+'html body:not(.locked) #vtop-dd{top:auto!important;bottom:calc(100% + 6px)!important;left:0!important;right:auto!important}',
+'html body:not(.locked) #vtop-bell{position:fixed;left:198px;bottom:106px;background:transparent!important;color:'+C.ink+'!important}',
+'html body:not(.locked) #vtop-bell:hover{background:'+C.sideHi+'!important}',
+'html body:not(.locked) aside{background:'+C.side+'!important;color:'+C.ink+'!important;border-right:0!important;top:0!important;height:100vh!important;width:240px!important;padding:92px 8px 190px!important;overflow-y:auto}',
+'html body:not(.locked) aside .nav-sub a,html body:not(.locked) aside a{color:'+C.ink+'!important}',
+'html body:not(.locked) aside .nav-icon{color:'+C.mute+'!important}',
+'html body:not(.locked) aside .nav-head .nav-link,html body:not(.locked) aside .nav-head .nav-link *,html body:not(.locked) aside .nav-sub a{color:'+C.ink+'!important;-webkit-text-fill-color:'+C.ink+'!important;opacity:1!important}',
+'html body:not(.locked) aside .nav-head .nav-icon,html body:not(.locked) aside .nav-head .nav-icon *{color:'+C.mute+'!important;-webkit-text-fill-color:currentColor!important}',
+'html body:not(.locked) aside .nav-head:hover{background:'+C.sideHi+'!important}',
+'html body:not(.locked) aside .nav-head.on,html body:not(.locked) aside .nav-head.sub-on{background:'+C.sideOn+'!important;box-shadow:none!important}',
+'html body:not(.locked) aside .nav-head.sub-on .nav-link *,html body:not(.locked) aside .nav-head.on .nav-link *{color:#FFFFFF!important}',
+'html body:not(.locked) aside .nav-sub a.on,html body:not(.locked) aside .nav-sub a:hover{background:'+C.sideHi+'!important;color:#fff!important}',
+'html body:not(.locked) aside .nav-section,html body:not(.locked) aside .nav-label,html body:not(.locked) aside small{color:'+C.mute+'!important}',
+'html body:not(.locked) aside .nav-arrow{color:'+C.mute+'!important}',
+'html body:not(.locked) aside .store{display:none!important}',
+'html body:not(.locked) aside [data-r="s-general"]{display:none!important}',
+'#sh30foot{position:fixed;left:0;bottom:0;width:240px;height:184px;background:'+C.side+';z-index:60;box-shadow:0 -8px 12px '+C.side+'}',
+'#sh30set,#sh30trial{z-index:61}html body:not(.locked) .vtop-store,html body:not(.locked) #vtop-bell{z-index:81}',
+'#sh30set{position:fixed;left:8px;bottom:144px;width:224px;display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;text-decoration:none;color:'+C.ink+'!important;font-weight:550;font-size:13px}',
+'#sh30set:hover,#sh30set.on{background:'+C.sideHi+'}#sh30set svg{color:'+C.mute+'}',
+'#sh30trial{position:fixed;left:8px;bottom:12px;width:224px;box-sizing:border-box;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,#17352D,#21483C);color:#fff;display:flex;flex-direction:column;gap:8px;font-size:13px}',
+'#sh30trial .sh30sub{display:block;text-align:center;background:#fff;color:#111!important;border-radius:999px;padding:6px 10px;font-weight:650;text-decoration:none}#sh30trial .sh30sub:hover{background:'+C.accent+'}',
+'html body:not(.locked) main{background:'+C.canvas+'!important;margin:8px 8px 8px 0!important;border-radius:16px;min-height:calc(100vh - 16px);box-sizing:border-box;max-width:none!important;padding:20px clamp(16px,3vw,40px) 96px!important}',
+'html body:not(.locked) main .m13ban{padding:8px 12px!important;margin-bottom:14px!important}',
+'#sh30ai{position:fixed;left:calc(50% + 120px);transform:translateX(-50%);bottom:14px;z-index:70;display:flex;align-items:center;gap:8px;width:min(440px,calc(100vw - 300px));background:#fff;border:1px solid #E3E3E3;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.12);padding:6px 6px 6px 14px}',
+'#sh30ai input{flex:1;border:0!important;outline:0;background:transparent;font:inherit;font-size:13px;padding:6px 0;box-shadow:none!important}',
+'#sh30ai button{border:0;background:#303030;color:#fff;border-radius:999px;width:30px;height:30px;cursor:pointer}',
+'.sh30aidot{width:18px;height:18px;border-radius:50%;background:conic-gradient(#A6E37A,#2E6B4F,#A6E37A);flex:none}',
+'#toast{bottom:76px!important}',
+'}',
+'html body input.tg{appearance:none!important;-webkit-appearance:none!important;width:38px!important;height:22px!important;min-width:38px;padding:0!important;margin:0!important;border-radius:99px!important;background:#D4D4D4!important;border:0!important;position:relative;cursor:pointer;box-shadow:none!important}',
+'html body input.tg::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)}',
+'html body input.tg:checked{background:#303030!important}html body input.tg:checked::after{left:19px}',
+'@media(max-width:900px){#sh30ai,#sh30set,#sh30trial,#sh30foot{display:none!important}}',
+'body.locked #sh30ai,body.locked #sh30set,body.locked #sh30trial,body.locked #sh30foot{display:none!important}'
+].join('\n');document.head.appendChild(css);
+})();
+
+/* ===== v54: Orders like the owner's Shopify admin guide — list with a totals strip, view dropdown, search and filter,
+   column picker, bulk select, struck-through closed orders and a sidebar count; order page with badges, fulfilment
+   card, payment card, staff timeline, notes, customer, addresses, conversion and tags. Uses VendOm's own order actions. ===== */
+(function(){
+var X=window,q=X.SX.q,qa=X.SX.qa,h=X.SX.h,A=X.ACT,PAGE=X.PAGE,U=X.S23;
+var ic=U.ic,pill=U.pill;
+function sv(){try{save()}catch(e){}}
+function tst(m){try{toast(m)}catch(e){}}
+function M(n){try{return money(n)}catch(e){return '$'+(+n||0).toFixed(2)}}
+function num(o){return (S.pre===undefined?'#':S.pre)+o.id+(S.suf||'')}
+function st(o){try{X.ORD.statusOf(o)}catch(e){}return o}
+function closed(o){return !!(o.cancelled||o.archived)}
+function payOf(o){return o.cancelled&&!o.refunded?'Voided':o.pay||'Paid'}
+function fulOf(o){return o.ful||'Unfulfilled'}
+function items(o){return (o.items||[]).reduce(function(a,l){return a+(+l.q||0)},0)}
+function when(t){var d=new Date(t||0),n=new Date(),tm=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}).toLowerCase();if(d.toDateString()===n.toDateString())return 'Today at '+tm;var y=new Date(n-864e5);if(d.toDateString()===y.toDateString())return 'Yesterday at '+tm;return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+tm}
+function badge(t){var k=/^(Paid|Fulfilled)$/.test(t)?'ok':/Unfulfilled|Partially|Pending|Unpaid/.test(t)?'warn':/Refunded|Voided|Cancelled/.test(t)?'':'info';return '<span class="o31b '+k+'"><i></i>'+h(t)+'</span>'}
+function chan(o){return o.channel||(o.pos?'Point of Sale':o.draft?'Draft order':'Online Store')}
+function orders(){return (S.orders||[]).filter(function(o){return o&&o.v30!==undefined||o&&o.items}).map(st)}
+
+/* ---------- sidebar count ---------- */
+function navCount(){var n=orders().filter(function(o){return !closed(o)&&fulOf(o)!=='Fulfilled'&&payOf(o)!=='Refunded'}).length,a=q('#nav [data-r="orders"]');if(!a)return;var b=a.querySelector('.o31n');if(!n){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='o31n';a.appendChild(b)}b.textContent=n}
+if(X.onRoute)X.onRoute(function(){try{navCount()}catch(e){}});
+
+/* ---------- list ---------- */
+var OL=X._o31=X._o31||{view:'all',q:'',range:'all',sel:[],cols:{customer:1,channel:1,total:1,pay:1,ful:1,items:1}};
+var VIEWS=[['all','All'],['unfulfilled','Unfulfilled'],['unpaid','Unpaid'],['open','Open'],['archived','Archived'],['returns','Return requests']];
+var RANGES=[['today','Today'],['7','Last 7 days'],['30','Last 30 days'],['all','All time']];
+function inRange(o){if(OL.range==='all')return true;var t=o.at||0,now=new Date();if(OL.range==='today')return new Date(t).toDateString()===now.toDateString();return t>=Date.now()-(+OL.range)*864e5}
+function inView(o){switch(OL.view){case 'unfulfilled':return !closed(o)&&fulOf(o)!=='Fulfilled';case 'unpaid':return /Pending|Unpaid|Authorized/.test(payOf(o));case 'open':return !closed(o);case 'archived':return closed(o);case 'returns':return !!(o.returns&&o.returns.length)||/refund/i.test(payOf(o));default:return true}}
+function match(o){var w=OL.q.toLowerCase().trim();if(!w)return true;return (num(o)+' '+(o.who||'')+' '+(o.email||'')+' '+(o.tags||[]).join(' ')+' '+(o.items||[]).map(function(l){return l.name+' '+(l.sku||'')}).join(' ')).toLowerCase().indexOf(w)>-1}
+function spark(vals){var mx=Math.max.apply(null,vals.concat([0]));if(!mx)return '<svg class="o31sp" viewBox="0 0 60 18" aria-hidden="true"><path d="M0 17H60" stroke="#C9CCCF" fill="none"/></svg>';return '<svg class="o31sp" viewBox="0 0 60 18" aria-hidden="true"><path d="M'+vals.map(function(v,i){return (i*60/(vals.length-1)).toFixed(1)+' '+(17-v/mx*15).toFixed(1)}).join(' L')+'" stroke="#2C9CD6" stroke-width="1.5" fill="none"/></svg>'}
+function daily(L,f){var a=[0,0,0,0,0,0,0];L.forEach(function(o){var d=Math.floor((Date.now()-(o.at||0))/864e5);if(d>=0&&d<7)a[6-d]+=f(o)});return a}
+V.orders=function(){var all=orders(),R=all.filter(inRange),L=R.filter(inView).filter(match).sort(function(a,b){return (b.at||0)-(a.at||0)||b.id-a.id}),c=OL.cols;
+ var rev=R.reduce(function(a,o){return a+(+o.refunded||0)},0),ful=R.filter(function(o){return fulOf(o)==='Fulfilled'}).length;
+ if(!all.length)return '<div class="s23w"><div class="o31hd"><h1>'+ic('box',18)+' Orders</h1><div class="s23btns"><button class="btn pri" data-x="go:draft-new">Create order</button></div></div><section class="s23c s23empty"><div class="s23ill">'+ic('box',46)+'</div><h3>Your orders will show here</h3><p>When customers buy from your store, or you create an order for them, it shows up here to fulfil.</p><button class="btn pri" data-x="go:draft-new">Create order</button></section></div>';
+ var stat=function(l,v,s){return '<div class="o31st"><small>'+l+'</small><b>'+v+'</b>'+s+'</div>'};
+ var head='<tr><th style="width:28px"><input type="checkbox" id="o31all" aria-label="Select all orders"'+(L.length&&OL.sel.length===L.length?' checked':'')+'></th><th>Order</th><th>Date</th>'+(c.customer?'<th>Customer</th>':'')+(c.channel?'<th>Channel</th>':'')+(c.total?'<th class="r">Total</th>':'')+(c.pay?'<th>Payment status</th>':'')+(c.ful?'<th>Fulfillment status</th>':'')+(c.items?'<th class="r">Items</th>':'')+'</tr>';
+ var rows=L.map(function(o){var cl=closed(o);return '<tr class="s23row o31row'+(cl?' o31cl':'')+'" data-x="go:order-'+o.id+'"><td><input type="checkbox" data-o31s="'+o.id+'"'+(OL.sel.indexOf(o.id)>-1?' checked':'')+' aria-label="Select order '+h(num(o))+'"></td><td><b>'+h(num(o))+'</b></td><td>'+h(when(o.at))+'</td>'+(c.customer?'<td>'+h(o.who||'No customer')+'</td>':'')+(c.channel?'<td>'+h(chan(o))+'</td>':'')+(c.total?'<td class="r">'+M(o.total||0)+'</td>':'')+(c.pay?'<td>'+badge(payOf(o))+'</td>':'')+(c.ful?'<td>'+badge(o.cancelled?'Cancelled':fulOf(o))+'</td>':'')+(c.items?'<td class="r">'+items(o)+' item'+(items(o)===1?'':'s')+'</td>':'')+'</tr>'}).join('');
+ return '<div class="s23w"><div class="o31hd"><h1>'+ic('box',18)+' Orders</h1><div class="s23btns"><button class="btn" data-x="o31csv">Export</button><div class="o31mw"><button class="btn" data-x="o31more" id="o31mb" aria-haspopup="true">More actions ▾</button><div class="o31pop" id="o31mp" hidden><button data-x="go:orders-drafts">Draft orders</button><button data-x="go:orders-abandoned">Abandoned checkouts</button><button data-x="o31print">Print packing slips for selected</button></div></div><button class="btn pri" data-x="go:draft-new" id="o31new">Create order</button></div></div>'
+  +'<section class="s23c o31stats"><label class="o31rng">'+ic('clock',14)+'<select id="o31range" aria-label="Date range">'+RANGES.map(function(r){return '<option value="'+r[0]+'"'+(OL.range===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('')+'</select></label>'
+  +stat('Orders',R.length,spark(daily(all,function(){return 1})))+stat('Items ordered',R.reduce(function(a,o){return a+items(o)},0),spark(daily(all,items)))+stat('Sales reversals',M(rev),spark(daily(all,function(o){return +o.refunded||0})))+stat('Orders fulfilled',ful,spark(daily(all,function(o){return fulOf(o)==='Fulfilled'?1:0})))+'</section>'
+  +'<section class="s23c s23tbl"><div class="o31bar"><select id="o31view" class="o31view" aria-label="View">'+VIEWS.map(function(v){return '<option value="'+v[0]+'"'+(OL.view===v[0]?' selected':'')+'>'+v[1]+'</option>'}).join('')+'</select><div class="s23srch">'+ic('search')+'<input id="o31q" placeholder="Search and filter" value="'+h(OL.q)+'" aria-label="Search and filter orders" autocomplete="off"></div><div class="o31mw"><button class="btn o31colb" data-x="o31cols" aria-label="Choose columns" id="o31cb">'+ic('menu',16)+'</button><div class="o31pop" id="o31cp" hidden>'+[['customer','Customer'],['channel','Channel'],['total','Total'],['pay','Payment status'],['ful','Fulfillment status'],['items','Items']].map(function(k){return '<label class="o31ck"><input type="checkbox" data-o31c="'+k[0]+'"'+(c[k[0]]?' checked':'')+'> '+k[1]+'</label>'}).join('')+'</div></div></div>'
+  +(OL.sel.length?'<div class="o31bulk"><b>'+OL.sel.length+' selected</b><button class="btn" data-x="o31bulk:archive">Archive</button><button class="btn" data-x="o31bulk:unarchive">Unarchive</button><button class="btn" data-x="o31bulk:fulfil">Mark as fulfilled</button><button class="btn" data-x="o31bulk:none">Clear</button></div>':'')
+  +(L.length?'<div class="o31scroll"><table data-p8="1"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>':'<p class="s23mut" style="padding:16px">No orders match this view.</p>')+'</section></div>'};
+['input','change'].forEach(function(ev){document.addEventListener(ev,function(e){var t=e.target;if(!t||!/^#(orders)?$/.test(location.hash==='#'?'#':location.hash.replace(/^#orders$/,'#orders')))return;if(location.hash!=='#orders')return;
+ if(t.id==='o31q'&&ev==='input'){OL.q=t.value;var p=t.selectionStart;route();var i=q('#o31q');if(i){i.focus();try{i.setSelectionRange(p,p)}catch(x){}}}
+ else if(t.id==='o31view'&&ev==='change'){OL.view=t.value;OL.sel=[];route()}else if(t.id==='o31range'&&ev==='change'){OL.range=t.value;route()}
+ else if(t.dataset&&t.dataset.o31c&&ev==='change'){OL.cols[t.dataset.o31c]=t.checked?1:0;route();var p2=q('#o31cp');if(p2)p2.hidden=false}
+ else if(t.dataset&&t.dataset.o31s&&ev==='change'){var id=+t.dataset.o31s,j=OL.sel.indexOf(id);if(t.checked&&j<0)OL.sel.push(id);if(!t.checked&&j>-1)OL.sel.splice(j,1);route()}
+ else if(t.id==='o31all'&&ev==='change'){OL.sel=t.checked?qa('[data-o31s]').map(function(x){return +x.dataset.o31s}):[];route()}})});
+document.addEventListener('click',function(e){var t=e.target;if(t&&t.closest&&(t.closest('input[data-o31s],#o31all')||(t.closest('.o31pop')&&!t.closest('[data-x]'))))e.stopPropagation()},true);
+function pop(id,btn){var p=q('#'+id),n=Date.now();if(!p||n-(pop.t||0)<200)return;pop.t=n;var open=p.hidden;qa('.o31pop').forEach(function(x){x.hidden=true});p.hidden=!open;var b=q('#'+btn);if(b)b.setAttribute('aria-expanded',String(open))}
+A.o31more=function(){pop('o31mp','o31mb')};A.o31cols=function(){pop('o31cp','o31cb')};A.o31dmore=function(){pop('o31dp','o31db')};
+document.addEventListener('click',function(e){if(!e.target.closest||!e.target.closest('.o31mw'))qa('.o31pop').forEach(function(x){x.hidden=true})});
+A.o31bulk=function(k){var L=OL.sel.map(function(id){return X.ORD.get(id)}).filter(Boolean);if(k==='none'){OL.sel=[];return route()}
+ if(k==='archive'){L.forEach(function(o){o.archived=Date.now();X.ORD.tl(o,'Order archived')});tst(L.length+' order'+(L.length>1?'s':'')+' archived')}
+ if(k==='unarchive'){L.forEach(function(o){if(!o.cancelled){delete o.archived;X.ORD.tl(o,'Order unarchived')}});tst(L.length+' order'+(L.length>1?'s':'')+' unarchived')}
+ if(k==='fulfil'){var n=0;L.forEach(function(o){if(o.cancelled||fulOf(o)==='Fulfilled')return;if(X.ORD.fulfill(o,o.items.map(function(l){return l.q-(l.fq||0)-(l.rq||0)}),'Other','',false))n++});tst(n+' order'+(n===1?'':'s')+' fulfilled')}
+ OL.sel=[];sv();route()};
+A.o31csv=function(){try{if(A.ordcsv)return A.ordcsv()}catch(e){}};
+A.o31print=function(){var L=OL.sel.map(function(id){return X.ORD.get(id)}).filter(Boolean);if(!L.length)return tst('Select orders first');L.forEach(function(o){try{A.oprint(o.id)}catch(e){}})};
+
+/* ---------- order page ---------- */
+function sorted(){return orders().slice().sort(function(a,b){return a.id-b.id})}
+function addr(a){if(!a)return '';var v=a.vals||a;var parts=[v.a1||v.address1||v['Address']||'',v.a2||'',[v.city||v['City']||'',v.zip||v['Postal code']||''].filter(Boolean).join(' '),a.country||v.country||v['Country']||''].filter(Boolean);return parts.map(h).join('<br>')}
+function risk(o){var r=0;if(o.ship&&o.ship.country&&S.country&&o.ship.country!==S.country)r++;if((o.total||0)>500)r++;if(!o.email)r++;return r>=2?'Medium':'Low'}
+function sessOf(o){var L=(S.sess24||[]).filter(function(s){return s.order===o.id});return L}
+PAGE.order=function(oid){var o=X.ORD.get(oid);if(!o)return '<div class="s23w"><p>Order not found.</p><button class="btn" data-x="go:orders">Back to orders</button></div>';st(o);
+ var L=sorted(),i=L.indexOf(o),prev=L[i-1],next=L[i+1],c=(X.CU&&X.CU.get(o.cid))||null,co=c?X.CU.orders(c).length:0,rem=o.items.reduce(function(a,l){return a+(l.q-(l.fq||0)-(l.rq||0))},0),e=X.PAY&&X.PAY.escOf?X.PAY.escOf(o):null,ss=sessOf(o);
+ var line=function(l,qq){var p=(S.products||[]).filter(function(x){return x.id===l.pid})[0],im=p&&p.imgs&&p.imgs[0];return '<div class="o31li">'+(im?'<img src="'+h(im)+'" alt="">':'<span class="o31ph">'+ic('box',18)+'</span>')+'<div class="o31lt"><a data-x="go:product-'+l.pid+'">'+h(l.name)+'</a>'+(l.variant?'<span class="o31chip">'+h(l.variant)+'</span>':'')+(l.sku?'<small>'+h(l.sku)+'</small>':'')+'</div><span class="o31lq">'+M(l.price)+' × '+qq+'</span><b>'+M(l.price*qq)+'</b></div>'};
+ var unful=o.items.filter(function(l){return l.q-(l.fq||0)-(l.rq||0)>0});
+ var fulCards=(o.fuls||[]).map(function(f){return '<section class="s23c o31card"><div class="o31ch"><span class="o31ic ok">'+ic('check',16)+'</span><h3>Fulfilled</h3><span class="s23mut">'+h(when(f.at))+'</span></div><div class="o31in">'+(f.carrier?'<p class="s23mut" style="margin:0 0 8px">'+h(f.carrier)+(f.num?' · '+(f.url?'<a href="'+h(f.url)+'" target="_blank" rel="noopener">'+h(f.num)+'</a>':h(f.num)):'')+'</p>':'')+f.items.map(function(x){return line(o.items[x.i],x.q)}).join('')+'</div></section>'}).join('');
+ var tl=(o.tl||[]).slice().sort(function(a,b){return b.at-a.at}),day='',tlh=tl.map(function(t){var d=new Date(t.at).toDateString(),dh='';if(d!==day){day=d;dh='<div class="o31day">'+(d===new Date().toDateString()?'Today':new Date(t.at).toLocaleDateString('en-US',{month:'long',day:'numeric'}))+'</div>'}var com=/^Comment: /.test(t.t);return dh+'<div class="o31ev'+(com?' com':'')+'"><i></i><span>'+h(com?t.t.slice(9):t.t)+'</span><time>'+new Date(t.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</time></div>'}).join('');
+ return '<div class="s23w o31d"><div class="s23top"><button class="s23back" data-x="go:orders" aria-label="Back to orders">'+ic('back')+'</button><span class="s23crumb">'+ic('box',14)+' <a data-x="go:orders">Orders</a></span><span style="flex:1"></span><div class="s23btns">'
+  +(!o.cancelled&&o.refunded<o.total?'<button class="btn" data-x="orefund:'+o.id+'">Refund</button>':'')+(!o.cancelled&&fulOf(o)==='Unfulfilled'?'<button class="btn" data-x="oedit:'+o.id+'">Edit</button>':'')
+  +'<div class="o31mw"><button class="btn" data-x="o31dmore" id="o31db" aria-haspopup="true">More actions ▾</button><div class="o31pop" id="o31dp" hidden><button data-x="oprint:'+o.id+'">Print packing slip</button>'+(closed(o)&&!o.cancelled?'<button data-x="o31arch:'+o.id+'">Unarchive</button>':!o.cancelled?'<button data-x="o31arch:'+o.id+'">Archive</button>':'')+(!o.cancelled?'<button class="bad" data-x="ocancel:'+o.id+'">Cancel order</button>':'')+'</div></div>'
+  +'<button class="btn o31nav" data-x="'+(prev?'go:order-'+prev.id:'o31none')+'"'+(prev?'':' disabled')+' aria-label="Previous order">▲</button><button class="btn o31nav" data-x="'+(next?'go:order-'+next.id:'o31none')+'"'+(next?'':' disabled')+' aria-label="Next order">▼</button></div></div>'
+  +'<div class="o31title"><h1>'+h(num(o))+'</h1>'+badge(payOf(o))+badge(o.cancelled?'Cancelled':fulOf(o))+(o.archived&&!o.cancelled?badge('Archived'):'')+'</div><p class="s23mut o31sub">'+new Date(o.at||Date.now()).toLocaleString('en-US',{month:'long',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})+' from '+h(chan(o))+'</p>'
+  +'<div class="o31grid"><div class="o31main">'
+  +(unful.length&&!o.cancelled?'<section class="s23c o31card"><div class="o31ch"><span class="o31ic warn">'+ic('box',16)+'</span><h3>'+(fulOf(o)==='Partially fulfilled'?'Partially fulfilled':'Unfulfilled')+'</h3><span style="flex:1"></span><button class="btn pri" data-x="ofulfil:'+o.id+'" id="o31ful">Mark as fulfilled</button></div><div class="o31in">'+(o.shipM?'<p class="o31ship">'+ic('truck',14)+' '+h(o.shipM)+'</p>':'')+unful.map(function(l){return line(l,l.q-(l.fq||0)-(l.rq||0))}).join('')+'</div></section>':'')
+  +fulCards
+  +'<section class="s23c o31card"><div class="o31ch"><span class="o31ic">'+ic('check',16)+'</span><h3>'+h(payOf(o))+'</h3></div><div class="o31in"><table class="o31pay"><tr><td>Subtotal</td><td class="s23mut">'+items(o)+' item'+(items(o)===1?'':'s')+'</td><td class="r">'+M(o.sub||0)+'</td></tr>'+(o.disc?'<tr><td>Discount</td><td class="s23mut">'+h((o.codes||[]).join(', '))+'</td><td class="r">−'+M(o.disc)+'</td></tr>':'')+'<tr><td>Shipping</td><td class="s23mut">'+h(o.shipM||'')+'</td><td class="r">'+M(o.shipAmt||0)+'</td></tr><tr><td>Tax</td><td class="s23mut">'+(o.taxRate!=null?h(o.taxRate)+'%':'')+'</td><td class="r">'+M(o.tax||0)+'</td></tr><tr class="o31tot"><td>Total</td><td></td><td class="r">'+M(o.total||0)+'</td></tr><tr><td>Paid</td><td class="s23mut">'+h(o.gw||'')+'</td><td class="r">'+M((o.total||0)-(o.gcAmt||0))+'</td></tr>'+(o.refunded?'<tr><td>Refunded</td><td></td><td class="r">−'+M(o.refunded)+'</td></tr><tr class="o31tot"><td>Net payment</td><td></td><td class="r">'+M((o.total||0)-(o.refunded||0))+'</td></tr>':'')+'</table></div></section>'
+  +(e?'<section class="s23c o31card"><div class="o31ch"><span class="o31ic">'+ic('lock',16)+'</span><h3>VendOm Pay protection</h3>'+pill(e.st,e.st==='Held'?'warn':'ok')+'</div><div class="o31in"><p class="s23mut" style="margin:0">Held '+M(e.amt)+' · fee '+M(e.fee)+'</p>'+(e.st==='Held'?'<button class="btn" data-x="esrel:'+e.id+'" style="margin-top:8px">Release to seller</button>':'')+'</div></section>':'')
+  +'<h3 class="o31h3">Timeline</h3><section class="s23c o31com"><div class="o31cr"><span class="o31av">'+h(((S.email||'S')[0]||'S').toUpperCase())+'</span><input id="xcom" placeholder="Leave a comment..." aria-label="Leave a comment"><button class="btn" data-x="ocom:'+o.id+'" id="o31post">Post</button></div></section><p class="s23sm o31only">Only you and other staff can see comments</p><div class="o31tl">'+tlh+'</div>'
+  +'</div><div class="o31side">'
+  +'<section class="s23c o31sc"><div class="o31sh"><h3>Notes</h3><button class="mk28ib o31ib" data-x="o31note:'+o.id+'" aria-label="Edit notes">'+ic(o.notes?'edit':'plus',14)+'</button></div><p class="s23mut">'+(o.notes?h(o.notes):'No notes from customer')+'</p></section>'
+  +'<section class="s23c o31sc"><div class="o31sh"><h3>Customer</h3></div>'+(c?'<p><a data-x="go:customer-'+c.id+'"><b>'+h(o.who)+'</b></a><br><span class="s23mut">'+co+' order'+(co===1?'':'s')+'</span></p><h4>Contact information</h4><p>'+(o.email?'<a href="mailto:'+h(o.email)+'">'+h(o.email)+'</a>':'<span class="s23mut">No email</span>')+(c.phone?'<br>'+h(c.phone):'')+'</p>':'<p class="s23mut">No customer</p>')
+  +'<h4>Shipping address</h4><p>'+(o.ship&&(o.ship.addr||o.ship.vals)?addr(o.ship.addr?Object.assign({country:o.ship.country},o.ship.addr):o.ship)+'<br><a href="https://www.google.com/maps/search/'+encodeURIComponent(((o.ship.addr||{}).a1||'')+' '+((o.ship.addr||{}).city||'')+' '+(o.ship.country||''))+'" target="_blank" rel="noopener">View map</a>':'<span class="s23mut">No shipping address</span>')+'</p><h4>Billing address</h4><p class="s23mut">Same as shipping address</p></section>'
+  +'<section class="s23c o31sc"><div class="o31sh"><h3>Conversion</h3></div><div class="o31kv"><span>Fraud risk</span><b>'+risk(o)+'</b></div><div class="o31kv"><span>Sessions</span><b>'+(ss.length||1)+'</b></div><div class="o31kv"><span>First session</span><b>'+h((o.utm&&o.utm.src)||(ss[0]&&ss[0].src)||'Direct')+'</b></div></section>'
+  +'<section class="s23c o31sc"><div class="o31sh"><h3>Tags</h3></div><div class="o31tags">'+(o.tags||[]).map(function(t,j){return '<span class="o31tag">'+h(t)+'<button data-x="o31tagx:'+o.id+':'+j+'" aria-label="Remove tag '+h(t)+'">×</button></span>'}).join('')+'</div><input id="o31tagi" placeholder="Add a tag and press Enter" aria-label="Add tag" data-o="'+o.id+'"></section>'
+  +'</div></div></div>'};
+A.o31none=function(){};
+A.o31arch=function(i){var o=X.ORD.get(i);if(!o)return;if(o.archived){delete o.archived;X.ORD.tl(o,'Order unarchived');tst('Order unarchived')}else{o.archived=Date.now();X.ORD.tl(o,'Order archived');tst('Order archived')}sv();route()};
+A.o31note=function(i){var o=X.ORD.get(i);X.xmodal('Edit notes','<textarea class="s23in" id="o31nt" rows="4" maxlength="5000">'+h(o.notes||'')+'</textarea>','Save',function(){o.notes=q('#o31nt').value.trim();sv();tst('Notes saved')})};
+A.o31tagx=function(a){var p=a.split(':'),o=X.ORD.get(p[0]);if(!o)return;o.tags.splice(+p[1],1);sv();route()};
+document.addEventListener('keydown',function(e){var t=e.target;if(t&&t.id==='o31tagi'&&e.key==='Enter'){e.preventDefault();var o=X.ORD.get(t.dataset.o),v=t.value.trim();if(!o||!v)return;o.tags=o.tags||[];if(o.tags.map(function(x){return x.toLowerCase()}).indexOf(v.toLowerCase())<0)o.tags.push(v);sv();route();var n=q('#o31tagi');if(n)n.focus()}
+ if(t&&t.id==='xcom'&&e.key==='Enter'&&/^#order-/.test(location.hash)){e.preventDefault();var b=q('#o31post');if(b)b.click()}});
+
+/* ---------- icons + styles ---------- */
+['check','truck','lock','menu','box','back'].forEach(function(k){if(!U.svg[k])U.svg[k]={check:'<path d="M5 12l5 5 9-10"/>',truck:'<path d="M2 6h11v10H2zM13 10h5l3 3v3h-8"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',menu:'<path d="M4 6h16M4 12h16M4 18h10"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',back:'<path d="M15 6l-6 6 6 6"/>'}[k]});
+var css=document.createElement('style');css.id='o31css';css.textContent=[
+'.o31hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}.o31hd h1{display:flex;gap:8px;align-items:center;font-size:20px;margin:0}',
+'.o31stats{display:flex;align-items:stretch;gap:0;padding:0;overflow-x:auto}.o31rng{display:flex;align-items:center;gap:6px;padding:10px 14px;border-right:1px solid #EBEBEB}.o31rng select{border:0;background:transparent;font:inherit;font-weight:600}',
+'.o31st{flex:1;min-width:130px;padding:10px 14px;display:flex;flex-direction:column;border-right:1px solid #F1F1F1}.o31st:last-child{border-right:0}.o31st small{font-weight:600;font-size:12px}.o31st b{font-size:14px}.o31sp{width:60px;height:18px}',
+'.o31bar{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #EBEBEB}.o31bar .s23srch{flex:1}.o31view{border:1px solid #E3E3E3;border-radius:8px;padding:5px 8px;font:inherit;font-weight:600;background:#fff}',
+'.o31colb{padding:5px 8px}.o31mw{position:relative;display:inline-block}.o31pop{position:absolute;right:0;top:calc(100% + 4px);z-index:40;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.16);padding:6px;min-width:220px;display:flex;flex-direction:column}.o31pop[hidden]{display:none}.o31pop button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}.o31pop button:hover{background:#F1F1F1}.o31pop .bad{color:#C70A24}',
+'.o31ck{display:flex;gap:8px;align-items:center;padding:6px 8px}.o31ck input{width:auto;margin:0}',
+'.o31bulk{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#F7F7F7;border-bottom:1px solid #EBEBEB}',
+'.o31scroll{overflow-x:auto}.o31row td{white-space:nowrap}.o31cl td:not(:first-child){text-decoration:line-through;color:#8A8A8A}.o31cl .o31b{text-decoration:none}',
+'.o31b{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:550;background:#EBEBEB;color:#303030}.o31b i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}.o31b.ok{background:#EBEBEB}.o31b.warn{background:#FFEB78;color:#4F4700}.o31b.info{background:#E0F0FF;color:#00527C}',
+'.o31n{margin-left:auto;background:#3B5F54;color:#fff;border-radius:6px;font-size:11px;padding:0 6px;font-weight:700}',
+'.o31title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.o31title h1{margin:0;font-size:22px}.o31sub{margin:4px 0 14px}',
+'.o31grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}.o31main,.o31side{display:flex;flex-direction:column;gap:12px;min-width:0}',
+'.o31card{padding:0;overflow:hidden}.o31ch{display:flex;align-items:center;gap:8px;padding:12px 14px}.o31ch h3{margin:0;font-size:14px}.o31ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:#EBEBEB}.o31ic.warn{background:#FFEB78}.o31ic.ok{background:#CDFEE1;color:#0C5132}',
+'.o31in{margin:0 10px 10px;border:1px solid #EBEBEB;border-radius:10px;padding:10px 12px}.o31ship{display:flex;gap:6px;align-items:center;margin:0 0 8px;color:#616161}',
+'.o31li{display:flex;align-items:center;gap:10px;padding:6px 0}.o31li img,.o31ph{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #EBEBEB;display:inline-flex;align-items:center;justify-content:center;flex:none;background:#FAFAFA}.o31lt{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}.o31lt a{color:#005BD3;cursor:pointer;font-weight:550}.o31lt small{color:#616161}.o31chip{align-self:flex-start;background:#EBEBEB;border-radius:6px;padding:0 6px;font-size:12px}.o31lq{color:#303030;white-space:nowrap}',
+'.o31pay{width:100%;border-collapse:collapse}.o31pay td{padding:4px 0}.o31pay .r{text-align:right}.o31tot td{font-weight:650;border-top:1px solid #F1F1F1;padding-top:8px}',
+'.o31h3{margin:6px 0 0;font-size:14px}.o31com{padding:10px 12px}.o31cr{display:flex;gap:8px;align-items:center}.o31cr input{flex:1;border:0!important;outline:0;font:inherit;background:transparent}.o31av{width:32px;height:32px;border-radius:8px;background:#005BD3;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}',
+'.o31only{text-align:right;margin:-4px 0 0}.o31tl{border-left:2px solid #E3E3E3;margin-left:14px;padding-left:16px}.o31day{color:#616161;font-size:12px;font-weight:600;margin:10px 0 4px}',
+'.o31ev{position:relative;display:flex;gap:10px;align-items:flex-start;padding:6px 0}.o31ev i{position:absolute;left:-22px;top:11px;width:10px;height:10px;border-radius:50%;background:#303030;border:2px solid #F4F5F4}.o31ev span{flex:1}.o31ev time{color:#616161;font-size:12px;white-space:nowrap}.o31ev.com span{background:#fff;border:1px solid #EBEBEB;border-radius:8px;padding:6px 8px}',
+'.o31sc{padding:12px 14px}.o31sh{display:flex;justify-content:space-between;align-items:center}.o31sh h3{margin:0;font-size:14px}.o31sc h4{margin:10px 0 2px;font-size:13px}.o31sc p{margin:4px 0}.o31sc a{color:#005BD3;cursor:pointer}',
+'.o31kv{display:flex;justify-content:space-between;padding:4px 0}.o31kv span{color:#616161}',
+'.o31tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.o31tag{background:#EBEBEB;border-radius:6px;padding:2px 6px;font-size:12px}.o31tag button{border:0;background:none;cursor:pointer;margin-left:4px}#o31tagi{width:100%;box-sizing:border-box;border:1px solid #E3E3E3;border-radius:8px;padding:6px 8px;font:inherit}',
+'.o31nav{padding:5px 9px}.o31nav[disabled]{opacity:.45;cursor:not-allowed}',
+'.o31bar .o31view{width:auto!important;flex:none}.o31bar .s23srch{flex:1;display:flex;align-items:center}.o31bar .s23srch input{flex:1;width:100%!important;min-width:0}',
+'.o31rng select{width:auto!important;padding:2px 4px!important;height:auto!important;border:0!important;box-shadow:none!important}',
+'.o31title h1{flex:none!important;width:auto!important}.o31title{justify-content:flex-start}',
+'@media(max-width:900px){.o31grid{grid-template-columns:1fr}}'
 ].join('\n');document.head.appendChild(css);
 })();
 

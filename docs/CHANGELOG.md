@@ -1,5 +1,11 @@
 # VendOm v36 changelog
 
+## v53–v54: New admin shell and Orders from the owner's Shopify admin guides (26 Nov 2026)
+- **Shell** (desktop): full-height dark sidebar with search at the top and Settings, the store menu, alerts and a trial box at the bottom; the page sits in a light rounded panel; a "Work with VendOm AI" bar at the bottom opens VendOm AI with the question. Phones keep the old layout. Switches (toggles) now always draw as switches.
+- **Orders list**: totals strip (orders, items ordered, sales reversals, orders fulfilled) with mini charts and a date range, view dropdown (All, Unfulfilled, Unpaid, Open, Archived, Return requests), search and filter, column picker, bulk select (archive, unarchive, mark as fulfilled), struck-through closed orders, open-order count on Orders in the sidebar, Export and More actions.
+- **Order page**: back arrow and breadcrumb, Refund, Edit, More actions (print, archive, cancel) and previous/next arrows; title with payment and fulfilment badges; Unfulfilled card with Mark as fulfilled, Fulfilled cards, payment card; timeline with staff comments grouped by day; notes, customer and contact, shipping address with map link, conversion (fraud risk, sessions, first session) and tags.
+- Tests: new t33 (15) and t34 (23); tauth, t14, t17, t30 updated for the new layout.
+
 ## v52: Admin rebuild step 3: Settings (26 Nov 2026)
 - **Roles have permissions**: each role (built-in or your own) lists the areas it can open, and the admin's access check now uses them. Built-in Administrator/Developer roles are read-only and can be duplicated. Custom roles need a name and at least one permission.
 - **User page** (click a user): role, custom permissions for one user, suspend/reactivate (a suspended user has no access), resend invite, remove. Save bar for changes.

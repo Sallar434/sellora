@@ -33,7 +33,7 @@ with sync_playwright() as p:
       S.orders.push({id:S.oid++,v30:1,who:'Ayesha Khan',email:'a@x.pk',items:[],sub:40,total:40,refunded:0,at:now-3600e3,pay:'Paid',ful:'Unfulfilled',tl:[{at:now-3600e3,t:'Order placed'}]});
       S.orders.push({id:S.oid++,v30:1,who:'Bilal',email:'b@x.pk',items:[],sub:60,total:60,refunded:0,at:now-40*864e5,pay:'Paid',ful:'Fulfilled',tl:[]});
       S.sess24=(S.sess24||[]).concat([{at:now-60e3,src:'direct',type:'direct'},{at:now-2*864e5,src:'google',type:'organic'}]);save()})()""")
-    go(pg, 'home', 900)
+    go(pg, 'orders', 300); go(pg, 'home', 900)
     ids = set(a['id'] for a in E("H27.alerts()"))
     ok('alerts follow the store: orders to fulfil, out of stock, low stock', {'uf', 'oos', 'low'} <= ids, ids)
     ok('badge counts only new alerts', pg.inner_text('#vtop-bn') == '3', pg.inner_text('#vtop-bn'))

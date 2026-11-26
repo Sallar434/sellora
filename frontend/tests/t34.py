@@ -1,0 +1,58 @@
+"""Orders (v54): list with totals, view dropdown, search, columns, bulk actions, closed rows and sidebar count; order page with badges, cards, timeline, notes, tags, prev/next."""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vt
+from vt import ok, go
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    b, pg, errs = vt.launch(p, viewport={'width': 1280, 'height': 900}); E = pg.evaluate
+    vt.signup(pg, email='ord@x.pk', store='Noor Lawn')
+    go(pg, 'orders', 600)
+    ok('empty state with Create order', 'Your orders will show here' in pg.inner_text('#main'))
+    E("""(function(){var p={id:S.nid++,name:'Lawn Kurta',price:40,stock:10,status:'Active',desc:'',cols:[],tags:[],imgs:[],vars:[],opts:[],seo:{},sku:'LK-01'};S.products.push(p);save();
+      ORD.place([{pid:p.id,vi:-1,q:2}],{email:'a@x.pk',first:'Ayesha',last:'Khan',country:'Pakistan',addr:{a1:'12 Mall Rd',city:'Lahore'}},{method:'VendOm Pay'});
+      ORD.place([{pid:p.id,vi:-1,q:1}],{email:'c@x.pk',first:'Sana',last:'Ali',country:'Pakistan'},{method:'Card'});
+      var o3=ORD.place([{pid:p.id,vi:-1,q:1}],{email:'b@x.pk',first:'Bilal',last:'Raza',country:'Pakistan'},{method:'Card'});ORD.cancel(o3,true,'Changed mind');save()})()""")
+    go(pg, 'home', 300); go(pg, 'orders', 700)
+    ok('table lists 3 orders newest first', pg.locator('#main tbody tr').count() == 3 and pg.inner_text('#main tbody tr >> nth=0').strip().startswith('#1003'))
+    ok('totals strip shows orders and items', 'Orders\n3' in pg.inner_text('.o31stats') and 'Items ordered\n4' in pg.inner_text('.o31stats'))
+    ok('cancelled order is struck through', pg.locator('#main tbody tr.o31cl').count() == 1)
+    ok('payment and fulfilment badges', 'Unfulfilled' in pg.inner_text('#main tbody') and 'Refunded' in pg.inner_text('#main tbody'))
+    ok('sidebar shows open orders count', E("(document.querySelector('#nav [data-r=\"orders\"] .o31n')||{}).textContent") == '2')
+    pg.select_option('#o31view', 'archived'); pg.wait_for_timeout(300)
+    ok('Archived view shows closed orders only', pg.locator('#main tbody tr').count() == 1)
+    pg.select_option('#o31view', 'all'); pg.fill('#o31q', 'sana'); pg.wait_for_timeout(300)
+    ok('search filters and keeps focus', pg.locator('#main tbody tr').count() == 1 and E("document.activeElement.id") == 'o31q')
+    pg.fill('#o31q', ''); pg.wait_for_timeout(200)
+    pg.click('#o31cb'); pg.wait_for_timeout(200); pg.uncheck('[data-o31c="channel"]'); pg.wait_for_timeout(300)
+    ok('column picker hides a column', 'Channel' not in pg.inner_text('#main thead'))
+    pg.check('[data-o31c="channel"]'); pg.mouse.click(900, 120); pg.wait_for_timeout(200)
+    pg.check('[data-o31s="1002"]'); pg.wait_for_timeout(300)
+    ok('selecting a row shows bulk actions without opening it', E("location.hash") == '#orders' and '1 selected' in pg.inner_text('.o31bulk'))
+    pg.click('[data-x="o31bulk:archive"]'); pg.wait_for_timeout(300)
+    ok('bulk archive', E("!!ORD.get(1002).archived") and pg.locator('#main tbody tr.o31cl').count() == 2)
+    pg.click('#main tbody tr >> text=#1001'); pg.wait_for_timeout(700)
+    ok('row opens the order page', E("location.hash") == '#order-1001')
+    t = pg.inner_text('#main')
+    ok('order page shows badges, cards and sidebar', all(w in t for w in ['#1001', 'Paid', 'Unfulfilled', 'Mark as fulfilled', 'Subtotal', 'Timeline', 'Notes', 'Customer', 'Shipping address', 'Conversion', 'Tags']))
+    ok('previous disabled on the first order, next works', E("document.querySelector('[aria-label=\"Previous order\"]').disabled") and not E("document.querySelector('[aria-label=\"Next order\"]').disabled"))
+    pg.fill('#xcom', 'Called customer'); pg.click('#o31post'); pg.wait_for_timeout(500)
+    ok('comment appears in the timeline', 'Called customer' in pg.inner_text('.o31tl'))
+    pg.fill('#o31tagi', 'VIP'); pg.press('#o31tagi', 'Enter'); pg.wait_for_timeout(400)
+    ok('tag added', E("ORD.get(1001).tags.includes('VIP')") and 'VIP' in pg.inner_text('.o31tags'))
+    pg.click('[data-x="o31tagx:1001:0"]'); pg.wait_for_timeout(300)
+    ok('tag removed', not E("ORD.get(1001).tags.includes('VIP')"))
+    pg.click('[data-x="o31note:1001"]'); pg.wait_for_timeout(300); pg.fill('#o31nt', 'Gift wrap please'); pg.click('#xok'); pg.wait_for_timeout(400)
+    ok('notes saved and shown', 'Gift wrap please' in pg.inner_text('.o31side'))
+    pg.click('#o31ful'); pg.wait_for_timeout(400)
+    ok('Mark as fulfilled opens the fulfil dialog', pg.locator('#modal').is_visible())
+    pg.click('#xok'); pg.wait_for_timeout(600)
+    ok('order becomes fulfilled with a fulfilled card', E("ORD.get(1001).ful") == 'Fulfilled' and 'Fulfilled' in pg.inner_text('#main'))
+    pg.click('#o31db'); pg.wait_for_timeout(200); pg.click('[data-x="o31arch:1001"]'); pg.wait_for_timeout(400)
+    ok('archive from More actions', E("!!ORD.get(1001).archived") and 'Archived' in pg.inner_text('.o31title'))
+    pg.click('[aria-label="Next order"]'); pg.wait_for_timeout(500)
+    ok('next order arrow', E("location.hash") == '#order-1002')
+    pg.set_viewport_size({'width': 390, 'height': 844}); go(pg, 'orders', 600)
+    ok('orders fit a phone', E("document.documentElement.scrollWidth<=392"), E("document.documentElement.scrollWidth"))
+    b.close()
+vt.done(errs)

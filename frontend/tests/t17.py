@@ -177,7 +177,7 @@ with sync_playwright() as p:
     # cancel an unfulfilled order (the one just created from the draft)
     other = E("(S.orders.find(o=>o.ful==='Unfulfilled'&&!o.cancelled)||{}).id")
     if other:
-        go(pg, 'order-%s' % other, 400); pg.click('[data-x="ocancel:%s"]' % other); pg.wait_for_timeout(300)
+        go(pg, 'order-%s' % other, 400); pg.click('#o31db'); pg.wait_for_timeout(200); pg.click('[data-x="ocancel:%s"]' % other); pg.wait_for_timeout(300)
         if pg.locator('#xok:visible').count(): pg.click('#xok'); pg.wait_for_timeout(300)
         ok('order cancelled', bool(E("ORD.get(%s).cancelled" % other)))
     else:
