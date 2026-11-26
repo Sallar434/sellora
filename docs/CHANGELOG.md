@@ -1,5 +1,15 @@
 # VendOm v36 changelog
 
+## v52: Admin rebuild step 3: Settings (26 Nov 2026)
+- **Roles have permissions**: each role (built-in or your own) lists the areas it can open, and the admin's access check now uses them. Built-in Administrator/Developer roles are read-only and can be duplicated. Custom roles need a name and at least one permission.
+- **User page** (click a user): role, custom permissions for one user, suspend/reactivate (a suspended user has no access), resend invite, remove. Save bar for changes.
+- **Languages**: add from a list, publish/unpublish, make default, remove. A language a market uses can't be unpublished or removed.
+- **Brand**: default and square logo upload (up to 1 MB), primary/secondary colours with contrast colours and a preview, cover image, slogan (80) and short description (150) with counters, social links (must be full https addresses). Save bar.
+- **Settings › Markets** shows the real markets and backup region (it used to show a fixed "Pakistan / International" text).
+- **Store activity log** records every saved change across the admin, with area and user, search, area filter and CSV export.
+- Fixed: new stores had no roles (a startup step saved an empty list).
+- Tests: new t32 (25 checks).
+
 ## v51: Admin rebuild step 2: Markets (25 Nov 2026)
 - **Markets** rebuilt to follow Shopify's workflow: All/Active/Draft tabs, search, market types (Regions, Company locations, POS locations, Channels), **Inherited vs Customized** settings (currency with automatic/manual rate, rounding and local currencies; catalogs; domain and language; duties and taxes), backup region, shipping check, delete with safeguards, and a **Graph view** with "View as a customer in".
 - **Catalogs**: price adjustment, exclusions, fixed prices, currency, markets, CSV export. They really change store and checkout prices and availability for that market; admin prices stay the same.

@@ -1,0 +1,70 @@
+"""Settings (v52): role permissions, user page, languages, brand, markets summary, activity log."""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vt
+from vt import ok, go
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    b, pg, errs = vt.launch(p, viewport={'width': 1440, 'height': 1000}); E = pg.evaluate
+    vt.signup(pg, email='set@x.pk', store='Noor Lawn')
+    # users + roles
+    go(pg, 's-users', 700); pg.click('[data-ua="add"]'); pg.fill('#u1', 'sara@x.pk'); pg.select_option('#u2', 'Marketer'); pg.click('#u4'); pg.wait_for_timeout(400)
+    ok('user invited', E("S.set.users.staff.some(u=>u.email==='sara@x.pk')"))
+    ok('Marketer role permissions apply', E("permOf('sara@x.pk').includes('growth')") and not E("permOf('sara@x.pk').includes('orders')"))
+    E("S.viewAs='sara@x.pk'")
+    ok('access check uses the role', E("can('growth')") and not E("can('orders')") and E("can('home')"))
+    E("S.viewAs=null")
+    i = E("S.set.users.staff.findIndex(u=>u.email==='sara@x.pk')")
+    pg.click('tr[data-ui="%d"] td:nth-child(3)' % i); pg.wait_for_timeout(600)
+    ok('clicking a user opens the user page', E("location.hash") == '#s-user' and 'sara@x.pk' in pg.inner_text('.stc'))
+    ok('permissions show from the role, locked', E("document.querySelectorAll('[data-st29up]:disabled').length") > 5)
+    pg.check('#st29uc'); pg.wait_for_timeout(300); pg.check('[data-st29up="orders"]'); pg.wait_for_timeout(200)
+    ok('custom permissions show the save bar', pg.locator('#st29ub').is_visible())
+    pg.click('#st29ubs'); pg.wait_for_timeout(400)
+    ok('custom permissions saved', E("permOf('sara@x.pk').includes('orders')") and not pg.locator('#st29ub').is_visible())
+    pg.click('[data-x="st29usus"]'); pg.wait_for_timeout(300)
+    ok('suspended user has no access', E("permOf('sara@x.pk').length") == 0 and 'Suspended' in pg.inner_text('.stc'))
+    pg.click('[data-x="st29usus"]'); pg.wait_for_timeout(300)
+    # roles
+    go(pg, 's-roles', 600); pg.click('[data-ra="add"]'); pg.wait_for_timeout(500)
+    ok('add role opens the role page', E("location.hash") == '#s-role' and pg.locator('#st29rn').count() == 1)
+    pg.click('#st29rbs'); pg.wait_for_timeout(200)
+    ok('role name required', 'required' in pg.inner_text('#st29re'))
+    pg.fill('#st29rn', 'Packer'); pg.click('#st29rbs'); pg.wait_for_timeout(200)
+    ok('at least one permission required', 'at least one permission' in pg.inner_text('#st29re'))
+    pg.check('[data-st29rp="orders"]'); pg.check('[data-st29rp="products"]'); pg.click('#st29rbs'); pg.wait_for_timeout(400)
+    ok('custom role saved with permissions', E("S.rolePerm29.Packer.join()") == 'orders,products')
+    go(pg, 's-roles', 600); ri = E("roles().findIndex(r=>r.n==='Administrator')"); E("roleForm(%d)" % ri); pg.wait_for_timeout(500)
+    ok('built-in role is read-only', E("document.querySelector('#st29rn').disabled") and 'Duplicate role' in pg.inner_text('.stc'))
+    # languages
+    go(pg, 's-langs', 600); pg.click('#st29la'); pg.wait_for_timeout(300); pg.select_option('#st29ls', 'ur'); pg.check('#st29lp'); pg.click('#xok'); pg.wait_for_timeout(400)
+    ok('language added and published', 'Urdu' in pg.inner_text('.stc') and E("S.set.langs.langs.find(l=>l.code==='ur').pub"))
+    pg.click('[data-x="st29ldef:ur"]'); pg.wait_for_timeout(300)
+    ok('default language changes', E("S.set.langs.def") == 'ur' and 'Default' in pg.inner_text('.stc'))
+    pg.click('[data-x="st29ldef:en"]'); pg.wait_for_timeout(300)
+    E("MK28.list().push({id:'mkx',name:'Gulf',type:'region',status:'Active',countries:['Qatar'],cust:{dom:{kind:'subfolder',path:'/ur',lang:'ur'}}});save()")
+    go(pg, 's-langs', 500); pg.click('[data-x="st29lrm:ur"]'); pg.wait_for_timeout(300)
+    ok('a language a market uses cannot be removed', E("S.set.langs.langs.some(l=>l.code==='ur')") and 'Gulf' in E("document.querySelector('#toast').textContent"))
+    # markets summary
+    go(pg, 's-markets', 500)
+    ok('settings markets summary is live', 'Gulf' in pg.inner_text('.stc') and 'backup region' in pg.inner_text('.stc') and 'Primary market: Pakistan' not in pg.inner_text('.stc'))
+    # brand
+    go(pg, 's-brand', 500); pg.fill('#st29bs', 'Softly made'); pg.wait_for_timeout(100)
+    ok('brand shows the save bar on change', pg.locator('#st29bb').is_visible() and '11/80' in pg.inner_text('.stc'))
+    pg.fill('#st29so-instagram', 'instagram'); pg.click('#st29bbs'); pg.wait_for_timeout(300)
+    ok('social links must be full addresses', 'must start with https://' in pg.inner_text('#st29be'))
+    pg.fill('#st29so-instagram', 'https://instagram.com/noorlawn'); pg.click('#st29bbs'); pg.wait_for_timeout(400)
+    ok('brand saved', E("S.sp.brand.slogan") == 'Softly made' and E("S.sp.brand.soc.instagram") == 'https://instagram.com/noorlawn' and not pg.locator('#st29bb').is_visible())
+    pg.set_input_files('[data-st29img="logo"]', files=[{'name': 'l.png', 'mimeType': 'image/png', 'buffer': bytes.fromhex('89504e470d0a1a0a0000000d4948445200000001000000010806000000') }]); pg.wait_for_timeout(500)
+    ok('logo upload previews and marks unsaved', pg.locator('.st29iv img').count() == 1 and pg.locator('#st29bb').is_visible())
+    pg.click('#st29bbs'); pg.wait_for_timeout(300)
+    ok('logo saved', E("S.sp.brand.logo.startsWith('data:image/png')"))
+    # activity log
+    go(pg, 's-activity', 600)
+    txt = pg.inner_text('.stc')
+    ok('activity log records saved changes', 'Brand saved' in txt and 'Role saved' in txt and 'Urdu added' in txt, txt[:300])
+    pg.fill('#st29q', 'brand'); pg.wait_for_timeout(300)
+    ok('activity log search', 'Brand saved' in pg.inner_text('.stc') and 'Role saved' not in pg.inner_text('.stc'))
+    ok('entries record the user', 'set@x.pk' in pg.inner_text('.stc'))
+    b.close()
+vt.done(errs)

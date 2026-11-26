@@ -21,7 +21,7 @@ try{var NC=X.NAV_CONFIG;if(NC&&!NC.some(function(n){return n.id==='vendom-pay'})
 var AREAS={home:'Home',orders:'Orders',products:'Products',customers:'Customers',growth:'Marketing',discounts:'Discounts',content:'Content',markets:'Markets',finance:'Finance',analytics:'Analytics',apps:'Apps',themes:'Online store',pay:'VendOm Pay',ai:'AI builder',settings:'Settings'};
 function areaOf(r){if(/^s-|^integrations|^staff-access|^shipping-zones|^notifications/.test(r))return 'settings';if(/^order/.test(r))return 'orders';if(/^customer/.test(r))return 'customers';if(/^product/.test(r))return 'products';if(/^pay|^vendom-pay/.test(r))return 'pay';if(/^ai/.test(r))return 'ai';if(/^app/.test(r))return 'apps';if(/^report/.test(r))return 'analytics';var k=r.split('-')[0];return AREAS[k]?k:'home'}
 function staffList(){var u=so('users');return (u.staff||[]).map(function(s){return typeof s==='string'?{email:s,role:'Staff'}:s}).filter(function(s){return s.email})}
-function can(r){var who=S.viewAs;if(!who)return true;var p=S.staffPerm[who];if(!p)return areaOf(r)==='home';return areaOf(r)==='home'||p.indexOf(areaOf(r))>-1}X.can=can;X.AREAS=AREAS;X.staffList=staffList;
+function can(r){var who=S.viewAs;if(!who)return true;var p=(S.staffPerm||{})[who]||(X.permOf&&X.permOf(who));if(!p)return areaOf(r)==='home';return areaOf(r)==='home'||p.indexOf(areaOf(r))>-1}X.can=can;X.AREAS=AREAS;X.staffList=staffList;
 var PAGE={};X.PAGE=PAGE;/* dynamic routes: name -> fn(arg) */
 var R0=route;
 X.isPlatformAdmin=function(){return typeof U!=='undefined'&&U==='admin@vendom.app'};
