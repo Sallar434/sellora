@@ -1,5 +1,21 @@
 # VendOm v36 changelog
 
+## v61: VendOm Autopilot, first version (27 Nov 2026)
+- New **Autopilot** in the left menu (Sales channels), with tabs:
+  - **Overview:** day-1 setup checklist, goals (main goal, monthly ad cap, languages) and the plan's 30-day allowances.
+  - **Connections:** 16 accounts, including WhatsApp Business, Google Merchant Center, Search Console, Analytics, Ads and Business Profile, Meta, Meta Ads, TikTok, TikTok Ads, Threads, Pinterest, X, YouTube, couriers and marketplaces. Some accounts need a higher plan.
+  - **Calendar, Approvals, Skills** (15, on by default), **Brand Builder** (opt-in 6 months, Rs 435,000 suggested spend) and **Activity** (with undo).
+- **Day-1 setup** in one tap:
+  - Meta titles (60 characters max), meta descriptions (155 max) and alt text for every product.
+  - An FAQ page for AEO/GEO and starter blog drafts with product links.
+  - A 30-day calendar sized to the plan (Starter 30 posts + 9 reels, Grow 60 + 17, Pro 90 + 30, Scale 150 + 60). Every item links to the website with UTM tracking.
+  - WhatsApp cart reminders and COD confirmation switched on.
+  - A Meta campaign draft, with a daily budget of the monthly cap ÷ 30. Campaigns and going live wait in Approvals.
+- Plans map to Autopilot tiers: Basic → Starter, Grow → Grow, Advanced → Pro, Enterprise → Scale.
+- **Test mode:** Autopilot prepares everything here, but nothing is posted to other platforms until VendOm's Meta, Google and TikTok apps are approved.
+- The old "Autopilot" under Marketing is now called "Campaign Autopilot".
+- The full plan page is in `docs/team/autopilot-plan.html`. New test: t41 (23 checks).
+
 ## v60: Team review: security, 100-customer QA, plans and pricing (27 Nov 2026)
 - **Team reports** in `docs/team/`: architecture review, marketing plan to 1M users, plans and AI pricing (Claude, DeepSeek, Kimi).
 - **Security (server)**:
