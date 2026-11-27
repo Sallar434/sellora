@@ -29,7 +29,7 @@ function details(d){var o=[];o.push(d.elig==='customers'?'For '+(d.eligList||[])
 /* ===================== checkout engine ===================== */
 function inTargets(d,targets,from,line){if(!targets||!targets.length)return false;var p=(S.products||[]).filter(function(x){return x.id===line.pid})[0];if(!p)return false;
  if(from==='collections')return (p.cols||[]).some(function(c){return targets.indexOf(c)>-1});return targets.map(String).indexOf(String(p.id))>-1}
-function eligibleFor(d,ctx,lines,sub){var n=Date.now();if(status(d)!=='Active')return 'This discount is not active.';
+function eligibleFor(d,ctx,lines,sub){var n=Date.now();if(status(d)!=='Active')return (d.ends&&+new Date(d.ends)<n)?'This discount has expired.':(d.starts&&+new Date(d.starts)>n)?'This discount has not started yet.':'This discount is not active.';
  var em=(ctx.email||'').toLowerCase(),c=em&&X.CU&&X.CU.byEmail(em);
  if(d.elig==='customers'&&!(c&&(d.eligList||[]).indexOf(c.id)>-1))return 'This discount is not available for your account.';
  if(d.elig==='segments'){var ok=c&&(d.eligList||[]).some(function(sid){var s=(U.segs()||[]).filter(function(x){return x.id===sid})[0];return s&&U.run(s.where).indexOf(c)>-1});if(!ok)return 'This discount is not available for your account.'}

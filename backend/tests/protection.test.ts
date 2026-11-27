@@ -3,6 +3,7 @@ import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../src/app';
 import { db } from '../src/lib/db';
+import { goLive, verifyEmail } from './live';
 
 const app = createApp(); const A = () => request(app);
 const H = (t: string) => ({ Authorization: 'Bearer ' + t });
@@ -19,10 +20,10 @@ const job = async () => (await A().post('/api/admin/jobs/escrow-auto-release').s
 const balanced = async () => expect((await A().get('/api/admin/ledger/check').set(H(admin.accessToken))).body.unbalanced).toBe(0);
 
 beforeAll(async () => {
-  s = (await A().post('/api/auth/signup').send({ email: 'shop@t.io', password: 'password123', storeName: 'Noor Lawn' }).expect(201)).body;
+  s = (await A().post('/api/auth/signup').send({ email: 'shop@t.io', password: 'password123', storeName: 'Noor Lawn' }).expect(201)).body; await goLive(s.store.id);
   await db.store.update({ where: { id: s.store.id }, data: { currency: 'USD' } });
   await A().get(S('/billing/usage')).set(tok()); await db.subscription.update({ where: { storeId: s.store.id }, data: { status: 'active', planCode: 'advanced' } });
-  buyer = (await A().post('/api/auth/signup').send({ email: 'amna@t.io', password: 'password123', type: 'BUYER' }).expect(201)).body;
+  buyer = (await A().post('/api/auth/signup').send({ email: 'amna@t.io', password: 'password123', type: 'BUYER' }).expect(201)).body; await verifyEmail('amna@t.io');
   await db.user.create({ data: { email: 'boss@t.io', type: 'ADMIN', passwordHash: await bcrypt.hash('password123', 4) } });
   admin = (await A().post('/api/auth/login').send({ email: 'boss@t.io', password: 'password123' })).body;
   product = (await A().post(S('/products')).set(tok()).send({ title: 'Lawn Suit', price: 10000, variants: [{ title: 'M', price: 10000, inventory: 50 }] }).expect(201)).body;

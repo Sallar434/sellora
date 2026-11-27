@@ -1,3 +1,4 @@
+import { isPrivate, prefsOf, unlockToken, verifySignature } from '../lib/storeAccess';
 import { HttpError } from '../lib/http';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
@@ -15,8 +16,18 @@ import { methodsFor } from '../providers/payment';
 export const r = Router();
 const optUser = (req: any, _r: any, n: any) => { try { const t = (req.headers.authorization || '').slice(7); if (t) req.user = jwt.verify(t, config.jwtSecret); } catch {} n(); };
 r.use(optUser);
+/** A signed-in buyer whose email is verified (checked in the database, not the token). */
+async function verifiedBuyer(req: any) {
+  if (req.user?.type !== 'BUYER') throw forbid('Sign in to your buyer account');
+  const u = await db.user.findUnique({ where: { id: req.user.sub }, select: { emailVerified: true, email: true } });
+  if (!u?.emailVerified || u.email !== req.user.email) throw forbid('Verify your email first');
+}
 /** :shop = store handle, store id, or publishable key */
-r.param('shop', (async (req: any, _res: any, next: any, shop: string) => { try { const s = await db.store.findFirst({ where: { OR: [{ handle: shop }, { id: shop }, { publishableKey: shop }] } }); if (!s) throw nf('Store not found'); { const { getSub } = await import('../lib/billing'); if ((await getSub(s.id)).status === 'expired') throw new HttpError(503, 'Store unavailable', { code: 'store_unavailable' }); } req.shop = s; next(); } catch (e) { next(e); } }) as any);
+r.param('shop', (async (req: any, _res: any, next: any, shop: string) => { try { const s = await db.store.findFirst({ where: { OR: [{ handle: shop }, { id: shop }, { publishableKey: shop }] } }); if (!s) throw nf('Store not found'); { const { getSub } = await import('../lib/billing'); if ((await getSub(s.id)).status === 'expired') throw new HttpError(503, 'Store unavailable', { code: 'store_unavailable' }); }
+  if (await isPrivate(s)) { const tok = String(req.headers['x-store-unlock'] || ''); const host = String(req.headers['x-forwarded-host'] || req.headers.host || ''); const p = prefsOf(s);
+    const ok = (!!tok && tok === unlockToken(s.id, ((s.settings as any) || {}).storePassword || '')) || verifySignature(p, (s as any).domain || `${s.handle}.vendom.app`, req.headers as any) || (!!host && verifySignature(p, host, req.headers as any));
+    if (!ok) throw new HttpError(401, 'This store is private. Enter the store password first.', { code: 'store_private' }); }
+  req.shop = s; next(); } catch (e) { next(e); } }) as any);
 const clean = (p: any) => ({ id: p.id, title: p.title, handle: p.handle, description: p.description, vendor: p.vendor, type: p.type, tags: p.tags, options: p.options, images: p.images, price: p.price, compareAt: p.compareAt, seoTitle: p.seoTitle, seoDesc: p.seoDesc, variants: (p.variants || []).map((v: any) => ({ id: v.id, title: v.title, sku: v.sku, price: v.price ?? p.price, options: v.options, available: v.inventory > 0, imageIndex: v.imageIndex })) });
 r.get('/:shop', ah(async (req: any, res) => {
   const s = req.shop;
@@ -38,7 +49,7 @@ r.get('/:shop/blog', ah(async (req: any, res) => res.json(await db.blogPost.find
 const lineS = z.array(z.object({ variantId: z.string(), qty: z.number().int().positive() }));
 r.post('/:shop/carts', ah(async (req: any, res) => { const b = parse(z.object({ lines: lineS.default([]), currency: z.string().length(3).optional(), email: z.string().email().optional() }), req.body); res.status(201).json(await db.cart.create({ data: { storeId: req.shop.id, lines: b.lines as any, currency: b.currency || req.shop.currency, email: b.email } })); }));
 r.get('/:shop/carts/:id', ah(async (req: any, res) => { const c = await db.cart.findFirst({ where: { id: req.params.id, storeId: req.shop.id } }); if (!c) throw nf(); res.json({ ...c, quote: (c.lines as any[]).length ? await priceCart(req.shop.id, { ...(c as any), lines: c.lines as any, currency: c.currency, discountCode: c.discountCode || undefined, giftCode: c.giftCode || undefined, shipTo: c.shipTo as any, shippingRate: c.shippingRate || undefined }) : null }); }));
-r.patch('/:shop/carts/:id', ah(async (req: any, res) => { const b = parse(z.object({ lines: lineS, email: z.string().email(), discountCode: z.string().nullable(), giftCode: z.string().nullable(), shipTo: z.any(), shippingRate: z.string(), currency: z.string().length(3) }).partial(), req.body); res.json(await db.cart.update({ where: { id: req.params.id }, data: b })); }));
+r.patch('/:shop/carts/:id', ah(async (req: any, res) => { const b = parse(z.object({ lines: lineS, email: z.string().email(), discountCode: z.string().nullable(), giftCode: z.string().nullable(), shipTo: z.any(), shippingRate: z.string(), currency: z.string().length(3) }).partial(), req.body); const u = await db.cart.updateMany({ where: { id: req.params.id, storeId: req.shop.id }, data: b }); if (!u.count) throw nf(); res.json(await db.cart.findUnique({ where: { id: req.params.id } })); }));
 r.post('/:shop/checkout/quote', ah(async (req: any, res) => res.json(await priceCart(req.shop.id, req.body))));
 r.post('/:shop/checkout', idempotent, ah(async (req: any, res) => {
   const b = parse(z.object({ cartId: z.string().optional(), lines: lineS.optional(), email: z.string().email().optional(), currency: z.string().length(3).optional(), discountCode: z.string().optional(), giftCode: z.string().optional(), shipTo: z.object({ name: z.string().optional(), address1: z.string().optional(), city: z.string().optional(), country: z.string().length(2), region: z.string().optional(), zip: z.string().optional() }).optional(), shippingRate: z.string().optional(), payment: z.object({ source: z.string() }).optional(), protection: z.boolean().optional() }), req.body);
@@ -52,14 +63,14 @@ r.post('/:shop/checkout', idempotent, ah(async (req: any, res) => {
 /** Buyer confirms receipt → escrow released to seller (minus platform fee). */
 r.post('/:shop/orders/:id/confirm', ah(async (req: any, res) => {
   const o = await db.order.findFirst({ where: { id: req.params.id, storeId: req.shop.id } }); if (!o) throw nf();
-  const ok = (req.user?.type === 'BUYER' && req.user.email === o.email) || (req.body?.email && req.body.email.toLowerCase() === o.email && req.body.orderNumber === o.number);
-  if (!ok) throw forbid('Only the buyer can confirm');
+  await verifiedBuyer(req);
+  if (req.user.email !== o.email) throw forbid('Only the buyer can confirm');
   const e = await db.escrow.findUnique({ where: { orderId: o.id } }); if (!e) throw bad('This order was paid directly; there is nothing to release');
   res.json(await releaseEscrow(e.id, 'buyer confirmed'));
 }));
 /** Buyer reports the parcel did not arrive. Not shipped yet → full refund now. Shipped → the seller has a few days to show proof of delivery; otherwise the buyer is refunded minus the seller's shipping cost. */
 r.post('/:shop/orders/:id/not-received', ah(async (req: any, res) => {
-  if (req.user?.type !== 'BUYER') throw forbid('Sign in to your buyer account');
+  await verifiedBuyer(req);
   const o = await db.order.findFirst({ where: { id: req.params.id, storeId: req.shop.id } }); if (!o || o.email !== req.user.email) throw forbid('Not your order');
   const e = await db.escrow.findUnique({ where: { orderId: o.id } }); if (!e || e.status !== 'held') throw bad('This payment is no longer held by VendOm Pay; contact the seller');
   const note = String(req.body?.note || '').slice(0, 1000);
@@ -78,7 +89,7 @@ r.get('/:shop/payment-methods', ah(async (req: any, res) => {
   res.json({ mode, protection: mode !== 'direct', methods: methodsFor(String(req.query.country || 'US').toUpperCase(), String(req.query.currency || req.shop.currency).toUpperCase()) });
 }));
 // buyer: my orders
-r.get('/:shop/me/orders', ah(async (req: any, res) => { if (req.user?.type !== 'BUYER') throw forbid(); res.json(await db.order.findMany({ where: { storeId: req.shop.id, email: req.user.email }, include: { lines: true } })); }));
+r.get('/:shop/me/orders', ah(async (req: any, res) => { await verifiedBuyer(req); res.json(await db.order.findMany({ where: { storeId: req.shop.id, email: req.user.email }, include: { lines: true } })); }));
 r.post('/:shop/reviews', ah(async (req: any, res) => { const b = parse(z.object({ productId: z.string(), rating: z.number().int().min(1).max(5), author: z.string(), body: z.string().max(4000) }), req.body); res.status(201).json(await db.review.create({ data: { ...b, storeId: req.shop.id } })); }));
 // payment links (public pay page data + pay)
 r.get('/:shop/pay/:linkId', ah(async (req: any, res) => { const l = await db.paymentLink.findFirst({ where: { id: req.params.linkId, storeId: req.shop.id, active: true } }); if (!l) throw nf(); res.json(l); }));

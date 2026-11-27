@@ -4,6 +4,7 @@ import { createApp } from '../src/app';
 import { db } from '../src/lib/db';
 import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
+import { goLive, verifyEmail } from './live';
 const app = createApp();
 const A = () => request(app);
 let seller: any, store: any, buyer: any, admin: any, product: any;
@@ -17,7 +18,7 @@ beforeAll(async () => {
 describe('auth', () => {
   it('signup seller creates store, verify email OTP, login, refresh rotation, logout', async () => {
     const r = await A().post('/api/auth/signup').send({ email: 'seller@t.io', password: 'password123', storeName: 'Active Reality Gear', phone: '+923001234567' }).expect(201);
-    seller = r.body; store = r.body.store; expect(store.handle).toBe('active-reality-gear');
+    seller = r.body; store = r.body.store; await goLive(store.id); expect(store.handle).toBe('active-reality-gear');
     await A().post('/api/auth/otp/verify').set(H(seller.accessToken)).send({ channel: 'email', code: r.body.devCode }).expect(200).then(x => expect(x.body.user.emailVerified).toBe(true));
     const sms = await A().post('/api/auth/otp/send').set(H(seller.accessToken)).send({ channel: 'sms' }).expect(200);
     await A().post('/api/auth/otp/verify').set(H(seller.accessToken)).send({ channel: 'sms', code: sms.body.devCode }).expect(200);
@@ -26,7 +27,7 @@ describe('auth', () => {
     await A().post('/api/auth/refresh').send({ refreshToken: seller.refreshToken }).expect(401); // rotated
     await A().post('/api/auth/logout').send({ refreshToken: ref.body.refreshToken }).expect(200);
     await A().get('/api/auth/me').expect(401);
-    buyer = (await A().post('/api/auth/signup').send({ email: 'buyer@t.io', password: 'password123', type: 'BUYER' }).expect(201)).body;
+    buyer = (await A().post('/api/auth/signup').send({ email: 'buyer@t.io', password: 'password123', type: 'BUYER' }).expect(201)).body; await verifyEmail('buyer@t.io');
     expect(buyer.store).toBeNull();
   });
   it('password reset + TOTP 2FA', async () => {

@@ -1,10 +1,11 @@
+import dns from 'dns';
 import { THEME_LIBRARY, DEFAULT_THEME, migrateThemes } from '../lib/themes';
 import { Router } from 'express';
 import { emit } from '../lib/webhooks';
 import { z } from 'zod';
 import multer from 'multer';
 import { db } from '../lib/db';
-import { ah, parse, bad, nf, slug, HttpError } from '../lib/http';
+import { ah, parse, bad, nf, slug, HttpError, forbid } from '../lib/http';
 import { storeAccess, requirePaid } from '../lib/auth';
 import { crud } from '../lib/crud';
 import { rand, encrypt } from '../lib/crypto';
@@ -33,19 +34,32 @@ r.get('/:storeId/staff', storeAccess('*'), ah(async (req, res) => res.json(await
 r.post('/:storeId/staff', storeAccess('*'), ah(async (req, res) => {
   const b = parse(z.object({ email: z.string().email(), role: z.enum(['admin', 'manager', 'staff', 'fulfillment']), permissions: z.array(z.string()).optional() }), req.body);
   const u = await db.user.findUnique({ where: { email: b.email.toLowerCase() } }); if (!u) throw nf('User must sign up first');
+  const cur = await db.membership.findUnique({ where: { userId_storeId: { userId: u.id, storeId: req.store.id } } });
+  if (cur?.role === 'owner') throw forbid("The store owner's role can't be changed");
+  const me = await db.membership.findUnique({ where: { userId_storeId: { userId: req.user!.sub, storeId: req.store.id } } });
+  if ((b.role === 'admin' || (b.permissions || []).includes('*')) && me?.role !== 'owner' && req.store.ownerId !== req.user!.sub) throw forbid('Only the store owner can add admins');
   res.status(201).json(await db.membership.upsert({ where: { userId_storeId: { userId: u.id, storeId: req.store.id } }, update: { role: b.role, permissions: b.permissions }, create: { userId: u.id, storeId: req.store.id, role: b.role, permissions: b.permissions } }));
 }));
 r.delete('/:storeId/staff/:userId', storeAccess('*'), ah(async (req, res) => { await db.membership.deleteMany({ where: { storeId: req.store.id, userId: req.params.userId, role: { not: 'owner' } } }); res.status(204).end(); }));
 // ---- domains (stub verification via TXT token)
 crud(r, ':storeId/domains', 'domain', z.object({ host: z.string() }), 'settings', { before: d => (d.host ? { ...d, token: 'vendom-verify=' + rand(10) } : d) });
-r.post('/:storeId/domains/:id/verify', storeAccess('settings'), ah(async (req, res) => res.json(await db.domain.update({ where: { id: req.params.id }, data: { verified: true } })))); // TODO real DNS TXT lookup
+r.post('/:storeId/domains/:id/verify', storeAccess('settings'), ah(async (req, res) => {
+  const d = await db.domain.findFirst({ where: { id: req.params.id, storeId: req.store.id } }); if (!d) throw nf();
+  let txt: string[] = [];
+  try { txt = (await dns.promises.resolveTxt(d.host)).map(r => r.join('')); } catch { /* no records */ }
+  if (!d.token || !txt.includes(d.token)) throw bad('Add this TXT record to your domain, then try again: ' + d.token);
+  res.json(await db.domain.update({ where: { id: d.id }, data: { verified: true } }));
+}));
 // ---- uploads
 const up = multer({ limits: { fileSize: 10 * 1024 * 1024 } });
 r.post('/:storeId/uploads', storeAccess(), up.single('file'), ah(async (req, res) => {
   const f = (req as any).file; if (!f) throw bad('file required');
-  if (!/^(image\/|application\/pdf)/.test(f.mimetype)) throw bad('Only images/PDF');
-  const o = await put(req.store.id, f.originalname, f.buffer, f.mimetype);
-  res.status(201).json(await db.upload.create({ data: { storeId: req.store.id, key: o.key, url: o.url, mime: f.mimetype, size: f.size } }));
+  const b0 = f.buffer as Buffer, hex = b0.subarray(0, 12).toString('hex');
+  const kind = hex.startsWith('89504e47') ? ['png', 'image/png'] : hex.startsWith('ffd8ff') ? ['jpg', 'image/jpeg'] : hex.startsWith('47494638') ? ['gif', 'image/gif'] : (hex.startsWith('52494646') && b0.subarray(8, 12).toString() === 'WEBP') ? ['webp', 'image/webp'] : hex.startsWith('25504446') ? ['pdf', 'application/pdf'] : null;
+  if (!kind) throw bad('Only PNG, JPG, GIF, WEBP images or PDF files');
+  const safeName = String(f.originalname || 'file').replace(/\.[^.]*$/, '').replace(/[^a-z0-9_-]+/gi, '-').slice(0, 60) + '.' + kind[0];
+  const o = await put(req.store.id, safeName, f.buffer, kind[1]);
+  res.status(201).json(await db.upload.create({ data: { storeId: req.store.id, key: o.key, url: o.url, mime: kind[1], size: f.size } }));
 }));
 
 // ---- products
@@ -201,7 +215,7 @@ r.post('/:storeId/purchase-orders/:id/receive', storeAccess('products'), ah(asyn
 // ---- online store
 r.get('/:storeId/themes/library', storeAccess('online_store'), ah(async (req, res) => { const migrated = await migrateThemes(req.store.id); res.json({ themes: THEME_LIBRARY, default: DEFAULT_THEME.id, migrated }); }));
 crud(r, ':storeId/themes', 'theme', z.object({ name: z.string(), live: z.boolean().default(false), palette: z.record(z.string(), z.string()).optional(), preset: z.string().nullish(), sections: J.optional(), settings: J.optional() }), 'online_store');
-r.post('/:storeId/themes/:id/publish', storeAccess('online_store'), requirePaid, ah(async (req, res) => { await db.theme.updateMany({ where: { storeId: req.store.id }, data: { live: false } }); res.json(await db.theme.update({ where: { id: req.params.id }, data: { live: true } })); }));
+r.post('/:storeId/themes/:id/publish', storeAccess('online_store'), requirePaid, ah(async (req, res) => { const t0 = await db.theme.findFirst({ where: { id: req.params.id, storeId: req.store.id } }); if (!t0) throw nf(); await db.theme.updateMany({ where: { storeId: req.store.id }, data: { live: false } }); res.json(await db.theme.update({ where: { id: t0.id }, data: { live: true } })); }));
 const pageS = z.object({ title: z.string().min(1), handle: z.string().optional(), body: z.string().default(''), visible: z.boolean().default(true), seoTitle: z.string().nullish(), seoDesc: z.string().nullish() });
 crud(r, ':storeId/pages', 'page', pageS, 'online_store', { before: d => (d.title || d.handle ? { ...d, handle: slug(d.handle || d.title) } : d) });
 crud(r, ':storeId/blog', 'blogPost', z.object({ title: z.string(), handle: z.string().optional(), body: z.string().default(''), published: z.boolean().default(false) }), 'online_store', { before: d => (d.title ? { ...d, handle: slug(d.handle || d.title) } : d) });

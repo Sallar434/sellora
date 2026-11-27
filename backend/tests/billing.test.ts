@@ -3,6 +3,7 @@ import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../src/app';
 import { db } from '../src/lib/db';
+import { goLive, verifyEmail } from './live';
 const app = createApp(); const A = () => request(app);
 const H = (t: string) => ({ Authorization: 'Bearer ' + t });
 let s: any, admin: any; const S = (p: string) => `/api/stores/${s.store.id}${p}`;
@@ -81,7 +82,7 @@ describe('Subscription plans & usage billing', () => {
     await A().get(`/api/storefront/${t.store.id}`).expect(503); await A().get(`/api/stores/${t.store.id}/billing`).set(H(t.accessToken)).expect(200);
     await A().post(`/api/stores/${t.store.id}/billing/plan`).set(H(t.accessToken)).send({ plan: 'basic' }).expect(200);
     await A().post(`/api/stores/${t.store.id}/products`).set(H(t.accessToken)).send({ title: 'Allowed now' }).expect(201);
-    await A().get(`/api/stores/${t.store.id}/products`).set(H(t.accessToken)).expect(200); await A().get(`/api/storefront/${t.store.id}`).expect(200);
+    await A().get(`/api/stores/${t.store.id}/products`).set(H(t.accessToken)).expect(200); await goLive(t.store.id); await A().get(`/api/storefront/${t.store.id}`).expect(200);
   });
   it('Swagger lists billing + admin plan endpoints', async () => {
     const o = (await A().get('/openapi.json').expect(200)).body.paths;

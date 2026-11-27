@@ -117,7 +117,7 @@ with sync_playwright() as p:
     ok('BXGY needs the bought quantity', not any(a.get('code') == 'BUY2' for a in q7['applied']))
     E("""S.disc2.push({v25:1,id:'dsch',kind:'order',method:'code',code:'LATER',valType:'%',value:50,elig:'all',eligList:[],min:'none',combine:{},starts:Date.now()+864e5,ends:0,on:true,used:0});S.disc2.push({v25:1,id:'dlim',kind:'order',method:'code',code:'ONCE',valType:'%',value:5,elig:'all',eligList:[],min:'none',combine:{},starts:Date.now()-1000,ends:0,on:true,used:1,limitTotal:true,limitN:1});save()""")
     q8 = Q("[{pid:102,vi:-1,q:1}]", "['LATER']"); q9 = Q("[{pid:102,vi:-1,q:1}]", "['ONCE']")
-    ok('scheduled and used-up codes refused with a reason', q8['disc'] == 0 and any('not active' in e for e in q8['errs']) and q9['disc'] == 0, (q8['errs'], q9['errs']))
+    ok('scheduled and used-up codes refused with a reason', q8['disc'] == 0 and any(('not active' in e or 'not started' in e) for e in q8['errs']) and q9['disc'] == 0, (q8['errs'], q9['errs']))
     go(pg, 'discounts', 400)
     ok('list shows Scheduled and Expired', 'Scheduled' in T(pg) and 'Expired' in T(pg))
     pg.select_option('[data-d25f]', 'scheduled'); pg.wait_for_timeout(400); ok('status filter', pg.locator('#main tbody tr').count() == 1)

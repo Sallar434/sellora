@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -22,15 +23,21 @@ export async function createStore(ownerId: string, name: string, currency = 'USD
   await db.kyc.create({ data: { storeId: s.id } });
   return s;
 }
+const otpTries = new Map<string, number>();
 async function sendOtp(target: string, purpose: string, channel: 'email' | 'sms') {
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const code = String(crypto.randomInt(100000, 1000000));
+  await db.otp.updateMany({ where: { target, purpose, used: false }, data: { used: true } });
+  otpTries.delete(target + ':' + purpose);
   await db.otp.create({ data: { target, purpose, codeHash: sha256(code), expiresAt: new Date(Date.now() + 6e5) } });
   await notify(channel, target, purpose === 'reset' ? 'password_reset' : 'otp', { code });
   return config.env === 'production' ? undefined : code; // dev/test convenience
 }
 async function useOtp(target: string, purpose: string, code: string) {
+  const k = target + ':' + purpose, n = (otpTries.get(k) || 0) + 1;
+  if (n > 5) { await db.otp.updateMany({ where: { target, purpose, used: false }, data: { used: true } }); otpTries.delete(k); throw bad('Too many wrong codes. Ask for a new code.'); }
   const o = await db.otp.findFirst({ where: { target, purpose, used: false, codeHash: sha256(code), expiresAt: { gt: new Date() } } });
-  if (!o) throw bad('Invalid or expired code');
+  if (!o) { otpTries.set(k, n); throw bad('Invalid or expired code'); }
+  otpTries.delete(k);
   await db.otp.update({ where: { id: o.id }, data: { used: true } });
 }
 r.post('/signup', ah(async (req, res) => {
@@ -92,6 +99,8 @@ r.post('/password/reset', ah(async (req, res) => {
   res.json({ ok: true });
 }));
 r.post('/2fa/setup', auth, ah(async (req, res) => {
+  const me = await db.user.findUnique({ where: { id: req.user!.sub } });
+  if (me?.totpEnabled && !(me.totpSecret && authenticator.check(String(req.body?.code || ''), me.totpSecret))) throw bad('Enter your current 2-step code to set up a new one');
   const secret = authenticator.generateSecret();
   await db.user.update({ where: { id: req.user!.sub }, data: { totpSecret: secret, totpEnabled: false } });
   res.json({ secret, otpauth: authenticator.keyuri(req.user!.email, 'VendOm', secret) });

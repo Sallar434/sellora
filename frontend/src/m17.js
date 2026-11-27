@@ -59,9 +59,9 @@ function signup(prefill){var e=(prefill||'').toLowerCase(),fixed=/^\S+@\S+\.\S+$
  if(el('ob-chg'))el('ob-chg').onclick=function(){authView('up','')};
  el('asw').onclick=function(){authView('in')};
  var busy=false,go=function(){if(busy)return;var em=el('a2').value.trim().toLowerCase(),p=pw.value;
-  if(!/^\S+@\S+\.\S+$/.test(em))return err('Enter a valid email.');if(p.length<8)return err('Password must be at least 8 characters.');
+  if(!/^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(em)||em.length>254)return err('Enter a valid email.');if(p.replace(/\s/g,'').length<8)return err('Password must be at least 8 characters (spaces don\'t count).');if(p.length>128)return err('Password must be 128 characters or fewer.');if(typeof reservedEmail==='function'&&reservedEmail(em))return err('This email can\'t be used. Use your own email address.');
   DB.a=DB.a||{};DB.d=DB.d||{};if(DB.a[em])return err('That email already has an account. Sign in instead.');busy=true;
-  hx(p).then(function(hash){busy=false;var first=!Object.keys(DB.a).length,orphan=first?unownedKey():'';DB.a[em]=hash;
+  pwHash(p).then(function(hash){busy=false;var first=!Object.keys(DB.a).length,orphan=first?unownedKey():'';DB.a[em]=hash;
    DB.obCountry=DB.obCountry||{};DB.obCountry[em]=el('a-country').value;
    mail(em,'Welcome to VendOm: your account is ready','Hi, you created a VendOm account with '+em+'. Verify your email with the code we sent, then set up your store. Your 4-day free trial starts when you finish.');
    if(orphan&&claimStore(orphan,em)){DB.ver=DB.ver||{};DB.ver[em]={ok:true};startSession(em);return}

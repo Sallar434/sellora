@@ -4,7 +4,8 @@
 (function(){
 var K='vendom_backend',C={};try{C=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 function sv(){localStorage.setItem(K,JSON.stringify(C))}
-function on(){return !!(C.url&&C.token&&C.storeId)}
+/* v60: the backend link belongs to the VendOm account that connected it; another account in this browser never uses it. */
+function on(){return !!(C.url&&C.token&&C.storeId&&C.owner&&C.owner===window.U)}
 function api(m,p,b,retry){return fetch(C.url.replace(/\/$/,'')+p,{method:m,headers:Object.assign({'Content-Type':'application/json'},C.token?{Authorization:'Bearer '+C.token}:{}),body:b?JSON.stringify(b):undefined}).then(function(r){
   if(r.status===401&&C.refresh&&!retry)return api('POST','/api/auth/refresh',{refreshToken:C.refresh},1).then(function(t){C.token=t.accessToken;C.refresh=t.refreshToken;sv();return api(m,p,b,1)});
   if(r.status===204)return null;return r.json().then(function(j){if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j})})}
@@ -35,10 +36,11 @@ function push(){if(!on())return;if(busy){again=1;return}busy=1;S._ts=Date.now();
     return api('PATCH','/api/stores/'+C.storeId,{settings:{frontendState:snap}})}).then(function(){msg('ok');origPersist()})
   .catch(function(e){msg('err',e.message)}).then(function(){busy=0;if(again){again=0;push()}})}
 var origPersist=window.persist,tm;
+if(typeof window.endSession==='function'){var oe=window.endSession;window.endSession=function(){try{if(C.owner&&C.owner===window.U){clearTimeout(tm);if(C.refresh)api('POST','/api/auth/logout',{refreshToken:C.refresh}).catch(function(){});C={};sv()}}catch(e){}return oe.apply(this,arguments)}}
 window.persist=function(){origPersist();if(on()){clearTimeout(tm);tm=setTimeout(push,1200)}};
 function connect(){var url=document.getElementById('sbk-url').value.trim(),em=document.getElementById('sbk-em').value.trim(),pw=document.getElementById('sbk-pw').value;
   if(!/^https?:\/\//.test(url)){toast('Enter a backend URL like http://localhost:4000');return}C={url:url};msg('syncing');
-  api('POST','/api/auth/login',{email:em,password:pw}).then(function(r){C.token=r.accessToken;C.refresh=r.refreshToken;return api('GET','/api/stores')}).then(function(ss){
+  api('POST','/api/auth/login',{email:em,password:pw}).then(function(r){C.token=r.accessToken;C.refresh=r.refreshToken;C.owner=window.U||'';C.user={type:(r.user||{}).type||''};return api('GET','/api/stores')}).then(function(ss){
     if(!ss.length)throw new Error('This account has no store');C.storeId=ss[0].id;C.handle=ss[0].handle;sv();return pull()}).then(function(){if(st.status==='ok'){toast('Connected to backend');push()}})
   .catch(function(e){C={};sv();msg('err',e.message);toast('Connect failed: '+e.message)})}
 function disconnect(){if(C.refresh)api('POST','/api/auth/logout',{refreshToken:C.refresh}).catch(function(){});C={};sv();msg('off');toast('Disconnected. Using browser storage only');try{route()}catch(e){}}

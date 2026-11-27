@@ -13,7 +13,8 @@ export const mockProvider: PaymentProvider = {
   name: 'mock',
   async charge(i) { return i.source === 'tok_fail' ? { id: 'ch_' + rand(8), status: 'failed', error: 'card_declined' } : { id: 'ch_' + rand(8), status: 'succeeded' }; },
   async refund() { return { id: 're_' + rand(8), status: 'succeeded' }; },
-  async payout() { return { id: 'po_' + rand(8), status: 'paid' }; },
+  /* In production the mock never pays out real money: balances from test payments can't be withdrawn. */
+  async payout() { if (config.env === 'production' && process.env.ALLOW_MOCK_PAYOUTS !== '1') return { id: 'po_' + rand(8), status: 'failed' }; return { id: 'po_' + rand(8), status: 'paid' }; },
   async microDeposits() { return { amounts: [1 + Math.floor(Math.random() * 98), 1 + Math.floor(Math.random() * 98)] }; },
 };
 /** Stripe Connect adapter skeleton (REST, no SDK). Set PAYMENT_PROVIDER=stripe + STRIPE_SECRET_KEY. */
