@@ -150,7 +150,7 @@ function bell(){init();var n=S.alerts.filter(function(x){return !x.read}).length
 if(X.onRoute)X.onRoute(function(r){init();clean();var sv2=q('#p8srch');if(sv2)sv2.remove();
  if(document.body.classList.contains('st')){var stn=q('.stn');if(stn&&!q('[data-r="s-markets"]',stn)){var ref=q('[data-r="s-policies"]',stn);ref=ref?ref.nextSibling:null;SNEW.forEach(function(x){var a=document.createElement('a');a.dataset.r=x[0];a.href='#'+x[0];a.textContent=x[1];if(x[0]===r)a.className='on';stn.insertBefore(a,ref)})}}
  topTools();bell();try{enhance(r)}catch(e){console.error(e)}try{crumb(r)}catch(e){console.error(e)}
- qa('#nav [data-r]').forEach(function(a){if(a.dataset.r==='growth')a.textContent=a.textContent.replace('Growth','Marketing')});
+ qa('#nav [data-r]').forEach(function(a){if(a.dataset.r!=='growth')return;var w=document.createTreeWalker(a,NodeFilter.SHOW_TEXT),t;while((t=w.nextNode()))if(/Growth/.test(t.nodeValue))t.nodeValue=t.nodeValue.replace('Growth','Marketing')});
 });
 var css=document.createElement('style');css.textContent=
 '.xdet{display:grid;grid-template-columns:minmax(0,2fr) minmax(240px,1fr);gap:16px;align-items:start}.xdet .xside{display:flex;flex-direction:column;gap:16px}.xdet .xc{margin:0 0 16px}@media(max-width:900px){.xdet{grid-template-columns:1fr}}'+

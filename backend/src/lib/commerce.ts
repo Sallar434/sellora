@@ -75,7 +75,7 @@ export async function priceCart(storeId: string, input: { lines: { variantId: st
   let giftCard = 0;
   if (input.giftCode) { const g = await db.giftCard.findUnique({ where: { code: input.giftCode } }); if (!g || !g.active || g.storeId !== storeId) throw bad('Invalid gift card'); giftCard = Math.min(g.balance, total); total -= giftCard; }
   const fx = async (n: number) => convert(n, base, cur);
-  return { currency: cur, baseCurrency: base, lines, subtotal: await fx(subtotal), discount: await fx(discount), shipping: await fx(shipping), tax: await fx(tax), giftCard: await fx(giftCard), total: await fx(total), discountId: applied?.id || null, shippingRates: rates.map(r => r.name), shippingRate: rate?.name || null };
+  return { currency: cur, baseCurrency: base, lines, subtotal: await fx(subtotal), discount: await fx(discount), shipping: await fx(shipping), tax: await fx(tax), giftCard: await fx(giftCard), giftCardBase: giftCard, total: await fx(total), discountId: applied?.id || null, shippingRates: rates.map(r => r.name), shippingRate: rate?.name || null };
 }
 export async function nextOrderNumber(storeId: string) { const last = await db.order.findFirst({ where: { storeId }, orderBy: { number: 'desc' } }); return (last?.number || 1000) + 1; }
 export const tl = (o: any, msg: string) => [...((o?.timeline as any[]) || []), { at: new Date().toISOString(), msg }];

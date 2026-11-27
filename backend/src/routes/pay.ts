@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
 import { db } from '../lib/db';
-import { ah, parse, bad, nf, forbid } from '../lib/http';
+import { ah, parse, bad, nf, forbid, HttpError } from '../lib/http';
 import { auth, storeAccess, requireType } from '../lib/auth';
 import { wallet, post, externalWallet, holdEscrow } from '../lib/ledger';
 import { idempotent } from '../lib/idem';
@@ -19,7 +19,7 @@ seller.get('/:storeId/pay/wallets', storeAccess('orders'), ah(async (req, res) =
 seller.get('/:storeId/pay/ledger', storeAccess('orders'), ah(async (req, res) => { const ws = await db.wallet.findMany({ where: { ownerType: 'SELLER', ownerId: req.store.id } }); res.json(await db.ledgerEntry.findMany({ where: { walletId: { in: ws.map(w => w.id) } }, orderBy: { createdAt: 'desc' }, take: 500 })); }));
 seller.get('/:storeId/pay/escrows', storeAccess('orders'), ah(async (req, res) => res.json(await db.escrow.findMany({ where: { storeId: req.store.id }, orderBy: { createdAt: 'desc' } }))));
 seller.get('/:storeId/pay/disputes', storeAccess('orders'), ah(async (req, res) => { const es = await db.escrow.findMany({ where: { storeId: req.store.id }, select: { id: true } }); res.json(await db.dispute.findMany({ where: { escrowId: { in: es.map(e => e.id) } } })); }));
-seller.post('/:storeId/pay/disputes/:id/respond', storeAccess('orders'), ah(async (req, res) => { const d = await db.dispute.findUnique({ where: { id: req.params.id } }); if (!d) throw nf(); res.json(await db.dispute.update({ where: { id: d.id }, data: { resolution: `seller: ${String(req.body?.message || '').slice(0, 2000)}`, status: d.status === 'open' ? 'under_review' : d.status } })); }));
+seller.post('/:storeId/pay/disputes/:id/respond', storeAccess('orders'), ah(async (req, res) => { const d = await db.dispute.findUnique({ where: { id: req.params.id } }); if (!d) throw nf(); const de = await db.escrow.findUnique({ where: { id: d.escrowId } }); if (!de || de.storeId !== req.store.id) throw nf(); res.json(await db.dispute.update({ where: { id: d.id }, data: { resolution: `seller: ${String(req.body?.message || '').slice(0, 2000)}`, status: d.status === 'open' ? 'under_review' : d.status } })); }));
 // KYC
 seller.get('/:storeId/kyc', storeAccess('*'), ah(async (req, res) => res.json(await db.kyc.upsert({ where: { storeId: req.store.id }, update: {}, create: { storeId: req.store.id } }))));
 seller.patch('/:storeId/kyc', storeAccess('*'), ah(async (req, res) => {
@@ -80,6 +80,7 @@ buyer.post('/links/:linkId/pay', idempotent, ah(async (req, res) => {
 buyer.post('/webhooks/:provider', ah(async (req, res) => {
   const raw = (req as any).rawBody || JSON.stringify(req.body);
   const secret = req.params.provider === 'stripe' ? config.stripeWebhookSecret : config.outWebhookSecret;
+  if (!secret) throw new HttpError(503, 'Webhooks are not configured');
   const hdr = req.header('VendOm-Signature') || '';
   if (req.params.provider === 'stripe') { /* Stripe-Signature uses t=,v1= with same HMAC scheme */ if (!verifySig(raw, (req.header('Stripe-Signature') || '').replace(/,v0=.*/, ''), secret)) throw bad('Bad signature'); }
   else if (!verifySig(raw, hdr, secret)) throw bad('Bad signature');

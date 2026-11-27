@@ -6,7 +6,7 @@ function head(t){return '<div class="xh"><h1>'+t+'</h1></div>'}
 function money(n){try{return String(X.mF(n)).replace(/<[^>]+>/g,'').trim()}catch(e){return (+n).toFixed(2)}}
 var state={scan:null,busy:false,err:'',done:null};
 function slug(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g,'').trim().replace(/[\s_]+/g,'-').replace(/-+/g,'-').slice(0,80)||'item'}
-function strip(s){return String(s||'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'')}
+function strip(s){return X.safeHTML?X.safeHTML(s):String(s||'').replace(/<[^>]*>/g,'')}
 function origin(u){u=String(u||'').trim();if(!u)throw new Error('Paste the link of your old store');if(!/^https?:\/\//i.test(u))u='https://'+u;var o;try{o=new URL(u)}catch(e){throw new Error('That does not look like a website link')}if(/^(localhost|127\.|10\.|192\.168\.|0\.)/.test(o.hostname))throw new Error('Use the public link of your store');return o.origin}
 
 /* nav: Products › Move your store */

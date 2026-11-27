@@ -111,7 +111,7 @@ A.s23print=function(){var d=D(),T=totals(d),w=window.open('','_blank');if(!w)ret
 A.s23del=function(){var d=D();X.xmodal('Delete #'+h(d.id)+'?','<p>This can’t be undone.</p>','Delete',function(){S.draftOrders=drafts().filter(function(x){return x!==d});sv();setTimeout(function(){location.hash='orders-drafts';toast('Draft order deleted')},0)})};
 function needCust(d){if(d.cid&&X.CU.get(d.cid))return true;toast('Add a customer first');var i=q('#s23cs');if(i)i.focus();return false}
 function makeOrder(d,method,res,pending){var c=X.CU.get(d.cid),T=totals(d),addr=c.addrs&&c.addrs[0];
- var o=X.ORD.place(d.items.filter(function(l){return !l.custom}).map(function(l){return{pid:l.pid,vi:l.vi,q:l.q}}),{email:c.email,first:c.first,last:c.last,phone:c.phone,country:addr&&addr.country||S.country,addr:addr,cur:d.cur||'USD',note:d.notes},{method:method,id:res&&res.id||('man_'+Date.now()),escrow:false});
+ var o=X.ORD.place(d.items.filter(function(l){return !l.custom}).map(function(l){return{pid:l.pid,vi:l.vi,q:l.q}}),{force:true,email:c.email,first:c.first,last:c.last,phone:c.phone,country:addr&&addr.country||S.country,addr:addr,cur:d.cur||'USD',note:d.notes},{method:method,id:res&&res.id||('man_'+Date.now()),escrow:false});
  d.items.filter(function(l){return l.custom}).forEach(function(l){o.items.push({pid:null,vi:-1,name:l.name,price:l.price,q:l.q,custom:true})});
  o.sub=T.sub;o.disc=T.disc;o.shipAmt=T.ship;o.shipM=d.ship?d.ship.name:o.shipM;o.tax=T.tax;o.taxRate=T.rate;o.total=T.total;o.tags=(o.tags||[]).concat(d.tags||[]);o.draft=d.id;o.src='Draft order';
  if(pending){o.pay='Pending';o.gw='Payment due later'}

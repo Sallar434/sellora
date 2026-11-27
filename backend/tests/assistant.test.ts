@@ -6,6 +6,7 @@ import { config } from '../src/lib/config';
 import { record } from '../src/lib/billing';
 import { providersFor, setClaudeClient } from '../src/providers/ai/agent';
 import { detect, payload } from '../src/lib/connectors';
+import { goLive, verifyEmail } from './live';
 
 const app = createApp(); const A = () => request(app);
 const H = (t: string) => ({ Authorization: 'Bearer ' + t });
@@ -23,7 +24,7 @@ const aiUsed = async () => (await A().get(S('/billing/usage')).set(tok())).body.
 const chat = (text: string) => A().post(S('/assistant/chat')).set(tok()).send({ messages: [{ role: 'user', content: text }] });
 
 beforeAll(async () => {
-  s = (await A().post('/api/auth/signup').send({ email: 'ai@t.io', password: 'password123', storeName: 'Noor Lawn' }).expect(201)).body;
+  s = (await A().post('/api/auth/signup').send({ email: 'ai@t.io', password: 'password123', storeName: 'Noor Lawn' }).expect(201)).body; await goLive(s.store.id);
   product = (await A().post(S('/products')).set(tok()).send({ title: 'Lawn Kurta', price: 350000, description: '<p>Soft lawn</p>', variants: [{ title: 'M', price: 350000, inventory: 3, sku: 'LK-M' }] }).expect(201)).body;
   await A().post(S('/shipping-zones')).set(tok()).send({ name: 'PK', countries: ['PK'], rates: [{ name: 'Standard', price: 25000 }] }).expect(201);
 });

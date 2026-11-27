@@ -1,5 +1,38 @@
 # VendOm v36 changelog
 
+## v60: Team review: security, 100-customer QA, plans and pricing (27 Nov 2026)
+- **Team reports** in `docs/team/`: architecture review, marketing plan to 1M users, plans and AI pricing (Claude, DeepSeek, Kimi).
+- **Security (server)**:
+  - Private stores are really private: the storefront API needs the store password or a crawler signature.
+  - Order look-ups and "not received" need a signed-in buyer with a verified email.
+  - Discount usage and gift-card balance are taken atomically at checkout.
+  - Domain checks read the DNS TXT record; themes, disputes and staff changes are limited to the right store.
+  - Only the owner can grant admin; file uploads are checked by content.
+  - Email codes come from a secure random source, old codes stop working when a new one is sent, and each code allows 5 tries.
+  - Changing 2-step settings needs the current code; the store-password page has a rate limit; webhooks are refused if no secret is set.
+  - Test payouts are blocked in production.
+- **Security (app)**:
+  - One HTML cleaner for product descriptions, blog posts, pages and imports (stops script injection).
+  - Owner passwords use salted PBKDF2; old passwords upgrade on the next sign-in. Sign-in locks for 10 minutes after 5 wrong tries.
+  - Password rules: 8–128 characters, spaces don't count. @vendom.app emails are reserved, and platform admin is never granted by email alone on the live site.
+  - Customer passwords are salted and stretched, replacing the old 32-bit hash; old passwords upgrade on the next log-in. Log-in locks after 5 wrong tries.
+  - Taking over a guest's order history now needs a code sent to that email.
+  - The backend link belongs to the account that connected it and ends at sign-out.
+  - Security headers on the live site (no framing, nosniff, HSTS, permissions).
+- **Order fixes from the 100-customer test**:
+  - Orders refuse sold-out, draft, missing or option-less products, and stock can no longer silently go wrong.
+  - Customer names are kept from checkout, and bank-transfer orders stay Pending until the money arrives.
+  - Draft or other-market products are blocked at checkout.
+  - Analytics no longer counts tax twice in tax-inclusive stores; refund suggestions are exact.
+  - Abandoned checkouts and their recovery ignore email capitals.
+  - INR, BDT, LKR, SAR, CAD and AUD rates were added, and expired codes say "expired".
+- **Layout**:
+  - Settings no longer has the main menu's pieces on top of it, and its close button shows ✕.
+  - The Alerts pop-up opens upward from the bell, inside the window.
+  - Marketing keeps its icon.
+  - New Settings › Sales channels page.
+- Tests: new t40 (100 shoppers, 132 checks); backend tests make test stores live and buyers verified; t13 and t20 updated.
+
 ## v59: One VendOm AI bar (26 Nov 2026)
 - The "Work with VendOm AI" bar at the bottom does everything: type a request, 🎤 voice typing (speak and it sends), ⏺ voice message (records your voice, keeps the recording in the conversation and sends what you said) and 🗣 talk mode (VendOm AI answers out loud and listens again until you stop it). Replies show in a conversation panel above the bar, with Clear and Escape to close. It runs the same VendOm AI actions as before (add products, build a website, add banners, go to pages, change theme colours and more). Works on phones too.
 - Removed the Home "Ask VendOm AI" box and the old floating mic button.

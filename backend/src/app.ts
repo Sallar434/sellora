@@ -30,6 +30,7 @@ export function createApp() {
   app.use(express.json({ limit: '5mb', verify: (req: any, _r, buf) => { req.rawBody = buf.toString('utf8'); } }));
   app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '10mb' }));
   const test = config.env === 'test';
+  app.use('/s/:shop/unlock', rateLimit({ windowMs: 15 * 60e3, limit: test ? 10000 : 10, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many tries. Wait 15 minutes and try again.' } }));
   app.use('/api/auth', rateLimit({ windowMs: 15 * 60e3, limit: test ? 10000 : +(process.env.RATE_LIMIT_AUTH || 50), standardHeaders: true, legacyHeaders: false }));
   app.use('/api', rateLimit({ windowMs: 60e3, limit: test && !process.env.RATE_LIMIT_API ? 100000 : +(process.env.RATE_LIMIT_API || 600), standardHeaders: true, legacyHeaders: false, skip: (req) => isInternal(req.headers['x-vendom-internal']) }));
   app.get('/health', (_q, s) => s.json({ ok: true }));

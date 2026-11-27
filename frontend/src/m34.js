@@ -16,7 +16,7 @@ function ords(){return (S.orders||[]).filter(function(o){return o&&o.items&&!o.c
 function inB(o,b){var t=o.at||0;return t>=b.s&&t<b.e}
 function chan(o){return o.channel||(o.pos?'Point of Sale':o.draft?'Draft orders':'Online Store')}
 function agg(b){var L=ords().filter(function(o){return inB(o,b)}),r={L:L,n:L.length,gross:0,disc:0,rev:0,ship:0,tax:0,ful:0,ser:[],aov:[],cnt:[]};for(var i=0;i<b.n;i++){r.ser.push(0);r.cnt.push(0)}
- L.forEach(function(o){r.gross+=+o.sub||0;r.disc+=+o.disc||0;r.rev+=+o.refunded||0;r.ship+=+o.shipAmt||0;r.tax+=+o.tax||0;if(o.ful==='Fulfilled')r.ful++;var i=Math.min(b.n-1,Math.floor(((o.at||0)-b.s)/b.step));r.ser[i]+=(+o.total||0)-(+o.refunded||0);r.cnt[i]++});
+ L.forEach(function(o){r.gross+=(+o.sub||0)-(S.taxR&&S.taxR.inc?(+o.tax||0):0);r.disc+=+o.disc||0;r.rev+=+o.refunded||0;r.ship+=+o.shipAmt||0;r.tax+=+o.tax||0;if(o.ful==='Fulfilled')r.ful++;var i=Math.min(b.n-1,Math.floor(((o.at||0)-b.s)/b.step));r.ser[i]+=(+o.total||0)-(+o.refunded||0);r.cnt[i]++});
  r.aov=r.ser.map(function(v,i){return r.cnt[i]?v/r.cnt[i]:0});r.net=r.gross-r.disc-r.rev;r.total=r.net+r.ship+r.tax;
  var cs={},all={};ords().forEach(function(o){var k=o.cid||o.email;if(k)all[k]=(all[k]||0)+1});L.forEach(function(o){var k=o.cid||o.email;if(k)cs[k]=1});var ks=Object.keys(cs);r.ret=ks.length?ks.filter(function(k){return all[k]>1}).length/ks.length*100:0;
  var se=(S.sess24||[]).filter(function(s){return s.at>=b.s&&s.at<b.e});r.sess=se.length;r.sser=[];for(var j=0;j<b.n;j++)r.sser.push(0);se.forEach(function(s){r.sser[Math.min(b.n-1,Math.floor((s.at-b.s)/b.step))]++});r.conv=r.sess?Math.min(100,r.n/r.sess*100):0;return r}

@@ -34,7 +34,7 @@ function openAlerts(){var ex=q('#h27pop');closePops();if(ex)return;var sd=q('#vt
  var d=document.createElement('div');d.id='h27pop';d.className='h27pop';d.setAttribute('role','dialog');d.setAttribute('aria-label','Alerts');
  d.innerHTML='<div class="h27ph"><b>Alerts</b>'+(a.some(function(x){return !x.read})?'<button type="button" class="h27lnk" id="h27all">Mark all as read</button>':'')+'</div>'
   +(a.length?a.map(function(x){return '<a class="h27al'+(x.read?'':' un')+'" href="#'+x.r+'" data-al27="'+x.id+'">'+ICN[x.k]+'<span><b>'+h(x.t)+'</b><small>'+h(x.d)+'</small></span></a>'}).join(''):'<div class="h27none"><b>You\'re all caught up</b><small>New alerts about orders, stock and your plan show here.</small></div>');
- document.body.appendChild(d);var r=b.getBoundingClientRect();d.style.top=(r.bottom+8)+'px';d.style.right=Math.max(8,innerWidth-r.right)+'px';b.setAttribute('aria-expanded','true');
+ document.body.appendChild(d);var r=b.getBoundingClientRect();var W=Math.min(360,innerWidth-16);if(r.top>innerHeight/2){d.style.bottom=Math.max(8,innerHeight-r.top+8)+'px';d.style.top='auto';d.style.left=Math.min(Math.max(8,r.left),innerWidth-W-8)+'px';d.style.maxHeight=Math.max(200,r.top-24)+'px'}else{d.style.top=(r.bottom+8)+'px';d.style.right=Math.max(8,innerWidth-r.right)+'px'}b.setAttribute('aria-expanded','true');
  var all=d.querySelector('#h27all');if(all)all.onclick=function(e){e.stopPropagation();markAll();closePops();openAlerts()};
  Array.prototype.forEach.call(d.querySelectorAll('[data-al27]'),function(el){el.onclick=function(){var x=a.filter(function(y){return y.id===el.dataset.al27})[0];if(x){(S.alRead27=S.alRead27||{})[x.id]=String(x.sig);sv()}closePops();badge()}});
  d.onclick=function(e){e.stopPropagation()}}

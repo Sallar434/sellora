@@ -29,7 +29,7 @@ with sync_playwright() as p:
     ok('Alt+Down moves',ids()[:2]==[a[1],a[0]]);pg.focus('#edl [data-grip="%s"]'%a[0]);pg.keyboard.press('Alt+ArrowUp');pg.wait_for_timeout(200);ok('Alt+Up moves back',ids()[:2]==a[:2])
     ok('arrow buttons kept',E("!!document.querySelector('#edl [data-ed=\"up:%s\"]')"%a[1]))
     # list menu + add above
-    pg.click('#edl [data-m12m="%s"]'%a[1]);pg.wait_for_timeout(200)
+    pg.hover('#edl [data-grip="%s"]'%a[1]);pg.wait_for_timeout(100);pg.click('#edl [data-m12m="%s"]'%a[1]);pg.wait_for_timeout(200)
     labs=E("[...document.querySelectorAll('#m12menu button')].map(b=>b.innerText.trim())");ok('menu has labelled actions',all(any(k in l for l in labs) for k in ['Add section above','Add section below','Duplicate','Hide','Delete','Move up','Move down']),labs)
     pg.click('#m12menu [data-m12a="above:%s"]'%a[1]);pg.wait_for_timeout(400);ok('picker opened',E("document.querySelector('#modal').classList.contains('on')"))
     E("document.getElementById('btn-confirm-add-sec').click()");pg.wait_for_timeout(300)

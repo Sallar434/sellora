@@ -222,7 +222,7 @@ button.ar{background:var(--panel);color:inherit;font:inherit;text-align:left;wid
 <div id="auth"><div class="acard door"><div class="brand" style="color:#111">VendOm</div><h2>Sign in or create an account</h2><p class="door-note">Sign in to open the store on your account. Create an account to start your own store.</p><div class="door-actions"><button type="button" class="btn blk" id="door-in">Sign in</button><button type="button" class="btn ghost" id="door-up">Create account</button></div></div></div>
 <script>
 var S={name:'Vellacorsa',email:'owner@example.com',country:'Pakistan',cur:'USD',
-rates:{USD:1,PKR:280,EUR:.92,AED:3.67,GBP:.79},sym:{USD:'$',PKR:'Rs ',EUR:'€',AED:'AED ',GBP:'£'},
+rates:{USD:1,PKR:280,EUR:.92,AED:3.67,GBP:.79,INR:84,BDT:120,LKR:300,SAR:3.75,CAD:1.38,AUD:1.52},sym:{USD:'$',PKR:'Rs ',EUR:'€',AED:'AED ',GBP:'£'},
 products:[{id:1,name:'Race Day Gloves',price:48,stock:34,status:'Active',desc:'Leather gloves built for grip and airflow.'},{id:2,name:'Carbon Visor Cover',price:22,stock:120,status:'Active',desc:'Lightweight cover that keeps your visor clear.'},{id:3,name:'Track Day Tee',price:19,stock:0,status:'Draft',desc:''}],
 orders:[{id:1001,who:'Ayesha Khan',total:48,st:'Paid',gw:'Stripe'},{id:1002,who:'Daniel Ruiz',total:41,st:'Fulfilled',gw:'PayPal'},{id:1003,who:'Hassan Ali',total:22,st:'Paid',gw:'JazzCash'}],
 gws:[{k:'Stripe',r:'Cards worldwide',on:false},{k:'PayPal',r:'Worldwide',on:false},{k:'JazzCash',r:'Pakistan',on:false},{k:'Easypaisa',r:'Pakistan',on:false},{k:'Razorpay',r:'India',on:false},{k:'VendOm Pay',r:'Our one-tap checkout wallet',on:true}],
@@ -290,6 +290,13 @@ if(!document.getElementById('auth'))document.body.insertAdjacentHTML('beforeend'
 if(!document.getElementById('ov'))document.body.insertAdjacentHTML('beforeend','<div id="ov"></div>');
 /* merged: persist superseded by later definition */
 function save(){if(U){DB.d[U]=S;persist()}}
+/* v60: owner passwords use salted PBKDF2-SHA256 (150,000 rounds). Old unsalted hashes still sign in once and are upgraded. */
+function b2h(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+function pbk(pw,salt){return crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']).then(function(k){return crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:150000},k,256)}).then(b2h)}
+function pwHash(pw){if(!window.crypto||!crypto.subtle)return Promise.reject(new Error('This browser is too old to keep your password safe. Please update it.'));var a=new Uint8Array(16);crypto.getRandomValues(a);var salt=b2h(a);return pbk(pw,salt).then(function(h){return 'pb2$'+salt+'$'+h})}
+function pwCheck(stored,pw){stored=String(stored||'');if(!stored)return Promise.resolve(false);if(stored.indexOf('pb2$')===0){var x=stored.split('$');return pbk(pw,x[1]).then(function(h){var d=h.length^x[2].length;for(var i=0;i<h.length&&i<x[2].length;i++)d|=h.charCodeAt(i)^x[2].charCodeAt(i);return d===0})}
+ return hx(pw).then(function(h){return h===stored?'legacy':false})}
+function reservedEmail(e){e=String(e||'').toLowerCase();var d=e.split('@')[1]||'';return /(^|\.)(vendom\.app|vendom\.com)$/.test(d)&&!/^(localhost|127\.0\.0\.1|)$/.test(location.hostname)}
 function hx(t){if(!window.crypto||!crypto.subtle)return Promise.resolve(btoa(t));return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
 var FN={s:"Figtree,system-ui,sans-serif",d:"'Bricolage Grotesque',Figtree,sans-serif",f:"Georgia,serif"},FN2={s:'Figtree',d:'Bricolage Grotesque',f:'Georgia'},LY={c:'Centered',s:'Split',b:'Bold'},CK=['h','s','b','n'];
 var TH=[['dawn','Dawn','#FFFFFF','#1B1B1B','#2E6B4F','s','c',10],['ember','Ember','#14110F','#F5EEE8','#FF6B35','d','s',4],['tide','Tide','#F1F8FB','#0B2B3A','#1B7FA8','s','c',14],['orchard','Orchard','#FBF7F0','#3A2A1A','#C6452B','f','s',6],['noir','Noir','#0A0A0A','#F2F2F2','#E5C100','d','b',0],['bloom','Bloom','#FFF4F6','#4A1D2E','#D6336C','s','c',18],['slate','Slate','#EDEFF2','#1C2430','#3D5AFE','s','s',8],['sunset','Sunset','#FFF1E6','#3B1F12','#F76707','d','b',12],['mint','Mint','#EFFAF4','#0F3D2E','#12B886','s','c',12],['ink','Ink','#FFFFFF','#000000','#000000','f','b',0],['aurora','Aurora','#0E1B2C','#E8F1FF','#7C5CFF','s','s',16],['sand','Sand','#F5EFE6','#3D3226','#B07A3B','f','c',4]];
@@ -379,16 +386,17 @@ $('#door-in').onclick=function(){authView('in')};$('#door-up').onclick=function(
 function accountForm(up){authShell('<h2>'+(up?'Create account':'Sign in')+'</h2><p class="door-note">'+(up?'Use your email and a password. Next you choose a plan and start a 4-day free trial for your own store.':'Use the email and password for your VendOm account.')+'</p><label for="a2">Email</label><input id="a2" type="email" autocomplete="username"><label for="a3">Password</label><input id="a3" type="password" autocomplete="'+(up?'new-password':'current-password')+'" placeholder="'+(up?'At least 8 characters':'')+'"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">'+(up?'Create account':'Sign in')+'</button><p class="mu" style="text-align:center;margin-top:14px">'+(up?'Already have an account? ':'New to VendOm? ')+'<button type="button" class="lnk" id="asw">'+(up?'Sign in':'Create account')+'</button></p>');
 $('#asw').onclick=function(){authView(up?'in':'up')};
 var busy=false,go=function(){if(busy)return;var e=$('#a2').value.trim().toLowerCase(),p=$('#a3').value,er=function(t){$('#ae').textContent=t};
-if(!/^\S+@\S+\.\S+$/.test(e))return er('Enter a valid email.');if(p.length<8)return er('Password must be at least 8 characters.');
-busy=true;$('#ab').disabled=true;
-hx(p).then(function(hash){busy=false;$('#ab').disabled=false;DB.a=DB.a||{};DB.d=DB.d||{};
+if(!/^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(e)||e.length>254)return er('Enter a valid email.');if(p.replace(/\s/g,'').length<8)return er('Password must be at least 8 characters (spaces don\'t count).');if(p.length>128)return er('Password must be 128 characters or fewer.');
+if(up&&reservedEmail(e))return er('This email can\'t be used. Use your own email address.');DB.lock=DB.lock||{};var lk=DB.lock[e]||{n:0,t:0};if(!up&&lk.t>Date.now())return er('Too many tries. Wait '+Math.ceil((lk.t-Date.now())/60000)+' minute(s) and try again.');
+busy=true;$('#ab').disabled=true;DB.a=DB.a||{};
+(up?pwHash(p):pwCheck(DB.a[e],p)).then(function(hash){busy=false;$('#ab').disabled=false;DB.a=DB.a||{};DB.d=DB.d||{};
 if(up){if(DB.a[e])return er('That email already has an account. Sign in instead.');
 var first=!Object.keys(DB.a).length,orphan=first?unownedKey():'';DB.a[e]=hash;
 if(orphan&&claimStore(orphan,e)){startSession(e);return}
 DB.pending=e;DB.session=null;DB.s=null;U=null;delete DB.out;persist();window._obPlan=null;authView('plan');return}
-if(!DB.a[e]||DB.a[e]!==hash)return er('Email or password is incorrect.');
+if(!DB.a[e]||!hash){lk.n++;if(lk.n>=5){lk.t=Date.now()+10*60e3;lk.n=0}DB.lock[e]=lk;persist();return er('Email or password is incorrect.')}delete DB.lock[e];if(hash==='legacy')pwHash(p).then(function(n){DB.a[e]=n;persist()}).catch(function(){});
 delete DB.out;if(DB.d[e]){S=DB.d[e];startSession(e);return}
-DB.pending=e;DB.session=null;DB.s=null;U=null;persist();window._obPlan=null;authView('plan')})};
+DB.pending=e;DB.session=null;DB.s=null;U=null;persist();window._obPlan=null;authView('plan')}).catch(function(x){busy=false;$('#ab').disabled=false;er(x&&x.message||'Something went wrong. Try again.')})};
 $('#ab').onclick=go;$('#auth').onkeydown=function(ev){if(ev.key==='Enter')go()};setTimeout(function(){var f=$('#a2');if(f)f.focus()},0)}
 function storeForm(){var ob=window._obPlan||{plan:'grow',iv:'monthly'},names={basic:'Basic',grow:'Grow',advanced:'Advanced',enterprise:'Enterprise'},nm=names[ob.plan]||'Grow',iv=ob.iv==='annual'?'annual':'monthly';
 authShell('<h2>Create your store</h2><p class="door-note" id="m13chosen">Plan: <b>'+nm+'</b> ('+iv+') · 4-day free trial · <a href="#" id="m13chg">change</a></p><label for="a1">Store name</label><input id="a1" maxlength="40" autocomplete="organization"><p id="ae" class="err" role="alert"></p><button type="button" class="btn blk" id="ab">Start 4-day free trial</button>');
@@ -1454,7 +1462,8 @@ if(tg)tg.onkeydown=function(e){if(e.key==='Enter'||e.key===','){e.preventDefault
     }
 
     if (!Array.isArray(S.domains)) S.domains = [];
-    if (S.roles && !Array.isArray(S.roles)) delete S.roles; /* roles() fills the built-in roles */
+    if (S.roles && !Array.isArray(S.roles)) delete S.roles;
+if (S.rates) { var DR={INR:84,BDT:120,LKR:300,SAR:3.75,CAD:1.38,AUD:1.52}; for (var rk in DR) if (S.rates[rk]==null) S.rates[rk]=DR[rk]; } /* roles() fills the built-in roles */
     if (!Array.isArray(S.mod)) S.mod = [];
     if (!S.nid) S.nid = 10;
     if (!S.oid) S.oid = 1004;

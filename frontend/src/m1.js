@@ -2,6 +2,19 @@
 (function(){
 var X=window;
 
+/* v60: one allow-list HTML sanitizer for every piece of rich text (product descriptions, blog posts, pages, imports). */
+X.safeHTML=function(html){var s=String(html==null?'':html);if(!s)return '';var OK={A:1,B:1,STRONG:1,I:1,EM:1,U:1,S:1,P:1,BR:1,HR:1,UL:1,OL:1,LI:1,H1:1,H2:1,H3:1,H4:1,H5:1,H6:1,BLOCKQUOTE:1,SPAN:1,DIV:1,IMG:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,CODE:1,PRE:1,SMALL:1,SUB:1,SUP:1,FIGURE:1,FIGCAPTION:1,MARK:1},
+ AT={href:1,src:1,alt:1,title:1,width:1,height:1,colspan:1,rowspan:1,target:1,rel:1,style:1,class:1},DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,TEMPLATE:1,NOSCRIPT:1,SVG:1,MATH:1,FORM:1,INPUT:1,BUTTON:1,TEXTAREA:1,SELECT:1,LINK:1,META:1,BASE:1,FRAME:1,FRAMESET:1};
+ var d;try{d=new DOMParser().parseFromString('<body>'+s+'</body>','text/html')}catch(e){return s.replace(/[&<>"']/g,function(c){return'&#'+c.charCodeAt(0)+';'})}
+ function url(v,img){v=String(v||'').trim();var t=v.replace(/[\s\u0000-\u001f]/g,'').toLowerCase();if(/^(javascript|vbscript|data):/.test(t))return img&&/^data:image\/(png|jpe?g|gif|webp);/.test(t)?v:null;return v}
+ (function walk(n){Array.prototype.slice.call(n.childNodes).forEach(function(c){if(c.nodeType===8){c.remove();return}if(c.nodeType!==1)return;var tg=c.tagName.toUpperCase();
+  if(DROP[tg]){c.remove();return}if(!OK[tg]){walk(c);while(c.firstChild)c.parentNode.insertBefore(c.firstChild,c);c.remove();return}
+  Array.prototype.slice.call(c.attributes).forEach(function(a){var k=a.name.toLowerCase();if(!AT[k]){c.removeAttribute(a.name);return}
+   if(k==='href'||k==='src'){var u=url(a.value,k==='src');if(u==null)c.removeAttribute(a.name)}
+   if(k==='style'&&/expression|url\s*\(|javascript:|@import|behavior/i.test(a.value))c.removeAttribute(a.name)});
+  if(tg==='A'&&c.getAttribute('target')==='_blank')c.setAttribute('rel','noopener noreferrer');walk(c)})})(d.body);
+ return d.body.innerHTML};
+
 var CURN={USD:'US Dollar',PKR:'Pakistani Rupee',EUR:'Euro',AED:'UAE Dirham',GBP:'British Pound',CAD:'Canadian Dollar',AUD:'Australian Dollar',INR:'Indian Rupee',SAR:'Saudi Riyal',JPY:'Japanese Yen',CNY:'Chinese Yuan',CHF:'Swiss Franc',SGD:'Singapore Dollar',HKD:'Hong Kong Dollar',NZD:'New Zealand Dollar',SEK:'Swedish Krona',NOK:'Norwegian Krone',DKK:'Danish Krone',TRY:'Turkish Lira',BDT:'Bangladeshi Taka',QAR:'Qatari Riyal',KWD:'Kuwaiti Dinar',BHD:'Bahraini Dinar',OMR:'Omani Rial',MYR:'Malaysian Ringgit',IDR:'Indonesian Rupiah',THB:'Thai Baht',ZAR:'South African Rand',NGN:'Nigerian Naira',EGP:'Egyptian Pound',BRL:'Brazilian Real',MXN:'Mexican Peso',KRW:'South Korean Won',PHP:'Philippine Peso',LKR:'Sri Lankan Rupee',PLN:'Polish Zloty'};
 var _dn=null;try{_dn=new Intl.DisplayNames(['en'],{type:'currency'})}catch(e){}
 X.CURN=CURN;
@@ -76,12 +89,25 @@ function slugify(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-'
 function custByEmail(e){return e?S.cust.filter(function(c){return c.email.toLowerCase()===String(e).toLowerCase()})[0]:null}
 function custByName(n){return S.cust.filter(function(c){return (c.first+' '+c.last).trim()===n})[0]}
 function addCust(o){var c={id:id('C'),first:o.first||'',last:o.last||'',email:(o.email||'').trim(),phone:o.phone||'',tags:o.tags||[],addrs:o.addrs||[],note:o.note||'',mkt:!!o.mkt,pw:o.pw||'',created:Date.now()};S.cust.push(c);return c}
-function hash(s){var h1=5381;for(var i=0;i<s.length;i++)h1=((h1<<5)+h1+s.charCodeAt(i))|0;return 'h'+(h1>>>0).toString(16)}
-X.CU={byEmail:custByEmail,add:addCust,hash:hash,get:function(i){return S.cust.filter(function(c){return c.id===i})[0]},orders:function(c){return S.orders.filter(function(o){return o.cid===c.id})},name:function(c){return ((c.first||'')+' '+(c.last||'')).trim()||c.email}};
+function djb(s){var h1=5381;for(var i=0;i<s.length;i++)h1=((h1<<5)+h1+s.charCodeAt(i))|0;return 'h'+(h1>>>0).toString(16)}
+/* v60: customer passwords are salted and stretched (SHA-256 x 4000) instead of a 32-bit hash; old hashes still work once and are upgraded. */
+function sha256(str){var K=[],H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19],n=2,c=0,i,j;
+ function prime(x){for(var d=2;d*d<=x;d++)if(x%d===0)return false;return true}
+ while(c<64){if(prime(n)){K[c++]=(Math.pow(n,1/3)%1)*4294967296|0}n++}
+ var b=unescape(encodeURIComponent(str)),l=b.length*8,w=[];for(i=0;i<b.length;i++)w[i>>2]|=b.charCodeAt(i)<<((3-i%4)*8);w[l>>5]|=0x80<<(24-l%32);w[((l+64>>9)<<4)+15]=l;
+ for(j=0;j<w.length;j+=16){var a=H.slice(0),W=[];for(i=0;i<64;i++){if(i<16)W[i]=w[j+i]|0;else{var x=W[i-15],y=W[i-2];W[i]=(((x>>>7|x<<25)^(x>>>18|x<<14)^(x>>>3))+W[i-7]+((y>>>17|y<<15)^(y>>>19|y<<13)^(y>>>10))+W[i-16])|0}
+  var e=a[4],t1=a[7]+((e>>>6|e<<26)^(e>>>11|e<<21)^(e>>>25|e<<7))+((e&a[5])^(~e&a[6]))+K[i]+W[i],A0=a[0],t2=((A0>>>2|A0<<30)^(A0>>>13|A0<<19)^(A0>>>22|A0<<10))+((A0&a[1])^(A0&a[2])^(a[1]&a[2]));
+  a=[(t1+t2)|0].concat(a.slice(0,7));a[4]=(a[4]+t1)|0}for(i=0;i<8;i++)H[i]=(H[i]+a[i])|0}
+ return H.map(function(v){return('00000000'+(v>>>0).toString(16)).slice(-8)}).join('')}
+function stretch(salt,pw){var h=sha256(salt+':'+pw);for(var i=0;i<4000;i++)h=sha256(salt+h);return h}
+function hash(pw){var a=new Uint8Array(12);try{crypto.getRandomValues(a)}catch(e){for(var i=0;i<12;i++)a[i]=Math.random()*256|0}var salt=Array.prototype.map.call(a,function(x){return('0'+x.toString(16)).slice(-2)}).join('');return 's2$'+salt+'$'+stretch(salt,String(pw))}
+function pwOk(c,pw){if(!c||!c.pw)return false;pw=String(pw||'');var p=String(c.pw);if(p.indexOf('s2$')===0){var x=p.split('$'),g=stretch(x[1],pw),d=0;if(g.length!==x[2].length)return false;for(var i=0;i<g.length;i++)d|=g.charCodeAt(i)^x[2].charCodeAt(i);return d===0}
+ if(p===djb(pw)){c.pw=hash(pw);return true}return false}
+X.CU={byEmail:custByEmail,add:addCust,hash:hash,check:pwOk,sha256:sha256,get:function(i){return S.cust.filter(function(c){return c.id===i})[0]},orders:function(c){return S.orders.filter(function(o){return o.cid===c.id})},name:function(c){return ((c.first||'')+' '+(c.last||'')).trim()||c.email}};
 /* ---------- PRICING ENGINE ---------- */
 function vprice(p,vi){var v=vi>-1&&p.vars[vi],b=v&&v.price!==''&&v.price!=null?+v.price:+p.price;return X.MKP?X.MKP(p,vi,b):b}
 function vstock(p,vi){var v=vi>-1&&p.vars[vi];if(v)return v.qty===''?0:+v.qty;if(p.vars.length)return p.vars.reduce(function(a,v){return a+(+v.qty||0)},0);return +p.stock||0}
-function adjStock(p,vi,d){if(vi>-1&&p.vars[vi]){p.vars[vi].qty=Math.max(0,(+p.vars[vi].qty||0)+d);p.stock=vstock(p,-1)}else p.stock=Math.max(0,(+p.stock||0)+d)}
+function adjStock(p,vi,d){if(vi>-1&&p.vars&&p.vars[vi]){p.vars[vi].qty=(+p.vars[vi].qty||0)+d;p.stock=vstock(p,-1)}else p.stock=(+p.stock||0)+d}
 X.PR={vprice:vprice,vstock:vstock,adjStock:adjStock};
 function zoneFor(c){return S.zones.filter(function(z){return z.countries.indexOf(c)>-1})[0]||S.zones.filter(function(z){return z.countries.indexOf('*')>-1})[0]}
 function taxRate(c){var t=S.taxR;return t[c]!=null?+t[c]:(+t['*']||0)}
@@ -103,13 +129,13 @@ X.quote=function(cart,ctx){ctx=ctx||{};var lines=cart.map(function(c){var p=prod
 function statusOf(o){o.st=o.cancelled?'Cancelled':o.pay==='Refunded'?'Refunded':o.ful==='Fulfilled'?'Fulfilled':o.pay==='Partially refunded'?'Partially refunded':'Paid';return o.st}
 function tl(o,t){(o.tl=o.tl||[]).push({at:Date.now(),t:t})}
 X.ORD={statusOf:statusOf,tl:tl,get:function(i){return S.orders.filter(function(o){return String(o.id)===String(i)})[0]},
- place:function(cart,ctx,pay){var Q=X.quote(cart,ctx),c=custByEmail(ctx.email);if(!c)c=addCust({first:ctx.first,last:ctx.last,email:ctx.email,phone:ctx.phone,mkt:ctx.mkt});if(ctx.addr&&!c.addrs.some(function(a){return JSON.stringify(a)===JSON.stringify(ctx.addr)}))c.addrs.push(ctx.addr);
-  var o={id:S.oid++,v30:1,who:X.CU.name(c),email:c.email,cid:c.id,items:Q.lines,sub:Q.sub,disc:Q.disc,codes:Q.applied.map(function(a){return a.code}),gc:Q.gc,gcAmt:Q.gcAmt,shipAmt:Q.shipAmt,shipM:Q.ship.n,tax:Q.tax,taxRate:Q.taxRate,total:Q.total,refunded:0,cur:ctx.cur||'USD',fxRate:S.rates[ctx.cur||'USD']||1,gw:pay.method||'VendOm Pay',charge:pay.id,at:Date.now(),pay:'Paid',ful:'Unfulfilled',fuls:[],tl:[],notes:ctx.note||'',tags:[],ship:{country:ctx.country,vals:ctx.vals||{},addr:ctx.addr},market:ctx.cur,protected:!!ctx.prot};
+ place:function(cart,ctx,pay){ctx=ctx||{};pay=pay||{};if(!ctx.force){(cart||[]).forEach(function(l){var p=prod(l.pid);if(!p)throw new Error('A product in this order no longer exists.');if(p.vars&&p.vars.length&&!(l.vi>-1&&p.vars[l.vi]))throw new Error('Choose an option for '+p.name+'.');if(p.status&&!/^active$/i.test(p.status))throw new Error(p.name+' is not for sale right now.');if(!p.oos&&vstock(p,l.vi)<(+l.q||0))throw new Error(p.name+' does not have enough stock.')})}var Q=X.quote(cart,ctx),c=custByEmail(ctx.email);if(!c)c=addCust({first:ctx.first,last:ctx.last,email:ctx.email,phone:ctx.phone,mkt:ctx.mkt});else{if(!c.first&&ctx.first)c.first=ctx.first;if(!c.last&&ctx.last)c.last=ctx.last;if(!c.phone&&ctx.phone)c.phone=ctx.phone}if(ctx.addr&&!c.addrs.some(function(a){return JSON.stringify(a)===JSON.stringify(ctx.addr)}))c.addrs.push(ctx.addr);
+  var o={id:S.oid++,v30:1,who:X.CU.name(c),email:c.email,cid:c.id,items:Q.lines,sub:Q.sub,disc:Q.disc,codes:Q.applied.map(function(a){return a.code}),gc:Q.gc,gcAmt:Q.gcAmt,shipAmt:Q.shipAmt,shipM:Q.ship.n,tax:Q.tax,taxRate:Q.taxRate,total:Q.total,refunded:0,cur:ctx.cur||'USD',fxRate:S.rates[ctx.cur||'USD']||1,gw:pay.method||'VendOm Pay',charge:pay.id,at:Date.now(),pay:pay.pending?'Pending':'Paid',ful:'Unfulfilled',fuls:[],tl:[],notes:ctx.note||'',tags:[],ship:{country:ctx.country,vals:ctx.vals||{},addr:ctx.addr},market:ctx.cur,protected:!!ctx.prot};
   o.items.forEach(function(l){var p=prod(l.pid);if(p)adjStock(p,l.vi,-l.q)});
   Q.applied.forEach(function(a){var d=S.disc2.filter(function(x){return x.code===a.code})[0];if(d)d.used++});
   if(Q.gc){var g=S.gc2.filter(function(x){return x.code===Q.gc})[0];g.bal=r2(g.bal-Q.gcAmt)}
   tl(o,'Order placed by '+o.who+' · paid '+money(o.total)+' via '+o.gw+(o.cur!=='USD'?' (charged in '+o.cur+')':''));statusOf(o);S.orders.push(o);
-  S.carts.forEach(function(a){if(a.email===c.email&&!a.recovered){a.recovered=o.id;a.recAt=Date.now()}});
+  S.carts.forEach(function(a){if(String(a.email||'').toLowerCase()===String(c.email||'').toLowerCase()&&!a.recovered){a.recovered=o.id;a.recAt=Date.now()}});
   if(X.PAY&&pay.escrow!==false)X.PAY.onOrder(o,ctx);
   X.API.email(o.email,'Order #'+o.id+' confirmed','Hi '+(c.first||'')+',\nThanks for your order #'+o.id+'.\n'+o.items.map(function(l){return l.q+' × '+l.name+(l.variant?' ('+l.variant+')':'')+' — '+money(l.price*l.q)}).join('\n')+'\nTotal: '+money(o.total)+'\n'+(o.protected?'VendOm Pay Protection is holding your payment until you confirm delivery.':''),'order_confirmation');
   (X.HOOKS||[]).forEach(function(f){try{f('order',o)}catch(e){}});save();return o},

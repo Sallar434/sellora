@@ -26,8 +26,17 @@ export async function placeOrder(storeId: string, b: any, buyer?: { id: string; 
   }
   const order = await db.$transaction(async t => {
     if (!opts.draft) for (const l of q.lines) { const u = await t.variant.updateMany({ where: { id: l.variantId, inventory: { gte: l.qty } }, data: { inventory: { decrement: l.qty } } }); if (!u.count) throw bad('Out of stock: ' + l.title); }
-    if (!opts.draft && q.discountId) await t.discount.update({ where: { id: q.discountId }, data: { used: { increment: 1 } } });
-    if (!opts.draft && q.giftCard) await t.giftCard.update({ where: { code: b.giftCode }, data: { balance: { decrement: Math.round(q.giftCard) } } });
+    if (!opts.draft && q.discountId) {
+      const d = await t.discount.findUnique({ where: { id: q.discountId } });
+      if (!d || (d.usageLimit != null && d.used >= d.usageLimit)) throw bad('Discount usage limit reached');
+      const u = await t.discount.updateMany({ where: { id: d.id, used: d.used }, data: { used: { increment: 1 } } });
+      if (!u.count) throw bad('This discount was just used by someone else. Please try again.');
+    }
+    if (!opts.draft && q.giftCardBase) {
+      const amt = Math.round(q.giftCardBase); // gift card balances are in the store's base currency
+      const g = await t.giftCard.updateMany({ where: { code: b.giftCode, storeId, active: true, balance: { gte: amt } }, data: { balance: { decrement: amt } } });
+      if (!g.count) throw bad('Gift card balance changed. Please check it and try again.');
+    }
     return t.order.create({ data: { storeId, number: await nextOrderNumber(storeId), customerId: customer.id, email, currency: q.currency, subtotal: q.subtotal, discount: q.discount, shipping: q.shipping, tax: q.tax, giftCard: q.giftCard, total: q.total, shipTo: b.shipTo, draft: !!opts.draft, financial: opts.draft ? 'pending' : protect ? 'held' : 'paid', protected: protect, chargeId, timeline: tl(null, opts.draft ? 'Draft order created' : `Order placed${chargeId ? (protect ? `, payment ${chargeId} held by VendOm Pay Protection until the buyer confirms delivery` : `, payment ${chargeId} received`) : ''}`), lines: { create: q.lines.map(({ tags, ...l }) => l) } }, include: { lines: true } });
   });
   let escrow: any = null;
