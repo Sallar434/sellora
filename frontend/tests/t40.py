@@ -445,6 +445,7 @@ with sync_playwright() as p:
 
     # ================================================================ 4. the rest buy through the order API
     t_api = time.time(); api_ms = []
+    refused = []
     POOL = [(P['kurta'], -1), (P['dupatta'], -1), (P['khussa'], 0), (P['khussa'], 1), (P['chai'], -1), (P['pashmina'], 0), (P['cup'], -1), (P['bangles'], -1)]
     for k in range(36, 100):
         c = CUSTS[k]
@@ -461,12 +462,16 @@ with sync_playwright() as p:
             if j == 1: cc['email'] = c['email'].upper()          # same person, capitals on the second order
             if k == 37: cc['email'] = '  ' + c['email'] + ' '     # stray whitespace from an integration
             gc = 'GIFT-EID-0001' if k in (40, 41) else None
+            if any(STOCK.get((pid, vi), 10**9) < q for pid, vi, q in cart):  # not enough stock left: the app must refuse it
+                err = E("(c)=>{try{ORD.place(c.map(x=>({pid:x[0],vi:x[1],q:x[2]})),{email:'short@x.pk',first:'S',last:'S',country:'Pakistan'},{method:'card'});return ''}catch(e){return e.message}}", [list(x) for x in cart])
+                refused.append(bool(err)); continue
             o, exp = api_order(cc, cart, codes, gc)
             api_ms.append(o['ms'])
             if k < 46 or not all(near(o[x], exp[x]) for x in ['sub', 'disc', 'ship', 'tax', 'total', 'gcAmt']):
                 ok('API order #%s (%s, %s) totals match the model' % (o['id'], c['country'], '+'.join(codes) or 'no code'),
                    all(near(o[x], exp[x]) for x in ['sub', 'disc', 'ship', 'tax', 'total', 'gcAmt']), {'app': o, 'model': exp})
     api_secs = time.time() - t_api
+    ok('API orders beyond the stock left are refused (%d tries)' % len(refused), all(refused), refused)
     ok('LIMIT3 used exactly 3 times', E("S.disc2.find(d=>d.code==='LIMIT3').used") == 3, E("S.disc2.find(d=>d.code==='LIMIT3').used"))
     ok('expired OLD10 never applied', E("S.orders.filter(o=>(o.codes||[]).includes('OLD10')).length") == 0)
     ok('ONCE15 used at most once per customer', E("(()=>{var m={};S.orders.forEach(o=>{if((o.codes||[]).includes('ONCE15')){var e=o.email.toLowerCase();m[e]=(m[e]||0)+1}});return Object.values(m).every(n=>n===1)})()"))
@@ -516,8 +521,8 @@ with sync_playwright() as p:
     ok('sum of order totals = model ($%.2f)' % gross, near(sum(o['total'] for o in orders), gross, 0.05), sum(o['total'] for o in orders))
 
     # stock
-    st = E("S.products.map(p=>({id:p.id,stock:p.stock,vars:p.vars.map(v=>+v.qty)}))")
-    neg = [(s['id'], s['stock'], s['vars']) for s in st if s['stock'] < 0 or any(v < 0 for v in s['vars'])]
+    st = E("S.products.map(p=>({id:p.id,oos:!!p.oos,stock:p.stock,vars:p.vars.map(v=>+v.qty)}))")  # pre-order products may go below 0: that is the pre-ordered count
+    neg = [(s['id'], s['stock'], s['vars']) for s in st if not s['oos'] and (s['stock'] < 0 or any(v < 0 for v in s['vars']))]
     ok('stock never negative', not neg, neg)
     def app_stock(pid, vi):
         s = [x for x in st if x['id'] == pid][0]
@@ -533,7 +538,7 @@ with sync_playwright() as p:
     low = [e.strip().lower() for e in cl]
     dups = sorted(set(e for e in low if low.count(e) > 1))
     ok('no duplicate customers (case / whitespace-insensitive)', not dups, dups)
-    expected_emails = set(m['email'] for m in MODEL) | set(CUSTS[k]['email'].lower() for k in ABANDON) | {CUSTS[12]['email'].lower()}
+    expected_emails = set(m['email'] for m in MODEL) | set(CUSTS[k]['email'].lower() for k in ABANDON) | {CUSTS[12]['email'].lower(), CUSTS[15]['email'].lower()}
     ok('every buyer / abandoner has a customer record', expected_emails <= set(low), sorted(expected_emails - set(low))[:5])
     ok('customer count = distinct shoppers (%d)' % len(expected_emails), len(set(low)) == len(expected_emails), (len(set(low)), len(expected_emails), sorted(set(low) - expected_emails)))
     ok('stray-whitespace email stored trimmed', not any(e != e.strip() for e in cl), [e for e in cl if e != e.strip()])
