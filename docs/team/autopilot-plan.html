@@ -1,0 +1,256 @@
+<title>VendOm Autopilot Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: a CEO's product plan shown to the team
+   IDEA a Swiss railway timetable: one line, seven stations, week numbers hanging in the margin
+   PICTURE the route map from "connect accounts" to "sell and improve", each station showing its AI and who decides
+   COLOUR white, black, signal red for the line and for "you approve", one grey
+   TYPE Archivo wide 800 for display + Archivo text
+   LAYOUT laptop: title and finding across the top, route map full width beneath; phone: route turns vertical */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#0e0e0e);--ink:light-dark(#111,#f2f2f2);--red:light-dark(#e4002b,#ff4d5e);--grey:light-dark(#6b6b6b,#a3a3a3);--rule:light-dark(#111,#f2f2f2);--soft:light-dark(#f2f2f0,#1b1b1b);--line:light-dark(#dcdcd8,#2c2c2c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Archivo,system-ui,sans-serif;margin:0;overflow-x:clip}
+.band{padding-block:clamp(28px,4vw,56px);padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2{font-stretch:112%;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:0}
+h1{font-size:clamp(32px,4.6vw,52px);max-width:22ch}
+h2{font-size:clamp(24px,2.6vw,32px);margin-bottom:6px}
+h3{font-size:17px;margin:0 0 4px;font-weight:700}
+p{margin:0}
+.lede{font-size:18px;max-width:62ch;margin-top:14px}
+.top{border-top:6px solid var(--rule)}
+.sub{color:var(--grey);max-width:70ch;margin-bottom:22px}
+.keys{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:14px;color:var(--grey)}
+.keys span{display:inline-flex;align-items:center;gap:6px}
+.auto,.appr{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:1px 7px;white-space:nowrap}
+.auto{background:var(--ink);color:var(--bg)}
+.appr{background:var(--red);color:#fff}
+/* route map */
+.route{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:34px;position:relative}
+.st{position:relative;padding:34px 14px 0 0}
+.st::before{content:"";position:absolute;left:0;right:0;top:9px;height:6px;background:var(--red)}
+.st:last-child::before{right:auto;width:14px}
+.st::after{content:"";position:absolute;left:0;top:2px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:5px solid var(--ink)}
+.wk{font-stretch:112%;font-weight:800;font-size:13px;color:var(--grey);white-space:nowrap}
+.st h3{font-size:18px;font-stretch:112%;font-weight:800;margin-top:2px}
+.st p{font-size:14px;color:var(--grey);margin:6px 0 10px}
+.ai{display:block;font-size:13px;font-weight:600;border-left:3px solid var(--ink);padding-left:8px;margin-bottom:8px}
+.loop{margin-top:22px;font-size:14px;color:var(--grey);display:flex;gap:10px;align-items:center}
+.loop b{color:var(--red)}
+@media(max-width:899px){.route{grid-template-columns:1fr}.st{padding:0 0 22px 38px}.st::before{left:7px;right:auto;top:0;bottom:0;width:6px;height:auto}.st:last-child::before{bottom:auto;height:14px;width:6px}.st::after{left:0;top:0}.st h3{margin-top:0}}
+/* two columns */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.box{border-top:3px solid var(--rule);padding-top:12px}
+.box ol,.box ul{margin:8px 0 0;padding-left:20px}
+.box li{margin-bottom:6px}
+.box li small{color:var(--grey);display:block;font-size:14px}
+@media(max-width:700px){.two{grid-template-columns:1fr}}
+/* tables */
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{text-align:left;font-size:13px;color:var(--grey);font-weight:600;border-bottom:2px solid var(--rule);padding:8px 10px 8px 0}
+td{border-bottom:1px solid var(--line);padding:10px 10px 10px 0;vertical-align:top}
+td b{display:block}
+td small{color:var(--grey);font-size:14px}
+@media(max-width:640px){.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{border:0;padding:3px 0;display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:10px}.stack td::before{content:attr(data-l);color:var(--grey);font-size:13px}}
+/* accounts grid */
+.acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(15em,1fr));gap:0 28px}
+.acc div{border-top:1px solid var(--line);padding:12px 0}
+.acc h3 span{font-weight:400;color:var(--grey);font-size:14px}
+.acc p{font-size:14px;color:var(--grey)}
+.acc .note{color:var(--red)}
+/* skills */
+.sk{display:grid;grid-template-columns:repeat(auto-fit,minmax(17em,1fr));gap:0 28px}
+.sk div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;border-top:1px solid var(--line);padding:12px 0}
+.sk p{grid-column:1/-1;font-size:14px;color:var(--grey)}
+/* roadmap */
+.rm{margin-top:10px}
+.row{display:grid;grid-template-columns:13em minmax(0,1fr);gap:14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.row span{font-size:15px}
+.trk{position:relative;height:22px;background:var(--soft)}
+.bar{position:absolute;top:0;bottom:0;background:var(--ink);color:var(--bg);font-size:12px;font-weight:700;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden}
+.bar.r{background:var(--red);color:#fff}
+.scale{display:grid;grid-template-columns:13em minmax(0,1fr);gap:14px;font-size:13px;color:var(--grey);margin-top:6px}
+.scale div{display:flex;justify-content:space-between}
+@media(max-width:600px){.row,.scale{grid-template-columns:1fr;gap:4px}.scale>span{display:none}}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(16em,1fr));gap:22px}
+.rules div{border-top:3px solid var(--red);padding-top:10px}
+.rules p{font-size:15px;color:var(--grey)}
+.foot{font-size:14px;color:var(--grey)}
+</style>
+
+<section class="band top"><div class="wrap">
+ <h1>VendOm Autopilot: the seller connects once, the AI builds, lists, markets and sells</h1>
+ <p class="lede">The seller answers 10 questions and connects their accounts. From then on VendOm builds the website, writes the listings, wins search, posts every day, makes reels, runs ads and follows up on WhatsApp. It acts on its own for everything that doesn't spend money, and asks for one tap before it does.</p>
+ <div class="keys"><span><i class="auto">Auto</i> VendOm does it, then tells the seller</span><span><i class="appr">You approve</i> one tap in the Approvals inbox first</span></div>
+ <div class="route" id="route"></div>
+ <p class="loop"><b>↺</b> Station 7 feeds results back into stations 2–6 every week: better pages, better posts, budget moved to the ads that sell.</p>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Day 1: everything is set up. Month 1: traffic</h2>
+ <p class="sub">For every seller. On the day they sign up, Autopilot builds the store, lists every product, sets up SEO, AEO, GEO and the first blogs, schedules 30 days of posts and reels, drafts the ads and switches on WhatsApp. Then this 30-day sprint runs. Autopilot checks it every week and changes course if a checkpoint is missed.</p>
+ <p class="sub"><b>Every visitor is sent to the website.</b> Every bio link, post, reel, story, pin, blog post, ad and WhatsApp message links straight to the product page on the store, with tracking tags so Autopilot knows which post or ad brought each visit and sale. WhatsApp is used to follow up on carts, confirm orders and answer questions, not instead of the website.</p>
+ <p class="sub"><b>Where website visits come from in month 1:</b> daily posts and reels linking to products, Google free listings, the starter blog posts, sharing on WhatsApp and, if the seller set a budget, ads sent to the website. SEO, AEO and GEO start on day 1, but Google and AI search usually take 2–6 months to rank a new site, so search traffic grows later. Google also needs a few days to review a Merchant Center feed and to index new pages.</p>
+ <div class="rules">
+  <div><h3>Days 1–3: live and shared</h3><p>Store live with COD. Every product listed and on Google free listings. A share message and QR code for the store link go to the seller’s WhatsApp contacts and Status. Every social bio links to the store. <b>Checkpoint:</b> store live, first website visitors.</p><p><b>Main number every week:</b> website visitors, then the share who add to cart and buy.</p></div>
+  <div><h3>Days 4–10: be seen</h3><p>One post and one reel every day on Instagram, Facebook and TikTok, each linking to a product page. Product tags in posts open the store. Blog posts go out to bring search visitors. A launch discount for the first 20 buyers. <b>Checkpoint:</b> people adding to cart.</p></div>
+  <div><h3>Days 11–20: convert</h3><p>WhatsApp cart reminders and COD confirmation switch on. Autopilot fixes the page where most visitors leave. If the seller set a budget, a small test ad sends people to the best product’s page on the website. <b>Checkpoint:</b> first order.</p></div>
+  <div><h3>Days 21–30: repeat what works</h3><p>More posts and budget go to the product and post that sold. Buyers are asked for a review and a referral. The day-30 report shows what worked. <b>Checkpoint:</b> second and third orders.</p></div>
+ </div>
+ <div class="box" style="margin-top:26px"><h3>First-sale promise (suggested offer)</h3><p class="foot" style="font-size:15px">If a seller completes the setup checklist and has no order in 30 days, VendOm refunds that month’s plan. Autopilot can’t guarantee sales, but VendOm can guarantee the seller doesn’t pay for a month that brought none. It also shows we trust the product.</p></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>What Autopilot does each month, by plan</h2>
+ <p class="sub">Every plan gets day-1 setup, the 30-day sprint, SEO, AEO, GEO and the WhatsApp agent. Bigger plans get more posts, reels, blogs, channels and ad management. Monthly amounts reset each month, and unused amounts don’t carry over.</p>
+ <div class="scroll"><table class="stack"><thead><tr><th></th><th>Starter $25</th><th>Grow $49</th><th>Pro $99</th><th>Scale $249</th></tr></thead><tbody id="plans"></tbody></table></div>
+ <p class="foot" style="margin-top:12px">One post is published on every connected channel, rewritten for each, and counts once. Costs assume every allowance is fully used. Most sellers use 30–50%, so real profit is higher. Profit is after AI, payment fees and hosting. Images average $0.018: a cheap model for social graphics, a premium model for product photos. Video clips use a fast video model at about $0.10 a second, with one retry allowed. The ad budget is paid by the seller to Meta, Google and TikTok, on top of the plan. “Cap” is the most ad spend Autopilot will manage on that plan.</p>
+</div></section>
+
+<section class="band" style="background:var(--soft)"><div class="wrap">
+ <h2>Brand Builder: an optional 6-month plan for new brands</h2>
+ <p class="sub">For sellers starting a brand with its own name, look and voice, not for resellers or stores that only want sales. The seller chooses it at sign-up or later. It is the same programme on every plan (Grow or higher recommended, because it uses TikTok and Google ads), because the spend is large and needs one proven method. Day-1 setup and the 30-day sprint still run. Brand Builder adds a brand identity, a content style and a planned ad budget that grows month by month.</p>
+ <div class="scroll"><table class="stack"><thead><tr><th>Month</th><th>Focus</th><th>What Autopilot does</th><th>Suggested ad spend (Pakistan)</th><th>How it’s measured</th></tr></thead><tbody id="brand"></tbody></table></div>
+ <p class="foot" style="margin-top:12px">Total suggested spend: <b id="btot"></b> over 6 months. Lean option: half of each month. Faster option: double, from month 3. US$ at Rs 280. India, Bangladesh and Sri Lanka use the same plan in local currency. This is ad money paid to Meta, Google and TikTok plus creator fees. It does not include the VendOm plan. Autopilot never spends above the cap the seller sets, and moves money every week to whatever brings orders at the lowest cost.</p>
+</div></section>
+
+<section class="band"><div class="wrap two">
+ <div class="box"><h2>What the seller gives</h2><p class="sub">Five minutes, in Urdu, Hindi, Bangla or English, typed or spoken.</p><ol id="inputs"></ol></div>
+ <div class="box"><h2>What VendOm gives back</h2><p class="sub">The first day, then every week without being asked.</p><ul id="outputs"></ul></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Which AI does which job</h2>
+ <p class="sub">Sonnet 5.5 is the brain: it plans each task and calls the right tool. Cheap models do the volume. Money, budgets and tests run on plain code, because code is exact and costs nothing.</p>
+ <div class="scroll"><table class="stack"><thead><tr><th>Job</th><th>Model</th><th>How often</th><th>Rough cost</th></tr></thead><tbody id="models"></tbody></table></div>
+ <p class="foot" style="margin-top:10px">Text costs use Anthropic's list prices. Before launch, test two or three image, video and voice providers on real product photos and pick by quality per rupee.</p>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Accounts the seller connects</h2>
+ <p class="sub">One "Connect" button each, using the platform's own sign-in. VendOm keeps the access keys encrypted and the seller can disconnect any time. Red notes are platform rules we have to plan around.</p>
+ <div class="acc" id="accounts"></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Skills on by default in every account</h2>
+ <p class="sub">Nothing to install. Each skill can be paused, and the badge shows whether it acts alone or asks first.</p>
+ <div class="sk" id="skills"></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Our build plan: first version in 16 weeks</h2>
+ <p class="sub">This is how long it takes the VendOm team to build Autopilot, not how long a seller waits. Once it is built, every seller gets everything on day 1. We build the day-1 setup engine first, then posting and WhatsApp, then ads and reels, then Brand Builder. Platform reviews start in week 1 because Meta, TikTok and Google take weeks to approve apps.</p>
+ <div class="rm" id="roadmap"></div>
+ <div class="scale"><span></span><div><i>Wk 1</i><i>Wk 4</i><i>Wk 8</i><i>Wk 12</i><i>Wk 16</i></div></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Rules Autopilot always follows</h2>
+ <div class="rules" id="rules"></div>
+ <p class="foot" style="margin-top:22px">Plan written 27 Nov 2026. Week numbers assume a team of 4–5 engineers. Costs are estimates per store.</p>
+</div></section>
+
+<script>{
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tag=a=>a?'<i class="appr">You approve</i>':'<i class="auto">Auto</i>';
+const stations=[
+ ['Day 1','Connect','Seller taps Connect for each account. Keys go into an encrypted vault.','Plain code',0],
+ ['Day 1','Website','Theme, pages, policies, COD and delivery areas, built from the shop name, photos and the look the seller picked.','Sonnet 5.5 + image model',1],
+ ['Day 1','Listings','Titles, descriptions, options and prices checked. Photos cleaned, in English and Urdu.','Haiku 5.5 + image model',0],
+ ['Day 1, then weekly','Search & blogs','SEO meta, schema, FAQs for AI answers (AEO/GEO), 4 starter blog posts then 2 a week, Merchant Center feed, Search Console.','Haiku 5.5, Sonnet weekly',0],
+ ['Day 1, then daily','Social & reels','30-day calendar, daily posts, and reels from product photos with an Urdu voice-over.','Sonnet plans, Haiku writes, video model',0],
+ ['Day 1 drafts','Ads','Meta, Google Shopping/PMax and TikTok campaigns inside the seller’s daily cap. Losing ads pause themselves.','Sonnet 5.5 + rules in code',1],
+ ['Every day','Sell & improve','WhatsApp COD confirmations, cart reminders and replies. Design tests and a weekly report.','Haiku replies, Sonnet analysis',0]];
+document.getElementById('route').innerHTML=stations.map(s=>`<div class="st"><span class="wk">${esc(s[0])}</span><h3>${esc(s[1])}</h3><p>${esc(s[2])}</p><span class="ai">${esc(s[3])}</span>${tag(s[4])}</div>`).join('');
+
+const inputs=[['Shop name','or let AI suggest five'],['What you sell','"women’s lawn suits", "phone covers"'],['City and country','sets currency (Rs, ₹, ৳), couriers and language'],['5–10 product photos','or a price list, a CSV, or a Daraz or Instagram link'],['Price range and delivery areas','plus whether you take cash on delivery'],['WhatsApp number','where orders and buyer questions arrive'],['Pick a look','six ready styles shown as pictures'],['Main goal','orders, followers or website visits'],['Monthly ad budget cap','Rs 0 is fine: then no ads run'],['Connect accounts','the cards below, one tap each']];
+document.getElementById('inputs').innerHTML=inputs.map(i=>`<li>${esc(i[0])}<small>${esc(i[1])}</small></li>`).join('');
+const outputs=[['A live store','your-shop.vendom.app, with checkout, COD and courier booking'],['Every product listed','title, description, meta title, meta description, alt text, in two languages'],['Google-ready','Merchant Center free listings, sitemap, schema, and FAQ answers that AI search can quote'],['Profiles filled in','bios, links and highlights on Instagram, Facebook, TikTok, Threads and X'],['A 30-day content calendar','daily posts and 3–5 reels a week, posted for you'],['Ad drafts','ready to approve, with expected cost per order once there is data'],['WhatsApp sales agent','confirms COD orders, recovers carts, answers sizes and delivery questions'],['Monday report','what Autopilot did, visits, orders, money spent and earned, next week’s plan']];
+document.getElementById('outputs').innerHTML=outputs.map(i=>`<li><b>${esc(i[0])}</b><small>${esc(i[1])}</small></li>`).join('');
+
+const models=[
+ ['Brain: plans every task, chooses tools, designs pages and campaigns','Claude Sonnet 5.5','Every task','about $0.12 per full store build'],
+ ['Bulk writing: titles, descriptions, meta tags, alt text, captions, hashtags, translations, WhatsApp replies','Claude Haiku 5.5','Thousands a day','about $0.40 per 1,000 replies'],
+ ['Hard thinking: monthly growth review, big redesign, new-market plan','Claude Opus 5.5','Once a month per store','about $0.25 per review'],
+ ['Pictures: photo clean-up, white backgrounds, banners, ad images','Image model (test Gemini image, OpenAI image, Flux)','On demand','confirm before launch'],
+ ['Reels: slideshow reels from product photos with text and music','Video templates in code','3–5 a week','almost free'],
+ ['Hero video clips for ads','AI video model (test Veo, Kling, Runway)','A few a month, higher plans','confirm before launch'],
+ ['Voice-overs in Urdu, Hindi, Bangla','Text-to-speech (test Google, ElevenLabs)','Per reel','confirm before launch'],
+ ['Budgets, ad rules, A/B test maths, stock alerts, reports’ numbers','Plain code, no AI','Always','free']];
+document.getElementById('models').innerHTML=models.map(m=>`<tr><td data-l="Job">${esc(m[0])}</td><td data-l="Model"><b>${esc(m[1])}</b></td><td data-l="How often">${esc(m[2])}</td><td data-l="Cost">${esc(m[3])}</td></tr>`).join('');
+
+const acc=[
+ ['WhatsApp Business','Cloud API','Catalogue, COD order confirmation, cart reminders, buyer replies.','Message templates need Meta approval; Meta charges per conversation.'],
+ ['Google Merchant Center','','Free product listings and the Shopping feed for ads.',''],
+ ['Google Search Console','','Indexing, search terms, fixes for pages that don’t rank.',''],
+ ['Google Analytics 4','','Visits, sources, add-to-cart and sales for every decision.',''],
+ ['Google Ads','','Shopping and Performance Max campaigns.','Needs a developer token with Google’s approval.'],
+ ['Google Business Profile','','Local listing, weekly posts, reply to reviews.',''],
+ ['YouTube','','Shorts from the reels, product videos.',''],
+ ['Facebook & Instagram','Meta','Page and professional account posts, reels, stories, shop catalogue, pixel and Conversions API.','Needs Meta app review for posting and ads permissions.'],
+ ['Meta Ads','','Advantage+ sales campaigns inside the cap.',''],
+ ['Threads','','Daily text posts and replies.',''],
+ ['X (Twitter)','','Posts and replies.','Posting through X’s API is a paid tier; budget for it or make X optional.'],
+ ['TikTok','Business, Shop, Ads','Video posts, TikTok Shop where it is available, ads.','Content posting needs TikTok’s app audit.'],
+ ['Pinterest','','Pins and the product catalogue.',''],
+ ['Couriers','TCS, Leopards, PostEx and more','Book parcels, tracking messages, COD cash reports.',''],
+ ['Payments','JazzCash, Easypaisa, bank, cards','Payments in, payouts out.',''],
+ ['Marketplaces','Daraz and others','Product feed and stock sync where API access is given.','']];
+document.getElementById('accounts').innerHTML=acc.map(a=>`<div><h3>${esc(a[0])} ${a[1]?'<span>'+esc(a[1])+'</span>':''}</h3><p>${esc(a[2])}</p>${a[3]?'<p class="note">'+esc(a[3])+'</p>':''}</div>`).join('');
+
+const skills=[
+ ['Store Builder',1,'Builds or redesigns the site. Going live needs a tap.'],
+ ['Product Writer',0,'Title, description, meta title and meta description for every product, in two languages.'],
+ ['Photo Studio',0,'White backgrounds, sizes for every platform, alt text.'],
+ ['SEO Fixer',0,'Broken links, missing tags, slow pages, sitemap, schema.'],
+ ['AI Search Answers',0,'FAQ blocks and clear facts so ChatGPT, Gemini and AI Overviews can quote the store (AEO/GEO).'],
+ ['Merchant Feed',0,'Keeps Google, Meta, TikTok and Pinterest catalogues in sync.'],
+ ['Content Calendar',0,'Plans 30 days around Eid, sales, new stock and trends.'],
+ ['Social Poster',0,'Posts at the best hours. The seller approves the first week’s style, then it runs.'],
+ ['Reel Maker',0,'Reels from product photos with captions, music and voice-over.'],
+ ['WhatsApp Sales Agent',0,'Confirms COD orders, recovers carts, answers questions. Hands over to the seller when unsure.'],
+ ['Ads Manager',1,'Ads send people to website product pages, tracked with the pixel. New campaigns and budget increases need a tap. Pausing losing ads is automatic.'],
+ ['Traffic Router',0,'Puts tracked website links in every bio, post, reel, pin, blog and message, and shows which channel brings visitors and sales.'],
+ ['Review Collector',0,'Asks happy buyers for a review after delivery.'],
+ ['Growth Analyst',0,'Weekly report and small A/B tests with automatic undo.'],
+ ['Stock & Price Watch',0,'Low-stock alerts, hides sold-out items from ads.']];
+document.getElementById('skills').innerHTML=skills.map(s=>`<div><h3>${esc(s[0])}</h3>${tag(s[1])}<p>${esc(s[2])}</p></div>`).join('');
+
+const W=16,rm=[['Platform reviews',1,10,'Meta, TikTok, Google',1],['Foundation',1,3,'accounts, vault, approvals'],['Day-1 setup engine',2,7,'site, listings, SEO, blogs'],['Social posting',5,9,'Calendar, Poster'],['WhatsApp agent',5,9,'Sales Agent'],['Ads autopilot',7,12,'Ads Manager',1],['Reels & video',8,12,'Reel Maker'],['Brand Builder',10,14,'6-month plan'],['Growth loop',11,16,'Analyst, report']];
+document.getElementById('roadmap').innerHTML=rm.map(r=>`<div class="row"><span>${esc(r[0])}</span><div class="trk"><div class="bar${r[4]?' r':''}" style="left:${(r[1]-1)/W*100}%;width:${(r[2]-r[1]+1)/W*100}%" title="Weeks ${r[1]}–${r[2]}">Wk ${r[1]}–${r[2]} · ${esc(r[3])}</div></div></div>`).join('');
+
+const plans=[
+ ['Posts a month','30 (1 a day)','60 (2 a day)','90 (3 a day)','150 (5 a day)'],
+ ['Reels a month','9 (2 a week)','17 (4 a week)','30 (1 a day)','60 (2 a day)'],
+ ['Blog posts a month','4','8','12','20'],
+ ['AI images a month','50','150','400','1,200'],
+ ['AI video clips a month (8 seconds)','—','1','4','10'],
+ ['Channels','Instagram, Facebook, WhatsApp, Google','+ TikTok, Threads, Pinterest','+ X, YouTube Shorts, Google Business Profile','All, + marketplaces'],
+ ['Ads Autopilot runs','Meta','Meta, Google','Meta, Google, TikTok','All'],
+ ['Ad spend it manages (cap)','Rs 25,000','Rs 100,000','Rs 400,000','Seller’s own cap'],
+ ['Suggested ad budget','Rs 0–15,000','Rs 15,000–40,000','Rs 40,000–120,000','Rs 120,000+'],
+ ['SEO, AEO, GEO','Yes','Yes','+ competitor tracking','+ competitor tracking'],
+ ['Design tests a month','1','2','4','8'],
+ ['Reports','Weekly','Weekly','Weekly + monthly strategy review','Weekly + monthly strategy review'],
+ ['Brand Builder (6 months)','Can add','Recommended','Recommended','Recommended'],
+ ['Our AI cost a month (full use)','$4.51','$13.06','$34.07','$94.97'],
+ ['Our profit a month (full use)','$17.74 (71%)','$30.99 (63%)','$55.48 (56%)','$133.08 (53%)']];
+document.getElementById('plans').innerHTML=plans.map(r=>`<tr><td data-l=""><b>${esc(r[0])}</b></td>${r.slice(1).map((c,i)=>`<td data-l="${['Starter','Grow','Pro','Scale'][i]}">${esc(c)}</td>`).join('')}</tr>`).join('');
+const brand=[
+ ['1','Brand foundation','Name check, logo, colours, fonts, brand voice, story page, brand-look photos, 20 content pillars. The seller picks from 3 AI options. Builds an audience of site visitors and engaged followers.',30000,'Brand kit approved; visitors and followers'],
+ ['2','Launch','Launch campaign: teaser reels, launch day, launch offer. Ads find new buyers who match the brand. 2–3 micro-creators send gifted products.',45000,'First orders; cost per order'],
+ ['3','Test and learn','Tests 3 messages × 3 visuals. Losing ads stop, winners get more budget. Blogs aim at buying questions in Google and AI search.',60000,'Best ad; add-to-cart rate'],
+ ['4','Scale winners','More budget for the best product and message. Remarketing on WhatsApp and Instagram. First customer reviews and user videos.',80000,'Sales, return on ad spend'],
+ ['5','Community','Paid creator collaboration, a giveaway with a partner brand, a loyalty offer for repeat buyers, a WhatsApp VIP list.',100000,'Repeat buyers; follower growth'],
+ ['6','Brand authority','Seasonal collection or Eid campaign, PR-style blog stories, Google brand-search ads. Plans the next 6 months.',120000,'Brand-name searches; repeat rate']];
+const fmt=n=>'Rs '+n.toLocaleString('en-US')+' (about $'+Math.round(n/280)+')';
+document.getElementById('brand').innerHTML=brand.map(b=>`<tr><td data-l="Month"><b>${esc(b[0])}</b></td><td data-l="Focus"><b>${esc(b[1])}</b></td><td data-l="Autopilot">${esc(b[2])}</td><td data-l="Ad spend" style="white-space:nowrap">${esc(fmt(b[3]))}</td><td data-l="Measured by">${esc(b[4])}</td></tr>`).join('');
+document.getElementById('btot').textContent=fmt(brand.reduce((s,b)=>s+b[3],0));
+const rules=[['Never spends without a cap','The seller sets a daily and monthly ad cap. Autopilot can’t go above it, and pauses an ad that loses money for 3 days.'],['No promised results','Ads can lose money. VendOm shows expected ranges from similar stores, never a guarantee.'],['Honest growth only','No bought followers, fake reviews or spam. Posting stays inside each platform’s limits, so accounts don’t get banned.'],['Everything is logged and undoable','Every change has a line in the activity log and an Undo button. Big redesigns go live only after a tap.'],['Asks when unsure','The WhatsApp agent hands the chat to the seller for refunds, complaints and anything it can’t answer.'],['Seller data stays theirs','Keys are encrypted, accounts can be disconnected, and merchant data isn’t used to train models.']];
+document.getElementById('rules').innerHTML=rules.map(r=>`<div><h3>${esc(r[0])}</h3><p>${esc(r[1])}</p></div>`).join('');
+}</script>
